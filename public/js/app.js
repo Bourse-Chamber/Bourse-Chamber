@@ -16,12 +16,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Active Link Highlight based on current path
-  const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+  // Active Link Highlight based on current path (supports clean URLs & .html)
+  const rawPath = window.location.pathname.split('/').pop() || 'index.html';
+  const pathPart = rawPath.replace('.html', '') || 'index';
   const links = document.querySelectorAll('.nav-link');
   links.forEach(link => {
-    const href = link.getAttribute('href');
-    if (href === currentPath || (currentPath === '' && href === 'index.html') || (currentPath === 'bourse-chamber.html' && href === 'index.html')) {
+    const href = (link.getAttribute('href') || '').replace('.html', '');
+    if (
+      href === pathPart ||
+      (pathPart === 'index' && (href === '' || href === 'index')) ||
+      (pathPart === 'bourse-chamber' && href === 'index') ||
+      (pathPart === 'verdict' && href === 'ledger')
+    ) {
       link.classList.add('active');
     } else {
       link.classList.remove('active');

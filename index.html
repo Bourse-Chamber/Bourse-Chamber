@@ -115,6 +115,8 @@
       transition: all 0.25s ease;
       min-height: 135px;
       border-radius: 4px;
+      text-decoration: none;
+      color: inherit;
     }
     .jump-tile:nth-child(1):hover {
       border-color: rgba(6, 182, 212, 0.6);
@@ -334,19 +336,17 @@
         <span>Bourse Chamber</span>
       </a>
       <nav class="nav-links">
-        <button class="nav-link active" data-view="hero" type="button">Overview</button>
-        <button class="nav-link" data-view="chamber" type="button">Council Chamber</button>
-        <button class="nav-link" data-view="bench" type="button">The Bench</button>
-        <button class="nav-link" data-view="ledger" type="button">Ledger</button>
-        <button class="nav-link" data-view="verdict" type="button">Verdict Record</button>
-        <button class="nav-link" data-view="method" type="button">Method</button>
+        <a class="nav-link active" href="index.html">Overview</a>
+        <a class="nav-link" href="chamber.html">Council Chamber</a>
+        <a class="nav-link" href="bench.html">The Bench</a>
+        <a class="nav-link" href="ledger.html">Ledger</a>
         <div class="nav-cta-cell">
           <a class="nav-cta-btn nav-cta-x" href="https://x.com" target="_blank" rel="noopener noreferrer" aria-label="X (formerly Twitter)" title="Follow on X">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
             </svg>
           </a>
-          <button class="nav-cta-btn" data-view="chamber" type="button">Start Convening</button>
+          <a class="nav-cta-btn" href="chamber.html">Start Convening</a>
         </div>
       </nav>
       <button class="mobile-nav-toggle" aria-label="Toggle navigation menu">
@@ -394,9 +394,8 @@
        ======================================================================== -->
   <main>
 
-    <!-- VIEW 1: HERO & PROTOCOL OVERVIEW -->
-    <div class="spa-view-section active" id="view-hero">
-      <section class="hero-section">
+    <!-- PROTOCOL OVERVIEW & HERO -->
+    <section class="hero-section">
         <div class="hero-canvas-wrap">
           <canvas id="hero-matrix-canvas"></canvas>
         </div>
@@ -413,8 +412,8 @@
 
           <!-- Action Buttons matching Reference Image 1 -->
           <div style="display:flex;gap:14px;justify-content:center;margin-top:28px;flex-wrap:wrap;">
-            <button class="btn btn-primary" data-view="chamber" type="button" style="padding:12px 30px;font-size:0.88rem;font-weight:600;">Start Convening</button>
-            <button class="btn btn-secondary" data-view="method" type="button" style="padding:12px 28px;font-size:0.88rem;background:rgba(22,22,22,0.85);border:1px solid #383838;color:#FFFFFF;">See How It Works</button>
+            <a class="btn btn-primary" href="chamber.html" style="padding:12px 30px;font-size:0.88rem;font-weight:600;text-decoration:none;">Start Convening</a>
+            <a class="btn btn-secondary" href="#how-it-works" style="padding:12px 28px;font-size:0.88rem;background:rgba(22,22,22,0.85);border:1px solid #383838;color:#FFFFFF;text-decoration:none;">See How It Works</a>
           </div>
 
           <!-- Hero Instant Debate Launcher -->
@@ -425,30 +424,30 @@
 
           <!-- Quick Jump Tiles -->
           <div class="hero-jump-grid">
-            <div class="jump-tile" data-view="chamber">
+            <a class="jump-tile" href="chamber.html">
               <div>
                 <span class="jump-tile-label">Interactive Floor</span>
                 <div class="jump-tile-title">Council Chamber</div>
                 <div class="jump-tile-desc">Convene the 9-seat round table with live radar sweep, speech waveforms, and directed selection.</div>
               </div>
               <div class="jump-tile-arrow">Enter Chamber →</div>
-            </div>
-            <div class="jump-tile" data-view="bench">
+            </a>
+            <a class="jump-tile" href="bench.html">
               <div>
                 <span class="jump-tile-label">Canonical Personas</span>
                 <div class="jump-tile-title">The 9 Economists</div>
                 <div class="jump-tile-desc">Inspect philosophical disciplines, questioning criteria, and historical voting track records.</div>
               </div>
               <div class="jump-tile-arrow">Inspect Dossiers →</div>
-            </div>
-            <div class="jump-tile" data-view="ledger">
+            </a>
+            <a class="jump-tile" href="ledger.html">
               <div>
                 <span class="jump-tile-label">Historical Archive</span>
                 <div class="jump-tile-title">Verdict Ledger</div>
                 <div class="jump-tile-desc">Audit permanent unedited committee records, summary metrics, and Taleb size bands.</div>
               </div>
               <div class="jump-tile-arrow">Browse Ledger →</div>
-            </div>
+            </a>
           </div>
 
           <div class="hero-ticks">
@@ -462,7 +461,7 @@
       </section>
 
       <!-- Section: How Bourse Chamber Works (Reference Image 1) -->
-      <section class="wrap" style="padding-top:70px;position:relative;">
+      <section class="wrap" id="how-it-works" style="padding-top:70px;position:relative;">
         <h2 class="dust-pixel-title">How Bourse Chamber Works</h2>
         <p class="dust-pixel-subtitle">One thesis. Nine reasoning minds. One growing ledger.</p>
 
@@ -631,392 +630,11 @@
           <!-- Populated dynamically -->
         </div>
 
-        <div style="text-align:center;margin-bottom:60px;">
-          <button class="btn btn-primary" data-view="chamber" type="button">Open Active Session Floor →</button>
+        <div style="display:flex;gap:14px;justify-content:center;margin-bottom:60px;flex-wrap:wrap;">
+          <a class="btn btn-primary" href="chamber.html" style="text-decoration:none;">Open Active Session Floor →</a>
+          <a class="btn btn-outline" href="bench.html" style="text-decoration:none;">Inspect All 9 Economists →</a>
         </div>
       </section>
-    </div>
-
-
-    <!-- VIEW 2: COUNCIL CHAMBER (THE ROUND TABLE FLOOR) -->
-    <div class="spa-view-section" id="view-chamber">
-      <div class="wrap chamber-page">
-        <!-- Floor Header Bar -->
-        <div class="floor-header">
-          <div>
-            <h1>Session floor</h1>
-            <p>Put a ticker or a thesis on the table. All nine speak in turn, two cross-examine, then the vote is tallied and recorded.</p>
-          </div>
-          <div class="session-metadata-bar">
-            <div class="state-pill" id="chamber-state-pill">
-              <span class="state-blip"></span>
-              <span id="chamber-state-label">IDLE</span>
-            </div>
-            <span>Session: <b id="session-id-display">—</b></span>
-            <span>Seats present: <b>9 / 9</b></span>
-          </div>
-        </div>
-
-        <!-- Evidence Pack Panel -->
-        <section class="evidence-panel" id="evidence-panel">
-          <div class="evidence-header">
-            <span>EVIDENCE PACK: SUBMIT A THESIS TO LOAD A SNAPSHOT</span>
-            <span class="badge">DEMO DATA — NOT A LIVE FEED</span>
-          </div>
-          <p style="font-size:0.78rem;color:var(--text-muted);font-family:var(--font-mono);">
-            Once convened, baseline market liquidity, supply metrics, and on-chain activity will lock before seat analysis begins.
-          </p>
-        </section>
-
-        <!-- Council Circular Stage -->
-        <div class="chamber-stage">
-          <div class="council-arena" id="council-arena">
-            <div class="radar-sweep-beam" id="radar-sweep"></div>
-            <div class="sonar-ping-ring"></div>
-            <div class="ambient-ring-outer"></div>
-            <div class="ambient-ring-inner"></div>
-            <svg class="spoke-lines-svg" id="spoke-lines-svg" viewBox="0 0 720 720" aria-hidden="true"></svg>
-
-            <!-- 9 Circular Seats Container -->
-            <div class="council-seats-container" id="council-seats"></div>
-
-            <!-- Central Live Transcript Hub -->
-            <div class="central-transcript-hub">
-              <div class="transcript-header-bar">
-                <span>LIVE TRANSCRIPT</span>
-                <div class="transcript-controls">
-                  <button class="transcript-btn-mini" id="pause-transcript-btn" type="button">Pause</button>
-                  <button class="transcript-btn-mini" id="speed-transcript-btn" type="button">Speed: 1x</button>
-                  <span id="chamber-clock">00:00:00</span>
-                </div>
-              </div>
-              <div class="transcript-feed" id="transcript-feed">
-                <div class="transcript-msg chair">
-                  <div class="msg-meta">
-                    <span>CHAIR</span>
-                    <span class="msg-time">--:--</span>
-                  </div>
-                  <div class="msg-body">Chamber floor is clear. Present a ticker or investment thesis below to convene the bench.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Live Voting Scoreboard Ribbon -->
-        <div class="voting-scoreboard-panel" id="voting-scoreboard">
-          <div style="font-size:0.78rem;color:var(--text-muted);">LIVE BALLOT TALLY</div>
-          <div class="tally-group">
-            <div class="tally-item">
-              <span class="badge add">ADD</span>
-              <span class="tally-count" id="tally-add">0</span>
-            </div>
-            <div class="tally-item">
-              <span class="badge reduce">REDUCE</span>
-              <span class="tally-count" id="tally-reduce">0</span>
-            </div>
-            <div class="tally-item">
-              <span class="badge pass">PASS</span>
-              <span class="tally-count" id="tally-pass">0</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Post-Session Action Bar -->
-        <div class="post-session-actions" id="post-session-actions">
-          <div class="post-session-text">
-            <strong>SESSION CLOSED & RECORDED</strong>
-            <p style="color:var(--text-secondary);font-size:0.75rem;margin-top:2px;">All ballots tallied. Verdict permanently saved to the ledger.</p>
-          </div>
-          <div class="post-session-btns">
-            <button class="btn btn-outline" id="reset-chamber-btn" type="button">Convene New</button>
-            <button class="btn btn-secondary" id="share-verdict-btn" type="button">Share Verdict</button>
-            <button class="btn btn-primary" id="view-verdict-btn" type="button">Open Full Verdict Record →</button>
-          </div>
-        </div>
-
-        <!-- Composer Form & Hints -->
-        <div class="chamber-composer-wrap">
-          <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;">
-            <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-secondary);">
-              <span id="composer-mode-label">What should the bench examine?</span>
-              <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">Tip: Click any avatar on the ring to direct questions to specific seats.</div>
-            </div>
-            
-            <!-- F13 Answer Budget Counter HUD -->
-            <div class="budget-counter-hud" id="budget-counter-hud">
-              <div class="budget-counter-top">
-                <span class="budget-counter-text" id="budget-counter-text">13 / 13 answers left today</span>
-                <span class="budget-reset-countdown" id="budget-reset-countdown">Resets 00:00 UTC</span>
-              </div>
-              <div class="budget-pixel-grid" id="budget-pixel-grid"></div>
-            </div>
-          </div>
-
-          <div class="budget-warning-text" id="budget-warning-text"></div>
-
-          <!-- F14 Directed Selection Bar -->
-          <div class="directed-selection-bar" id="directed-selection-bar" style="display:none;">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <span style="color:var(--text-muted);font-size:0.65rem;text-transform:uppercase;">Directed to:</span>
-              <div class="selected-chips-group" id="selected-chips-group"></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <button class="crossexam-toggle-btn" id="crossexam-toggle-btn" type="button" style="display:none;">Enable Cross-examine (4)</button>
-              <button class="clear-selection-btn" id="clear-selection-btn" type="button">Clear selection</button>
-            </div>
-          </div>
-
-          <div class="composer-form">
-            <input class="composer-input" id="composer-input" type="text" placeholder="e.g. SOL: Is throughput a moat, or a commodity waiting to be priced?" autocomplete="off">
-            <button class="composer-btn" id="convene-btn" type="button">Ask the full bench (9)</button>
-          </div>
-
-          <!-- Canonical Hint Chips -->
-          <div class="hint-chips-row">
-            <span class="hint-chip-label">Test cases:</span>
-            <button class="hint-chip" type="button" data-thesis="SOL: Is throughput a moat, or a commodity waiting to be priced?">SOL: Throughput moat</button>
-            <button class="hint-chip" type="button" data-thesis="BTC: Core macro reserve holding at current levels, or reduce into strength?">BTC: Monetary premium</button>
-            <button class="hint-chip" type="button" data-thesis="ETH: Does staking yield and L2 fee compression justify a core holding?">ETH: Staking yield thesis</button>
-            <button class="hint-chip" type="button" data-thesis="DOGE: Is social attention a durable investable asset class?">DOGE: Attention asset</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- VIEW 3: THE BENCH PERSONAS -->
-    <div class="spa-view-section" id="view-bench">
-      <div class="wrap bench-page">
-        <div class="bench-header">
-          <h1>The Bench</h1>
-          <p>Nine seats, five schools, one rule: no doctrine gets to win unopposed. Each dossier outlines what that seat demands before voting, and how it has voted across recorded sessions.</p>
-        </div>
-
-        <!-- Category Filters -->
-        <div class="bench-filters-bar" id="bench-filters"></div>
-
-        <!-- Cards Grid -->
-        <div class="bench-grid" id="bench-grid"></div>
-
-        <!-- Floor CTA Banner -->
-        <div class="bench-floor-cta">
-          <div>
-            <h2>Take a thesis to the floor</h2>
-            <p>The full bench convenes simultaneously in the council chamber.</p>
-          </div>
-          <button class="btn btn-primary" data-view="chamber" type="button">Convene Session Floor →</button>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- VIEW 4: VERDICT LEDGER ARCHIVE -->
-    <div class="spa-view-section" id="view-ledger">
-      <div class="wrap ledger-page">
-        <div class="ledger-header">
-          <h1>Verdict ledger</h1>
-          <p>Every closed session, with the vote and the dissent attached. Nothing is edited after the floor closes — including the calls the bench got wrong.</p>
-        </div>
-
-        <!-- Summary Metrics Ribbon -->
-        <div class="metrics-ribbon" id="ledger-metrics">
-          <div class="metric-tile">
-            <b id="metric-total-sessions">—</b>
-            <span>SESSIONS CLOSED</span>
-          </div>
-          <div class="metric-tile">
-            <b id="metric-voted-in">—</b>
-            <span>VOTED IN</span>
-          </div>
-          <div class="metric-tile">
-            <b id="metric-avg-majority">—</b>
-            <span>AVG MAJORITY</span>
-          </div>
-          <div class="metric-tile">
-            <b id="metric-median-band">—</b>
-            <span>MEDIAN SIZE BAND</span>
-          </div>
-        </div>
-
-        <!-- Toolbar: Filters & Instant Search -->
-        <div class="ledger-toolbar">
-          <div class="ledger-filters" id="ledger-filters"></div>
-          <div class="ledger-search-box">
-            <input class="ledger-search-input" id="ledger-search-input" type="text" placeholder="Search by asset or question on the floor…" autocomplete="off">
-          </div>
-        </div>
-
-        <!-- Ledger Table -->
-        <div class="ledger-table-wrap">
-          <div class="ledger-row header-row">
-            <span>ASSET</span>
-            <span>QUESTION ON THE FLOOR</span>
-            <span>VERDICT</span>
-            <span>VOTE</span>
-            <span>SIZE BAND</span>
-            <span style="text-align:right;">CLOSED</span>
-          </div>
-          <div id="ledger-table-rows"></div>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- VIEW 5: VERDICT DETAIL INSPECTOR & TRANSCRIPT REPLAY -->
-    <div class="spa-view-section" id="view-verdict">
-      <div class="wrap verdict-page">
-        <button class="verdict-back-link" data-view="ledger" type="button" style="background:none;border:none;cursor:pointer;">
-          <span>← Return to Verdict Ledger</span>
-        </button>
-
-        <!-- Case Overview & Verdict Stamp Grid -->
-        <div class="case-overview-grid">
-          <div class="case-info">
-            <div class="case-id-tag" id="case-id">SESSION BC-0411</div>
-            <h1 class="case-asset-title" id="case-asset">SOL — Solana</h1>
-            <p class="case-question" id="case-question">Is throughput a moat, or a commodity waiting to be priced?</p>
-            
-            <div class="case-meta-list">
-              <div>Opened: <b id="meta-opened">05 Sep 2026</b></div>
-              <div>Closed: <b id="meta-closed">09:47</b></div>
-              <div>Seats present: <b id="meta-seats">9 / 9</b></div>
-              <div>Speaking turns: <b id="meta-turns">14</b></div>
-            </div>
-          </div>
-
-          <!-- Prominent Verdict Stamp -->
-          <div class="verdict-stamp-card">
-            <div class="stamp-label">OFFICIAL BENCH VERDICT</div>
-            <div class="stamp-outcome" id="verdict-outcome">REDUCE</div>
-            <div class="stamp-ratio" id="verdict-ratio">5 / 9 BENCH MAJORITY</div>
-            <div class="stamp-dissent" id="verdict-dissent">DISSENT: 3 ADD, 1 PASS</div>
-            <div class="stamp-size-band" id="verdict-size-band">
-              <strong>POSITION SIZE BAND: 0.5 – 1.0%</strong>
-              <small>Fixed by Seat 06 (Nassim Nicholas Taleb) under convex tail-risk mandate.</small>
-            </div>
-            <button class="share-action-btn" id="verdict-page-share-btn" type="button">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              Share Verdict Record
-            </button>
-          </div>
-        </div>
-
-        <!-- Section: Individual Ballots -->
-        <section class="verdict-section">
-          <h2 class="section-heading">Individual Ballots (9 Seats)</h2>
-          <p class="section-subtext">Every seat votes on the record with their governing rationale.</p>
-          <div class="votes-table-wrap" id="votes-table-rows"></div>
-        </section>
-
-        <!-- Section: Synthesis & Consensus -->
-        <section class="verdict-section">
-          <h2 class="section-heading">Consensus & Core Contested Issues</h2>
-          <p class="section-subtext">Where the nine minds aligned, and where the ideological fault lines held.</p>
-          <div class="consensus-grid">
-            <div class="consensus-card">
-              <h4>Key Agreement</h4>
-              <p id="consensus-agreement">Loading consensus summary…</p>
-            </div>
-            <div class="consensus-card">
-              <h4>Key Disagreement</h4>
-              <p id="consensus-disagreement">Loading disagreement points…</p>
-            </div>
-            <div class="consensus-card">
-              <h4>Unresolved Question</h4>
-              <p id="consensus-unresolved">Loading unresolved inquiries…</p>
-            </div>
-          </div>
-        </section>
-
-        <!-- Section: Review Triggers -->
-        <section class="verdict-section">
-          <h2 class="section-heading">Permanent Review Triggers</h2>
-          <p class="section-subtext">The specific evidentiary conditions that would trigger an automatic reconvening of the chamber.</p>
-          <div class="consensus-card" style="border:1px dashed var(--border-main);">
-            <ul class="dossier-questions" id="review-triggers-list"></ul>
-          </div>
-        </section>
-
-        <!-- Section: Transcript Replay Player -->
-        <section class="verdict-section">
-          <h2 class="section-heading">Debate Transcript Replay</h2>
-          <p class="section-subtext">Step through the complete session floor proceedings from filing to roll-call.</p>
-          <div class="replay-player-wrap">
-            <div class="replay-controls-bar">
-              <div class="replay-btn-group">
-                <button class="replay-btn" id="replay-play-btn" type="button">Play</button>
-                <button class="replay-btn" id="replay-next-btn" type="button">Next Step ›</button>
-                <button class="replay-btn" id="replay-restart-btn" type="button">Restart ↺</button>
-              </div>
-              <span>SESSION LOG ARCHIVE</span>
-            </div>
-            <div class="replay-feed" id="replay-feed"></div>
-          </div>
-        </section>
-      </div>
-    </div>
-
-
-    <!-- VIEW 6: METHODOLOGY & LEGAL DISCLAIMERS -->
-    <div class="spa-view-section" id="view-method">
-      <div class="wrap" style="padding-top:40px;padding-bottom:80px;max-width:860px;">
-        <div class="section-header" style="text-align:left;padding:0 0 32px;">
-          <div class="section-pretitle">Formal Methodology</div>
-          <h1 class="section-title">Protocol & Reasoning Principles</h1>
-          <p style="color:var(--text-secondary);font-size:0.9rem;margin-top:6px;">How nine competing minds produce one institutional verdict.</p>
-        </div>
-
-        <article class="method-section">
-          <h2>1. Epistemic Independence</h2>
-          <p>
-            The greatest failure mode of investment committees is premature consensus. In Bourse Chamber, each persona evaluates the locked Evidentiary Market Pack in complete epistemic isolation during Round 1.
-          </p>
-          <div class="method-box">
-            <b>Epistemic Rule</b>
-            No seat observes the reasoning or confidence of another seat until its own preliminary read is formally filed to the transcript.
-          </div>
-        </article>
-
-        <article class="method-section">
-          <h2>2. Structural Cross-Examination & Friction</h2>
-          <p>
-            Bourse Chamber is designed to introduce healthy cognitive friction. Users are forced to confront the strongest arguments against their own thesis before taking action elsewhere. In Round 2, ideological extremes duel directly across the floor.
-          </p>
-          <div class="method-box">
-            <b>Duel Rule</b>
-            Cross-examination is not an argument over adjectives. It is a confrontation over which assumption breaks first under adverse market regimes.
-          </div>
-        </article>
-
-        <article class="method-section">
-          <h2>3. Taleb Exclusive Position Sizing Mandate</h2>
-          <p>
-            Conviction without survivable sizing is portfolio fragility. Nassim Nicholas Taleb (Seat 06) is strictly configured as the sole authority dictating the Position Size Band, applying barbell containment to prevent absorbing ruin barriers.
-          </p>
-          <div class="method-box">
-            <b>Sizing Principle</b>
-            "At half a percent, wrong is a bad week. At four percent, wrong is the year. Vote is on survivable sizing, not on the forecast."
-          </div>
-        </article>
-
-        <article class="method-section">
-          <h2>4. Legal Disclaimer & Simulation Boundaries</h2>
-          <p>
-            <strong>Tier 1 — Non-Affiliation:</strong> The personas represented (Benjamin Graham, Charlie Munger, Peter Lynch, Cathie Wood, Aswath Damodaran, Nassim Nicholas Taleb, Mohnish Pabrai, Bill Ackman, Michael Burry) are conceptual reasoning models derived from public writings and investment philosophies. They do not represent, endorse, or affiliate with this application.
-          </p>
-          <p>
-            <strong>Tier 2 — Non-Financial Advice:</strong> Bourse Chamber is an educational reasoning simulator. Outputs (ADD, REDUCE, PASS, sizing bands) are philosophical simulations and do not constitute personalized financial, investment, legal, or tax advice.
-          </p>
-          <p>
-            <strong>Tier 3 — Simulated Evidentiary Snapshots:</strong> Market data snapshots and on-chain metrics displayed during sessions are labeled demonstration data and should never be used as real-time pricing feeds for capital execution.
-          </p>
-        </article>
-      </div>
-    </div>
 
     <!-- Big Action / CTA Banner Container (Reference Image 4) -->
     <div class="dust-cta-banner-wrap">
@@ -1058,7 +676,7 @@
           </div>
         </div>
 
-        <button class="dust-cta-action-btn" data-view="chamber" type="button">Convene The Chamber Floor</button>
+        <a class="dust-cta-action-btn" href="chamber.html">Convene The Chamber Floor</a>
         <div class="dust-cta-footnote">Free educational simulator. Unedited cryptographically logged verdicts.</div>
       </div>
     </div>
@@ -1122,27 +740,27 @@
         <div class="dust-footer-col">
           <h4>Protocol</h4>
           <ul class="dust-footer-links">
-            <li><a href="#chamber" data-view="chamber">Council Chamber</a></li>
-            <li><a href="#bench" data-view="bench">The Bench (9 Seats)</a></li>
-            <li><a href="#ledger" data-view="ledger">Verdict Ledger</a></li>
-            <li><a href="#method" data-view="method">Methodology</a></li>
+            <li><a href="chamber.html">Council Chamber</a></li>
+            <li><a href="bench.html">The Bench (9 Seats)</a></li>
+            <li><a href="ledger.html">Verdict Ledger</a></li>
+            <li><a href="method.html">Methodology</a></li>
           </ul>
         </div>
 
         <div class="dust-footer-col">
           <h4>Resources</h4>
           <ul class="dust-footer-links">
-            <li><a href="#method" data-view="method">Epistemic Independence</a></li>
-            <li><a href="#method" data-view="method">Disclaimers</a></li>
-            <li><a href="#ledger" data-view="ledger">Historical Archive</a></li>
+            <li><a href="method.html">Epistemic Independence</a></li>
+            <li><a href="disclaimer.html">Disclaimers</a></li>
+            <li><a href="ledger.html">Historical Archive</a></li>
           </ul>
         </div>
 
         <div class="dust-footer-col">
           <h4>Community</h4>
           <ul class="dust-footer-links">
-            <li><a href="#chamber" data-view="chamber">Floor Sessions</a></li>
-            <li><a href="#bench" data-view="bench">Dossier Vault</a></li>
+            <li><a href="chamber.html">Floor Sessions</a></li>
+            <li><a href="bench.html">Dossier Vault</a></li>
           </ul>
         </div>
       </div>
@@ -1162,15 +780,32 @@
   <script src="js/budget.js"></script>
   <script src="js/app.js"></script>
   <script src="js/motion.js"></script>
-  <script src="js/chamber.js"></script>
-  <script src="js/bench.js"></script>
-  <script src="js/ledger.js"></script>
-  <script src="js/verdict.js"></script>
-  <script src="js/spa.js"></script>
 
   <script>
-    // Populate landing bench preview cards on overview
     document.addEventListener('DOMContentLoaded', () => {
+      // Quick debate input: redirect to chamber with thesis
+      const quickInput = document.getElementById('hero-quick-input');
+      const quickBtn = document.getElementById('hero-quick-btn');
+      function submitQuick() {
+        if (!quickInput) return;
+        const val = quickInput.value.trim();
+        if (val) {
+          window.location.href = 'chamber.html?q=' + encodeURIComponent(val);
+        } else {
+          window.location.href = 'chamber.html';
+        }
+      }
+      if (quickBtn) quickBtn.addEventListener('click', submitQuick);
+      if (quickInput) {
+        quickInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            submitQuick();
+          }
+        });
+      }
+
+      // Populate landing bench preview cards on overview
       const previewGrid = document.getElementById('landing-bench-preview');
       if (previewGrid && typeof BourseAgents !== 'undefined') {
         BourseAgents.AGENTS.forEach(agent => {

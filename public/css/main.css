@@ -1242,6 +1242,8 @@ footer.site-footer {
   border-radius: 8px;
   border: none;
   cursor: pointer;
+  display: inline-block;
+  text-decoration: none;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
   transition: transform 0.15s ease, background 0.15s ease;
 }
