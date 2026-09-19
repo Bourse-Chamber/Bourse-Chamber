@@ -1332,7 +1332,15 @@ footer.site-footer {
   color: #888888;
 }
 
-/* Nav Bar CTA Button */
+/* Nav Bar CTA Button & Cluster */
+.nav-cta-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-left: 1px solid var(--border-main);
+}
+
 .nav-cta-btn {
   background: linear-gradient(135deg, #A855F7 0%, #6366F1 55%, #06B6D4 100%);
   color: #FFFFFF;
@@ -1345,12 +1353,28 @@ footer.site-footer {
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  line-height: 1.2;
 }
 
 .nav-cta-btn:hover {
   background: linear-gradient(135deg, #C084FC 0%, #818CF8 55%, #38BDF8 100%);
   box-shadow: 0 0 20px rgba(168, 85, 247, 0.65), 0 0 10px rgba(6, 182, 212, 0.4);
   transform: translateY(-1px);
+  color: #FFFFFF;
+}
+
+.nav-cta-btn.nav-cta-x {
+  padding: 8px 12px;
+  min-width: 32px;
+  height: 31px;
+}
+
+.nav-cta-btn.nav-cta-x svg {
+  display: block;
 }
 
 /* ==========================================================================
@@ -1387,6 +1411,15 @@ footer.site-footer {
     padding: 14px 24px;
     justify-content: flex-start;
     height: auto;
+  }
+
+  .nav-cta-cell {
+    border-left: none;
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 14px 24px;
+    width: 100%;
+    justify-content: flex-start;
+    gap: 12px;
   }
 
   .mobile-nav-toggle {
