@@ -884,7 +884,8 @@ const BourseChamber = (() => {
       }
       if (shareVerdictBtn) {
         shareVerdictBtn.onclick = async () => {
-          const shareUrl = `${window.location.origin}${window.location.pathname.replace('chamber.html', '')}verdict.html?id=${sessionId}`;
+          const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+          const shareUrl = `${window.location.origin}${basePath}verdict.html?id=${sessionId}`;
           const ok = await BourseUtils.copyToClipboard(shareUrl);
           if (ok) {
             BourseUtils.showToast('Permanent verdict link copied to clipboard!');

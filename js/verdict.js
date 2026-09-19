@@ -104,6 +104,12 @@ const BourseVerdict = (() => {
       outcomeEl.textContent = v.outcome;
       outcomeEl.className = `stamp-outcome ${v.outcome ? v.outcome.toLowerCase() : 'pass'}`;
     }
+    if (ratioEl) {
+      ratioEl.textContent = `${v.majorityRatio || '5 / 9'} BENCH MAJORITY`;
+    }
+    if (dissentEl) {
+      dissentEl.textContent = v.dissentBreakdown ? `DISSENT: ${v.dissentBreakdown}` : 'UNANIMOUS BENCH';
+    }
     const stampCard = document.querySelector('.verdict-stamp-card');
     if (stampCard && v.outcome) {
       stampCard.classList.remove('add', 'reduce', 'pass');

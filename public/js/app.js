@@ -46,6 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (closeBtn) closeBtn.addEventListener('click', closeDossier);
   if (scrim) scrim.addEventListener('click', closeDossier);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && drawer && drawer.classList.contains('open')) {
+      closeDossier();
+    }
+  });
 
   // Expose global drawer opener
   window.openAgentDossier = function(agent, liveState = null) {

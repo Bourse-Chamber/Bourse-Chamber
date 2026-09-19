@@ -371,16 +371,16 @@
 }
 
 .budget-pixel-box.active {
-  background: #10B981;
-  border-color: #34D399;
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.7);
+  background: #FFFFFF;
+  border-color: #FFFFFF;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
 }
 
 .budget-pixel-box.blinking {
   animation: budgetBlink 0.6s infinite alternate;
-  background: #F59E0B;
-  border-color: #FBBF24;
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.7);
+  background: #888888;
+  border-color: #CCCCCC;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
 }
 
 @keyframes budgetBlink {
@@ -421,10 +421,10 @@
 }
 
 .directed-seat-chip {
-  background: #12101E;
-  color: #E9D5FF;
-  border: 1px solid #A855F7;
-  box-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
+  background: #181818;
+  color: #FFFFFF;
+  border: 1px solid #FFFFFF;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
   padding: 3px 8px;
   font-size: 0.68rem;
   font-weight: 500;
@@ -437,7 +437,7 @@
 .directed-seat-chip button {
   background: none;
   border: none;
-  color: #E9D5FF;
+  color: #FFFFFF;
   cursor: pointer;
   font-size: 0.75rem;
   line-height: 1;
