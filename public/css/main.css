@@ -218,6 +218,27 @@ header.site-header {
   box-shadow: 0 0 10px rgba(168, 85, 247, 0.7);
 }
 
+.nav-icon-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  color: var(--text-secondary);
+  border-left: 1px solid var(--border-main);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  height: 100%;
+}
+
+.nav-icon-link:hover {
+  color: #FFFFFF;
+  background: var(--bg-card-elevated);
+}
+
+.nav-icon-link svg {
+  display: block;
+}
+
 /* Mobile Navigation Toggle */
 .mobile-nav-toggle {
   display: none;
@@ -1358,6 +1379,14 @@ footer.site-footer {
     border-bottom: 1px solid var(--border-subtle);
     padding: 14px 24px;
     width: 100%;
+  }
+
+  .nav-icon-link {
+    border-left: none;
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 14px 24px;
+    justify-content: flex-start;
+    height: auto;
   }
 
   .mobile-nav-toggle {
