@@ -36,24 +36,8 @@ const AGENTS = [
   },
   {
     seat: 3,
-    name: "Warren Buffett",
-    discipline: "Quality / economics",
-    school: "VALUE",
-    bio: "Seeks durable competitive moats, pricing power, and economic inevitability. If you aren't willing to own it for ten years, don't own it for ten minutes.",
-    asks: [
-      "What protects this moat against a well-funded clone?",
-      "Does this protocol produce an enduring economic surplus?",
-      "Is the ecosystem aligned with long-term capital preservation?"
-    ],
-    say: "On {A}: In business, I look for an economic castle surrounded by an unbreachable moat with an honest knight in charge. If a protocol cannot charge a toll without users fleeing to a cheaper alternative, it possesses no true moat.",
-    landingOneLiner: "Demands durable pricing power and economic moats that cannot be cloned by a 50-line fork.",
-    record: { sessions: 50, votedFor: 16, dissents: 34 },
-    traits: { growthBias: 2, riskAversion: 8, valuationRigor: 9 }
-  },
-  {
-    seat: 4,
     name: "Peter Lynch",
-    discipline: "Growth at reasonable price",
+    discipline: "Know what you own",
     school: "GROWTH",
     bio: "Wants organic end-user demand explained in plain language. Adoption you can point at beats adoption you have to model.",
     asks: [
@@ -67,41 +51,9 @@ const AGENTS = [
     traits: { growthBias: 7, riskAversion: 4, valuationRigor: 5 }
   },
   {
-    seat: 5,
-    name: "Howard Marks",
-    discipline: "Risk / cycles",
-    school: "RISK",
-    bio: "Analyzes pendulum swings between greed and terror. Superior investing does not come from buying good things, but from buying things well.",
-    asks: [
-      "Where are we currently in the psychological sentiment pendulum?",
-      "Is skepticism high enough that bad news is already priced in?",
-      "What degree of perfection is the current valuation demanding?"
-    ],
-    say: "On {A}: First-level thinking asks whether this technology is revolutionary. Second-level thinking asks what expectations are already embedded in the price. When everyone thinks risk has been eliminated, risk is at its absolute highest.",
-    landingOneLiner: "Analyzes pendulum swings between greed and terror. Risk is highest when everybody thinks it is zero.",
-    record: { sessions: 49, votedFor: 20, dissents: 29 },
-    traits: { growthBias: 4, riskAversion: 8, valuationRigor: 7 }
-  },
-  {
-    seat: 6,
-    name: "Ray Dalio",
-    discipline: "Macro / regime",
-    school: "MACRO",
-    bio: "Evaluates global liquidity tides, monetary debasement, and debt cycle dynamics. Diversification and regime awareness protect capital across shifts.",
-    asks: [
-      "How does this asset behave across inflationary vs liquidity contraction regimes?",
-      "Is global central bank liquidity expanding or contracting right now?",
-      "What structural role does this play in a multi-asset sovereign treasury?"
-    ],
-    say: "On {A}: The world is transitioning through a classic late-stage debt cycle characterized by sovereign debt saturation and competitive fiat debasement. In such an environment, capital naturally seeks neutral, unprintable reserve assets.",
-    landingOneLiner: "Maps macroeconomic debt cycles and sovereign liquidity debasement against structural monetary alternatives.",
-    record: { sessions: 54, votedFor: 29, dissents: 25 },
-    traits: { growthBias: 5, riskAversion: 6, valuationRigor: 6 }
-  },
-  {
-    seat: 7,
+    seat: 4,
     name: "Cathie Wood",
-    discipline: "Innovation / disruption",
+    discipline: "Growth dan disruption",
     school: "GROWTH",
     bio: "Maps exponential adoption S-curves and convergence technologies over a 5-to-10-year horizon. Volatility is the toll paid for transformative upside.",
     asks: [
@@ -115,9 +67,73 @@ const AGENTS = [
     traits: { growthBias: 10, riskAversion: 2, valuationRigor: 2 }
   },
   {
+    seat: 5,
+    name: "Aswath Damodaran",
+    discipline: "Story into numbers",
+    school: "VALUATION",
+    bio: "Converts every narrative into inputs: users, fees, margins, discount rate. A price without a model is just a mood.",
+    asks: [
+      "What tangible cash flows or fee yields justify today's valuation?",
+      "What implied growth rate is already priced in by the market?",
+      "What is the valuation range, not a single point estimate?"
+    ],
+    say: "Price {A} as an economic enterprise. To justify current valuations, you require on-chain fee revenue compounding at an annualized rate that almost nothing in this sector has sustained. The narrative story is seductive; the quantitative number attached to it is not.",
+    landingOneLiner: "Converts every narrative into inputs: users, fees, margins, discount rate. A price without a model is just a mood.",
+    record: { sessions: 42, votedFor: 18, dissents: 24 },
+    traits: { growthBias: 3, riskAversion: 5, valuationRigor: 10 }
+  },
+  {
+    seat: 6,
+    name: "Nassim Nicholas Taleb",
+    discipline: "Tail risk",
+    school: "RISK",
+    bio: "Sizes for the worst week, not the best month. Prefers a barbell: overwhelmingly anti-fragile or convex, never exposed to ruin. Sole arbiter of position sizing.",
+    asks: [
+      "What happens in the worst week, not the median forecast?",
+      "Does this protocol gain from disorder (antifragile) or shatter under volatility?",
+      "Is the maximum loss strictly bounded with open right-tail convexity?"
+    ],
+    say: "Forget naive point forecasts on {A}. The only thing that matters in non-ergodic environments is avoiding the absorbing barrier of ruin. Sizing must be strictly barbelled: never exposed to liquidation.",
+    landingOneLiner: "Sizes the position for the worst week, not the best month. Barbell first, conviction second. Sole arbiter of sizing bands.",
+    record: { sessions: 53, votedFor: 15, dissents: 38 },
+    traits: { growthBias: 1, riskAversion: 10, valuationRigor: 7 }
+  },
+  {
+    seat: 7,
+    name: "Mohnish Pabrai",
+    discipline: "Low risk, high uncertainty",
+    school: "VALUE",
+    bio: "Hunts asymmetry where the downside is capped and the outcome is genuinely unknown, and clones the strongest argument in the room.",
+    asks: [
+      "Is the downside capped by something real?",
+      "Heads I win, tails I lose very little?",
+      "Who already did this work better than me?"
+    ],
+    say: "Low risk with high uncertainty is the setup I want on {A}. I only get half of it here: the uncertainty is tremendous, but the downside is not capped by any tangible book value. Half a setup is not an asymmetric bet—it is a pass.",
+    landingOneLiner: "Hunts asymmetry where the downside is capped and the outcome is genuinely unknown. Heads I win, tails I don't lose much.",
+    record: { sessions: 39, votedFor: 19, dissents: 20 },
+    traits: { growthBias: 4, riskAversion: 7, valuationRigor: 6 }
+  },
+  {
     seat: 8,
+    name: "Bill Ackman",
+    discipline: "Concentrated conviction",
+    school: "CONCENTRATION",
+    bio: "Backs only theses worth defending in public, at size, against every other seat at this table. Diversification is not an argument.",
+    asks: [
+      "Would I defend this thesis in public against an entire room of skeptics?",
+      "Is this worth real concentrated size or nothing at all?",
+      "What specific metric would change my mind, precisely?"
+    ],
+    say: "If {A} is right, a tiny token position is pointless; if it is wrong, even a small position is a permanent loss. I back only theses worth defending in public against every seat at this table. Today's thesis lacks the durable institutional moat required for concentrated capital.",
+    landingOneLiner: "Backs only theses worth defending in public, at size, against every other seat at this table. Diversification is not an argument.",
+    record: { sessions: 38, votedFor: 21, dissents: 17 },
+    traits: { growthBias: 5, riskAversion: 5, valuationRigor: 7 }
+  },
+  {
+    seat: 9,
     name: "Michael Burry",
-    discipline: "Contrarian / asymmetric risk",
+    discipline: "Contrarian audit",
     school: "CONTRARIAN",
     bio: "Audits hidden leverage, predatory unlocks, and unexamined crowd hysteria. The seat that searches for the exit liquidity trap while everyone is partying.",
     asks: [
@@ -129,25 +145,9 @@ const AGENTS = [
     landingOneLiner: "Reads the hidden leverage nobody quotes and the euphoria everybody feels. The seat that says no while the crowd cheers.",
     record: { sessions: 51, votedFor: 10, dissents: 41 },
     traits: { growthBias: 1, riskAversion: 9, valuationRigor: 8 }
-  },
-  {
-    seat: 9,
-    name: "Nassim Nicholas Taleb",
-    discipline: "Tail risk / antifragility",
-    school: "RISK",
-    bio: "Sizes for the worst week, not the best month. Prefers a barbell: overwhelmingly anti-fragile or convex, never exposed to ruin.",
-    asks: [
-      "What happens in the worst week, not the median forecast?",
-      "Does this protocol gain from disorder (antifragile) or shatter under volatility?",
-      "Is the maximum loss strictly bounded with open right-tail convexity?"
-    ],
-    say: "Forget naive point forecasts on {A}. The only thing that matters in non-ergodic environments is avoiding the absorbing barrier of ruin. Sizing must be strictly barbelled: never exposed to liquidation.",
-    landingOneLiner: "Sizes the position for the worst week, not the best month. Barbell first, conviction second.",
-    record: { sessions: 53, votedFor: 15, dissents: 38 },
-    traits: { growthBias: 1, riskAversion: 10, valuationRigor: 7 }
   }
 ];
 
-const SCHOOL_ORDER = ["ALL", "VALUE", "GROWTH", "MACRO", "RISK", "CONTRARIAN"];
+const SCHOOL_ORDER = ["ALL", "VALUE", "GROWTH", "VALUATION", "RISK", "CONCENTRATION", "CONTRARIAN"];
 
 module.exports = { AGENTS, SCHOOL_ORDER };

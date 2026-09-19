@@ -139,6 +139,9 @@ const BourseChamber = (() => {
         <div class="seat-avatar-box">
           <div class="seat-number-tag">0${agent.seat}</div>
           ${BourseUtils.generatePixelAvatarSVG(agent.name, 38)}
+          <div class="voice-equalizer-bars" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
         </div>
         <div class="seat-name">${agent.shortName || agent.name.split(' ').pop()}</div>
         <span class="seat-status-badge" id="seat-status-${agent.seat}">WAITING</span>
@@ -371,6 +374,124 @@ const BourseChamber = (() => {
     return msg;
   }
 
+  async function streamTranscriptMsg({ type, who, text, time = null }) {
+    if (!feedEl) return null;
+    const msgTime = time || BourseUtils.formatTimestamp(new Date());
+    const msg = document.createElement('div');
+    msg.className = `transcript-msg ${type || ''}`;
+
+    msg.innerHTML = `
+      <div class="msg-meta">
+        <span>${who}</span>
+        <span class="msg-time">${msgTime}</span>
+      </div>
+      <div class="msg-body typing"></div>
+    `;
+
+    feedEl.appendChild(msg);
+    const bodyEl = msg.querySelector('.msg-body');
+
+    const words = text.split(' ');
+    let current = '';
+    const delay = Math.max(12, Math.floor(26 / simulationSpeed));
+
+    for (let i = 0; i < words.length; i++) {
+      while (isPaused) {
+        await BourseUtils.sleep(60);
+      }
+      current += (i === 0 ? '' : ' ') + words[i];
+      bodyEl.textContent = current;
+      feedEl.scrollTop = feedEl.scrollHeight;
+      if (simulationSpeed < 2.5) {
+        await BourseUtils.sleep(delay);
+      }
+    }
+
+    bodyEl.classList.remove('typing');
+
+    if (currentSession && currentSession.transcript) {
+      currentSession.transcript.push({ type, who, time: msgTime, text });
+      currentSession.speakingTurns = currentSession.transcript.length;
+    }
+
+    return msg;
+  }
+
+  function drawDuelBeam(seatA, seatB) {
+    clearDuelBeam();
+    if (!spokesSvg) return;
+    const count = BourseAgents.AGENTS.length;
+    const center = 360;
+    const outerRadius = 295;
+
+    const degA = ((seatA - 1) * (360 / count)) - 90;
+    const radA = (degA * Math.PI) / 180;
+    const x1 = center + Math.cos(radA) * outerRadius;
+    const y1 = center + Math.sin(radA) * outerRadius;
+
+    const degB = ((seatB - 1) * (360 / count)) - 90;
+    const radB = (degB * Math.PI) / 180;
+    const x2 = center + Math.cos(radB) * outerRadius;
+    const y2 = center + Math.sin(radB) * outerRadius;
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('id', 'active-duel-beam');
+    line.setAttribute('class', 'duel-beam');
+    line.setAttribute('x1', x1);
+    line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2);
+    line.setAttribute('y2', y2);
+    spokesSvg.appendChild(line);
+  }
+
+  function clearDuelBeam() {
+    const existing = document.getElementById('active-duel-beam');
+    if (existing) existing.remove();
+  }
+
+  function animateCounter(el, target) {
+    if (!el) return;
+    el.textContent = target;
+    el.classList.remove('tally-pop');
+    void el.offsetWidth;
+    el.classList.add('tally-pop');
+    setTimeout(() => el.classList.remove('tally-pop'), 400);
+  }
+
+  function triggerVerdictImpact(outcome) {
+    const arena = document.getElementById('council-arena');
+    if (arena) {
+      arena.classList.remove('arena-quake');
+      void arena.offsetWidth;
+      arena.classList.add('arena-quake');
+      setTimeout(() => arena.classList.remove('arena-quake'), 500);
+    }
+
+    const stage = document.querySelector('.chamber-stage');
+    if (stage) {
+      const existing = document.querySelector('.verdict-stamp-overlay');
+      if (existing) existing.remove();
+
+      const stamp = document.createElement('div');
+      stamp.className = 'verdict-stamp-overlay';
+      stamp.innerHTML = `
+        <div class="verdict-stamp-ring"></div>
+        <div class="verdict-stamp-box">
+          ${outcome}
+          <span>BENCH RECORD CERTIFIED</span>
+        </div>
+      `;
+      stage.appendChild(stamp);
+
+      setTimeout(() => {
+        stamp.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        stamp.style.opacity = '0';
+        stamp.style.transform = 'translate(-50%, -50%) scale(1.08)';
+        setTimeout(() => stamp.remove(), 600);
+      }, 2300);
+    }
+  }
+
   function showTypingIndicator(who) {
     const typing = document.createElement('div');
     typing.className = 'typing-indicator';
@@ -501,52 +622,58 @@ const BourseChamber = (() => {
         const seatA = targetSeats[0];
         const seatB = targetSeats[1];
 
-        setSeatState(seatA.seat, 'speaking', 'CHALLENGING');
+        drawDuelBeam(seatA.seat, seatB.seat);
+        setSeatState(seatA.seat, 'challenging', 'CHALLENGING');
         showTypingIndicator(seatA.name);
-        await chamberWait(1300);
+        await chamberWait(1000);
         removeTypingIndicator();
+        setSeatState(seatA.seat, 'speaking', 'SPEAKING');
         const challengeA = seatA.generateChallenge(seatB);
-        appendTranscriptMsg({
+        await streamTranscriptMsg({
           type: 'challenge',
           who: `${seatA.name.toUpperCase()} (CHALLENGE TO SEAT 0${seatB.seat})`,
           text: challengeA
         });
 
-        await chamberWait(800);
+        await chamberWait(700);
         setSeatState(seatA.seat, '', 'WAITING');
-        setSeatState(seatB.seat, 'speaking', 'RESPONDING');
+        setSeatState(seatB.seat, 'challenging', 'RESPONDING');
         showTypingIndicator(seatB.name);
-        await chamberWait(1400);
+        await chamberWait(1100);
         removeTypingIndicator();
+        setSeatState(seatB.seat, 'speaking', 'SPEAKING');
         const respB = seatB.generateResponse(seatA);
-        appendTranscriptMsg({
+        await streamTranscriptMsg({
           type: 'response',
           who: `${seatB.name.toUpperCase()} (RESPONSE TO SEAT 0${seatA.seat})`,
           text: respB
         });
+        clearDuelBeam();
+        setSeatState(seatB.seat, '', 'WAITING');
 
       } else {
         // STANDARD READINGS (Full Bench or Directed)
         for (const agent of targetSeats) {
-          setSeatState(agent.seat, 'speaking', 'SPEAKING');
+          setSeatState(agent.seat, 'analyzing', 'ANALYZING');
           showTypingIndicator(agent.name);
-          await chamberWait(1100 + Math.random() * 500);
+          await chamberWait(800 + Math.random() * 400);
           removeTypingIndicator();
 
+          setSeatState(agent.seat, 'speaking', 'SPEAKING');
           const read = agent.generateAnalysis(
             { ticker: currentEvidence.ticker, name: currentEvidence.name },
             currentEvidence
           );
           liveSeatStates[agent.seat] = read;
 
-          appendTranscriptMsg({
+          await streamTranscriptMsg({
             type: 'analysis',
             who: `${agent.name.toUpperCase()} (SEAT 0${agent.seat} · ${agent.school})`,
             text: read.argument
           });
 
           setSeatState(agent.seat, '', 'READ FILED');
-          await chamberWait(400);
+          await chamberWait(350);
         }
 
         // Automatic Stage 2 Clash if Full Bench
@@ -560,32 +687,37 @@ const BourseChamber = (() => {
             who: 'CHAIR',
             text: `Round 1 readings complete. The bench has identified fundamental ideological divergence. Opening cross-examination between Seat 01 (${seatA.name}) and Seat 04 (${seatB.name}).`
           });
-          await chamberWait(1000);
+          await chamberWait(900);
 
+          drawDuelBeam(seatA.seat, seatB.seat);
           setSeatState(seatA.seat, 'challenging', 'CHALLENGING');
           showTypingIndicator(seatA.name);
-          await chamberWait(1200);
+          await chamberWait(1000);
           removeTypingIndicator();
+          setSeatState(seatA.seat, 'speaking', 'SPEAKING');
           const challengeText = seatA.generateChallenge(seatB);
-          appendTranscriptMsg({
+          await streamTranscriptMsg({
             type: 'challenge',
             who: `${seatA.name.toUpperCase()} (CHALLENGE TO SEAT 0${seatB.seat})`,
             text: challengeText
           });
 
-          await chamberWait(800);
+          await chamberWait(700);
           setSeatState(seatA.seat, '', 'WAITING');
-          setSeatState(seatB.seat, 'speaking', 'RESPONDING');
+          setSeatState(seatB.seat, 'challenging', 'RESPONDING');
           showTypingIndicator(seatB.name);
-          await chamberWait(1300);
+          await chamberWait(1100);
           removeTypingIndicator();
+          setSeatState(seatB.seat, 'speaking', 'SPEAKING');
           const responseText = seatB.generateResponse(seatA);
-          appendTranscriptMsg({
+          await streamTranscriptMsg({
             type: 'response',
             who: `${seatB.name.toUpperCase()} (RESPONSE TO SEAT 0${seatA.seat})`,
             text: responseText
           });
-          await chamberWait(900);
+          clearDuelBeam();
+          setSeatState(seatB.seat, '', 'WAITING');
+          await chamberWait(700);
         }
       }
 
@@ -608,20 +740,23 @@ const BourseChamber = (() => {
 
       for (const agent of BourseAgents.AGENTS) {
         setSeatState(agent.seat, 'speaking', 'VOTING');
-        await chamberWait(450);
+        await chamberWait(350);
 
         const voteResult = agent.generateVote(
           { ticker: currentEvidence.ticker, name: currentEvidence.name },
           currentEvidence
         );
 
-        if (voteResult.vote === 'ADD') addTally++;
-        else if (voteResult.vote === 'REDUCE') reduceTally++;
-        else passTally++;
-
-        if (tallyAddEl) tallyAddEl.textContent = addTally;
-        if (tallyReduceEl) tallyReduceEl.textContent = reduceTally;
-        if (tallyPassEl) tallyPassEl.textContent = passTally;
+        if (voteResult.vote === 'ADD') {
+          addTally++;
+          animateCounter(tallyAddEl, addTally);
+        } else if (voteResult.vote === 'REDUCE') {
+          reduceTally++;
+          animateCounter(tallyReduceEl, reduceTally);
+        } else {
+          passTally++;
+          animateCounter(tallyPassEl, passTally);
+        }
 
         recordedVotes.push({
           seat: agent.seat,
@@ -638,12 +773,12 @@ const BourseChamber = (() => {
           text: `Casts: [${voteResult.vote}] — ${voteResult.rationale}`
         });
 
-        setSeatState(agent.seat, 'voted', voteResult.vote);
-        await chamberWait(250);
+        setSeatState(agent.seat, `voted voted-${voteResult.vote.toLowerCase()}`, voteResult.vote);
+        await chamberWait(200);
       }
 
       currentSession.votes = recordedVotes;
-      await chamberWait(800);
+      await chamberWait(700);
 
       // 5. SYNTHESIZING VERDICT & TALEB POSITION SIZING BAND
       updateChamberState(STATES.SYNTHESIZING);
@@ -652,7 +787,7 @@ const BourseChamber = (() => {
         who: 'CHAIR',
         text: `Balloting closed. Calling Seat 06 (Taleb) for position sizing band and synthesizing permanent ledger record.`
       });
-      await chamberWait(1100);
+      await chamberWait(1000);
 
       // Calculate Majority Outcome
       let outcome = 'PASS';
@@ -711,8 +846,11 @@ const BourseChamber = (() => {
       currentSession.verdict = verdictObj;
       currentSession.closedAt = BourseUtils.formatTimestamp(new Date());
 
+      // Trigger High-Impact Verdict Quake & Stamp Slam Animation
+      triggerVerdictImpact(outcome);
+
       // Final Verdict Announcement
-      appendTranscriptMsg({
+      await streamTranscriptMsg({
         type: 'verdict-announcement',
         who: `VERDICT RECORD · SESSION ${sessionId}`,
         text: `OUTCOME: ${outcome} (${verdictObj.majorityRatio} Majority)\nDISSENT: ${dissentBreakdown}\nPOSITION SIZE BAND: ${sizingBand} (Fixed by Seat 06 Taleb — ${talebSizing.rationale})\nRecord officially closed and committed to the permanent Verdict Ledger.`
@@ -728,7 +866,11 @@ const BourseChamber = (() => {
       if (postActionsEl) postActionsEl.classList.add('active');
       if (viewVerdictBtn) {
         viewVerdictBtn.onclick = () => {
-          window.location.href = `verdict.html?id=${sessionId}`;
+          if (window.BourseSPA) {
+            window.BourseSPA.showVerdict(sessionId);
+          } else {
+            window.location.href = `verdict.html?id=${sessionId}`;
+          }
         };
       }
       if (shareVerdictBtn) {

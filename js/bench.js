@@ -50,7 +50,9 @@ const BourseBench = (() => {
 
     agents.forEach(agent => {
       const card = document.createElement('article');
-      card.className = 'persona-card';
+      const schoolSlug = agent.school.toLowerCase().replace(/\s+/g, '-');
+      card.className = `persona-card school-${schoolSlug}`;
+      card.dataset.school = agent.school.toLowerCase();
       card.setAttribute('tabindex', '0');
       card.setAttribute('role', 'button');
       card.setAttribute('aria-label', `Inspect dossier for ${agent.name}`);
@@ -65,7 +67,7 @@ const BourseBench = (() => {
             ${BourseUtils.generatePixelAvatarSVG(agent.name, 42)}
           </div>
           <div class="card-meta">
-            <div class="card-seat-tag">SEAT 0${agent.seat} · ${agent.school}</div>
+            <div class="card-seat-tag"><span class="school-pill">${agent.school}</span> · SEAT 0${agent.seat}</div>
             <h3 class="card-name">${agent.name}</h3>
             <div class="card-discipline">${agent.discipline}</div>
           </div>

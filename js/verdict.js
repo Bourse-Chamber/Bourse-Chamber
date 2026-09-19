@@ -1,6 +1,6 @@
 /**
- * Bourse Chamber — Verdict Record Controller
- * URL-based Session Loading · 9-Seat Votes · Transcript Replay Player · Clipboard Share
+ * Bourse Chamber — Verdict Record Controller (js/verdict.js)
+ * URL-based Session Loading · 9-Seat Votes · Interactive Transcript Replay Player · Clipboard Share
  */
 
 const BourseVerdict = (() => {
@@ -15,16 +15,31 @@ const BourseVerdict = (() => {
     let id = urlParams.get('id');
 
     if (!id) {
-      // Default to canonical SOL session or first in storage
-      id = 'BC-0411';
+      // Default to most recent session if available, else BC-0411
+      const all = (typeof BourseStorage !== 'undefined') ? BourseStorage.getSessions() : [];
+      if (all && all.length > 0) {
+        id = all[0].id;
+      } else {
+        id = 'BC-0411';
+      }
+    }
+
+    loadSession(id);
+    setupShareButton();
+  }
+
+  function loadSession(id) {
+    if (!id) {
+      const all = (typeof BourseStorage !== 'undefined') ? BourseStorage.getSessions() : [];
+      id = (all && all.length > 0) ? all[0].id : 'BC-0411';
     }
 
     session = BourseStorage.getSessionById(id);
 
-    // If still null, try finding any session or seed
+    // If still null, try finding any session in storage
     if (!session) {
       const all = BourseStorage.getSessions();
-      if (all.length > 0) session = all[0];
+      if (all && all.length > 0) session = all[0];
     }
 
     if (!session) {
@@ -37,7 +52,6 @@ const BourseVerdict = (() => {
     renderVotesTable();
     renderConsensusAndTriggers();
     renderTranscriptReplay();
-    setupShareButton();
   }
 
   function renderNotFound() {
@@ -47,7 +61,7 @@ const BourseVerdict = (() => {
         <div style="padding:80px 0;text-align:center;font-family:var(--font-mono);">
           <h2>SESSION RECORD NOT FOUND</h2>
           <p style="color:var(--text-secondary);margin-top:12px;">The requested session ID could not be retrieved from the Verdict Ledger.</p>
-          <a href="ledger.html" class="btn btn-secondary" style="margin-top:24px;">Return to Ledger</a>
+          <button class="btn btn-secondary" data-view="ledger" type="button" style="margin-top:24px;">Return to Ledger</button>
         </div>
       `;
     }
@@ -86,9 +100,15 @@ const BourseVerdict = (() => {
       positionSizeBand: '1.5 – 3.0%'
     };
 
-    if (outcomeEl) outcomeEl.textContent = v.outcome;
-    if (ratioEl) ratioEl.textContent = `${v.majorityRatio} BENCH MAJORITY`;
-    if (dissentEl) dissentEl.textContent = `DISSENT: ${v.dissentBreakdown}`;
+    if (outcomeEl) {
+      outcomeEl.textContent = v.outcome;
+      outcomeEl.className = `stamp-outcome ${v.outcome ? v.outcome.toLowerCase() : 'pass'}`;
+    }
+    const stampCard = document.querySelector('.verdict-stamp-card');
+    if (stampCard && v.outcome) {
+      stampCard.classList.remove('add', 'reduce', 'pass');
+      stampCard.classList.add(v.outcome.toLowerCase());
+    }
     if (sizeBandEl) {
       sizeBandEl.innerHTML = `
         <strong>POSITION SIZE BAND: ${v.positionSizeBand}</strong>
@@ -108,7 +128,7 @@ const BourseVerdict = (() => {
       const row = document.createElement('div');
       row.className = 'vote-item-row';
 
-      const agent = BourseAgents.getAgentByName(item.name) || { seat: item.seat || 1 };
+      const agent = (typeof BourseAgents !== 'undefined') ? BourseAgents.getAgentByName(item.name) : null;
       const avatarSvg = BourseUtils.generatePixelAvatarSVG(item.name, 32);
       const voteClass = item.vote ? item.vote.toLowerCase() : 'pass';
 
@@ -118,7 +138,7 @@ const BourseVerdict = (() => {
         </div>
         <div class="vote-persona-meta">
           <span class="vote-persona-name">${item.name}</span>
-          <span class="vote-persona-discipline">${item.discipline || item.school}</span>
+          <span class="vote-persona-discipline">${item.discipline || item.school || (agent ? agent.discipline : '')}</span>
         </div>
         <div>
           <span class="badge ${voteClass}">${item.vote}</span>
@@ -144,9 +164,50 @@ const BourseVerdict = (() => {
     if (disagreementEl) disagreementEl.textContent = v.keyDisagreement || 'Disagreement centered on cash-flow liquidation protection vs secular growth.';
     if (questionEl) questionEl.textContent = v.unresolvedQuestion || 'Long-term fee dynamics and validator security sustainability.';
 
-    if (triggersListEl && v.reviewTriggers) {
-      triggersListEl.innerHTML = v.reviewTriggers.map(t => `<li>${t}</li>`).join('');
+    if (triggersListEl) {
+      if (v.reviewTriggers && v.reviewTriggers.length > 0) {
+        triggersListEl.innerHTML = v.reviewTriggers.map(t => `<li>${t}</li>`).join('');
+      } else {
+        triggersListEl.innerHTML = `
+          <li>Material deterioration in 24h settlement activity.</li>
+          <li>Systemic change in protocol security or validator decentralization.</li>
+          <li>Macro liquidity tightening impacting high-beta risk assets.</li>
+        `;
+      }
     }
+  }
+
+  function generateFallbackTranscript(s) {
+    const list = [];
+    const tTime = s.closedAt || '10:00';
+    list.push({
+      type: 'chair',
+      who: 'CHAIR',
+      time: '09:00',
+      text: `Floor open for ${s.ticker || 'ASSET'}. Thesis on the table: "${s.question}". Evidentiary market pack distributed to all nine seats.`
+    });
+
+    if (s.votes && s.votes.length > 0) {
+      s.votes.forEach((v, idx) => {
+        list.push({
+          type: 'analysis',
+          who: `${v.name} (Seat 0${v.seat || idx + 1})`,
+          time: `09:0${Math.min(9, idx + 1)}`,
+          text: v.reason || v.rationale || `Evaluated from ${v.discipline || v.school} mandate: Vote is ${v.vote}.`
+        });
+      });
+    }
+
+    if (s.verdict) {
+      list.push({
+        type: 'chair',
+        who: 'CHAIR',
+        time: tTime,
+        text: `Floor balloting completed. Certified Outcome: ${s.verdict.outcome} (${s.verdict.majorityRatio} Majority). Dissent: ${s.verdict.dissentBreakdown || '--'}. Taleb Position Size Band: ${s.verdict.positionSizeBand}. Record officially closed.`
+      });
+    }
+
+    return list;
   }
 
   function renderTranscriptReplay() {
@@ -157,11 +218,20 @@ const BourseVerdict = (() => {
 
     if (!feed) return;
 
+    // Ensure session has transcript messages
+    if (!session.transcript || session.transcript.length === 0) {
+      session.transcript = generateFallbackTranscript(session);
+    }
     replayMessages = session.transcript || [];
     replayIndex = replayMessages.length; // initially show all
 
     function renderFeedUpToIndex(idx) {
       feed.innerHTML = '';
+      if (replayMessages.length === 0) {
+        feed.innerHTML = `<div style="color:var(--text-muted);font-family:var(--font-mono);font-size:0.75rem;padding:24px;text-align:center;">No transcript messages recorded for this session.</div>`;
+        return;
+      }
+
       const visible = replayMessages.slice(0, idx);
       visible.forEach(msg => {
         const item = document.createElement('div');
@@ -178,6 +248,8 @@ const BourseVerdict = (() => {
       feed.scrollTop = feed.scrollHeight;
     }
 
+    // Stop any ongoing replay timer and show initial feed
+    stopReplay();
     renderFeedUpToIndex(replayIndex);
 
     function stepNext() {
@@ -190,17 +262,32 @@ const BourseVerdict = (() => {
     }
 
     function startReplay() {
+      if (replayMessages.length === 0) return;
       if (replayIndex >= replayMessages.length) {
         replayIndex = 0;
+        renderFeedUpToIndex(0);
       }
       isReplayPlaying = true;
-      if (playBtn) playBtn.textContent = 'Pause';
-      replayInterval = setInterval(stepNext, 1800);
+      if (playBtn) {
+        playBtn.textContent = 'Pause';
+        playBtn.classList.add('active');
+      }
+      clearInterval(replayInterval);
+      replayInterval = setInterval(() => {
+        if (replayIndex < replayMessages.length) {
+          stepNext();
+        } else {
+          stopReplay();
+        }
+      }, 1400);
     }
 
     function stopReplay() {
       isReplayPlaying = false;
-      if (playBtn) playBtn.textContent = 'Play';
+      if (playBtn) {
+        playBtn.textContent = 'Play';
+        playBtn.classList.remove('active');
+      }
       if (replayInterval) {
         clearInterval(replayInterval);
         replayInterval = null;
@@ -208,37 +295,40 @@ const BourseVerdict = (() => {
     }
 
     if (playBtn) {
-      playBtn.addEventListener('click', () => {
+      playBtn.onclick = () => {
         if (isReplayPlaying) {
           stopReplay();
         } else {
           startReplay();
         }
-      });
+      };
     }
 
     if (restartBtn) {
-      restartBtn.addEventListener('click', () => {
+      restartBtn.onclick = () => {
         stopReplay();
         replayIndex = 0;
-        renderFeedUpToIndex(replayIndex);
+        renderFeedUpToIndex(0);
         startReplay();
-      });
+      };
     }
 
     if (nextBtn) {
-      nextBtn.addEventListener('click', () => {
+      nextBtn.onclick = () => {
         stopReplay();
+        if (replayIndex >= replayMessages.length) {
+          replayIndex = 0;
+        }
         stepNext();
-      });
+      };
     }
   }
 
   function setupShareButton() {
-    const shareBtn = document.getElementById('share-verdict-btn');
+    const shareBtn = document.getElementById('verdict-page-share-btn') || document.getElementById('share-verdict-btn');
     if (!shareBtn) return;
 
-    shareBtn.addEventListener('click', async () => {
+    shareBtn.onclick = async () => {
       const url = window.location.href;
       const success = await BourseUtils.copyToClipboard(url);
       if (success) {
@@ -254,11 +344,13 @@ const BourseVerdict = (() => {
           `;
         }, 2500);
       }
-    });
+    };
   }
 
   return {
-    init
+    init,
+    loadSession,
+    getCurrentSession: () => session
   };
 })();
 

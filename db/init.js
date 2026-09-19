@@ -1,11 +1,22 @@
-const { DatabaseSync } = require("node:sqlite");
+let DatabaseSync;
+try {
+  ({ DatabaseSync } = require("node:sqlite"));
+} catch (e) {
+  DatabaseSync = null;
+}
+
 const path = require("node:path");
+const fs = require("node:fs");
 const { AGENTS } = require("./agents");
 
 const DB_PATH = path.join(__dirname, "bourse-chamber.sqlite");
-const db = new DatabaseSync(DB_PATH);
+const JSON_PATH = path.join(__dirname, "bourse-chamber.json");
 
-db.exec(`
+let db;
+
+if (DatabaseSync) {
+  db = new DatabaseSync(DB_PATH);
+  db.exec(`
 CREATE TABLE IF NOT EXISTS sessions (
   id TEXT PRIMARY KEY,
   asset TEXT NOT NULL,
@@ -49,6 +60,106 @@ CREATE TABLE IF NOT EXISTS transcript (
 CREATE INDEX IF NOT EXISTS idx_votes_session ON votes(session_id);
 CREATE INDEX IF NOT EXISTS idx_transcript_session ON transcript(session_id);
 `);
+} else {
+  // Compatibility fallback for Node.js < 22 (e.g. Node 18, 20)
+  class SimpleStore {
+    constructor() {
+      this.data = { sessions: [], votes: [], transcript: [] };
+      if (fs.existsSync(JSON_PATH)) {
+        try {
+          this.data = JSON.parse(fs.readFileSync(JSON_PATH, "utf-8"));
+        } catch (err) {
+          // ignore corrupted json, start fresh
+        }
+      }
+    }
+
+    _persist() {
+      try {
+        fs.writeFileSync(JSON_PATH, JSON.stringify(this.data, null, 2), "utf-8");
+      } catch (err) {
+        // ignore write error
+      }
+    }
+
+    exec() {
+      return this;
+    }
+
+    prepare(sql) {
+      const self = this;
+      const cleanSql = sql.trim().replace(/\s+/g, " ");
+
+      return {
+        get(...args) {
+          if (/SELECT COUNT\(\*\) AS n FROM sessions/i.test(cleanSql)) {
+            return { n: self.data.sessions.length };
+          }
+          if (/SELECT \* FROM sessions WHERE id = \?/i.test(cleanSql)) {
+            const id = (args[0] || "").toUpperCase();
+            return self.data.sessions.find((s) => s.id.toUpperCase() === id) || null;
+          }
+          return null;
+        },
+
+        all(...args) {
+          if (/SELECT id FROM sessions/i.test(cleanSql)) {
+            return self.data.sessions.map((s) => ({ id: s.id }));
+          }
+          if (/SELECT \* FROM sessions ORDER BY closed_at DESC/i.test(cleanSql)) {
+            return [...self.data.sessions].sort((a, b) => new Date(b.closed_at) - new Date(a.closed_at));
+          }
+          if (/SELECT \* FROM sessions/i.test(cleanSql)) {
+            return [...self.data.sessions];
+          }
+          if (/SELECT \* FROM votes WHERE session_id = \? ORDER BY seat ASC/i.test(cleanSql)) {
+            const sid = (args[0] || "").toUpperCase();
+            return self.data.votes
+              .filter((v) => v.session_id.toUpperCase() === sid)
+              .sort((a, b) => a.seat - b.seat);
+          }
+          if (/SELECT \* FROM transcript WHERE session_id = \? ORDER BY seq ASC/i.test(cleanSql)) {
+            const sid = (args[0] || "").toUpperCase();
+            return self.data.transcript
+              .filter((t) => t.session_id.toUpperCase() === sid)
+              .sort((a, b) => a.seq - b.seq);
+          }
+          return [];
+        },
+
+        run(...args) {
+          if (/INSERT INTO sessions/i.test(cleanSql)) {
+            const [
+              id, asset, thesis, verdict, for_count, against_count, abstain_count,
+              majority, size_band, opened_at, closed_at, seats_present, speaking_turns, summary, legacy
+            ] = args;
+            self.data.sessions.push({
+              id, asset, thesis, verdict, for_count, against_count, abstain_count,
+              majority, size_band, opened_at, closed_at, seats_present, speaking_turns,
+              summary, legacy, created_at: new Date().toISOString()
+            });
+            self._persist();
+          } else if (/INSERT INTO votes/i.test(cleanSql)) {
+            const [session_id, seat, agent_name, discipline, vote, reasoning, score] = args;
+            self.data.votes.push({
+              session_id, seat, agent_name, discipline, vote, reasoning, score
+            });
+            self._persist();
+          } else if (/INSERT INTO transcript/i.test(cleanSql)) {
+            const [session_id, seq, speaker, discipline, type, body] = args;
+            self.data.transcript.push({
+              session_id, seq, speaker, discipline, type, body
+            });
+            self._persist();
+          }
+          return { changes: 1 };
+        }
+      };
+    }
+  }
+
+  db = new SimpleStore();
+}
 
 function alreadySeeded() {
   const row = db.prepare("SELECT COUNT(*) AS n FROM sessions").get();

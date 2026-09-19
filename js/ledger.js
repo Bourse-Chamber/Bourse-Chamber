@@ -103,6 +103,12 @@ const BourseLedger = (() => {
       const row = document.createElement('a');
       row.className = 'ledger-row';
       row.href = `verdict.html?id=${session.id}`;
+      row.addEventListener('click', (e) => {
+        if (window.BourseSPA) {
+          e.preventDefault();
+          window.BourseSPA.showVerdict(session.id);
+        }
+      });
 
       const outcome = session.verdict ? session.verdict.outcome : 'PENDING';
       const badgeClass = outcome.toLowerCase();
