@@ -855,42 +855,13 @@ footer.site-footer {
    Dust Protocol Visual System (Reference Aesthetics)
    ========================================================================== */
 
-/* 1. Checkerboard Racing Tape Divider */
+/* 1. Divider / Separator Utility */
 .checker-divider-tape {
-  width: 100%;
-  height: 22px;
-  background: 
-    conic-gradient(#FFFFFF 90deg, #050505 90deg 180deg, #FFFFFF 180deg 270deg, #050505 270deg);
-  background-size: 22px 22px;
-  border-top: 1px solid rgba(168, 85, 247, 0.4);
-  border-bottom: 1px solid rgba(6, 182, 212, 0.4);
-  box-shadow: 0 0 15px rgba(168, 85, 247, 0.15);
-  position: relative;
-  z-index: 10;
-  margin: 0;
+  display: none !important;
 }
 
-/* 2. Stepped Pixel Corner Decos & Purple Dither Accent */
 .pixel-deco-wrap {
-  position: relative;
-  width: 100%;
-  height: 0;
-}
-
-.pixel-deco-left {
-  position: absolute;
-  left: 0;
-  top: -24px;
-  pointer-events: none;
-  z-index: 4;
-}
-
-.pixel-deco-right {
-  position: absolute;
-  right: 0;
-  top: -24px;
-  pointer-events: none;
-  z-index: 4;
+  display: none !important;
 }
 
 .purple-dither-cluster {
