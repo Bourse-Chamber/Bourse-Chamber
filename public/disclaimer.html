@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Legal Disclaimer — Bourse Chamber</title>
+  <meta name="description" content="Legal terms, AI persona boundaries, and non-financial advice disclaimers for Bourse Chamber.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .disclaimer-content {
+      padding: 56px 0 80px;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    .disclaimer-content h1 {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      font-weight: 300;
+      margin-bottom: 8px;
+    }
+    .disclaimer-content .tagline {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 16px;
+    }
+    .disclaimer-section {
+      margin-bottom: 32px;
+    }
+    .disclaimer-section h2 {
+      font-family: var(--font-sans);
+      font-size: 1.15rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+    .disclaimer-section p {
+      font-size: 0.88rem;
+      color: #BFBFBF;
+      line-height: 1.65;
+      margin-bottom: 12px;
+    }
+    .callout-box {
+      border: 1px solid var(--border-main);
+      background: var(--bg-card);
+      padding: 18px 22px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-primary);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sticky Global Navigation -->
+  <header class="site-header">
+    <div class="nav-container">
+      <a class="site-logo" href="index.html">
+        <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true">
+          <rect x="0" y="0" width="5" height="5" fill="#fff"/>
+          <rect x="10" y="0" width="5" height="5" fill="#fff"/>
+          <rect x="5" y="5" width="5" height="5" fill="#fff"/>
+          <rect x="15" y="5" width="5" height="5" fill="#fff"/>
+          <rect x="0" y="10" width="5" height="5" fill="#fff"/>
+          <rect x="10" y="10" width="5" height="5" fill="#fff"/>
+          <rect x="5" y="15" width="5" height="5" fill="#fff"/>
+          <rect x="15" y="15" width="5" height="5" fill="#fff"/>
+        </svg>
+        <span>Bourse Chamber</span>
+      </a>
+      <nav class="nav-links">
+        <a class="nav-link" href="bench.html">Bench</a>
+        <a class="nav-link" href="ledger.html">Ledger</a>
+        <a class="nav-link" href="chamber.html">Session</a>
+        <button class="nav-btn-motion" id="motion-mode-btn" type="button" title="Toggle Motion Effects">
+          <span class="motion-dot" aria-hidden="true"></span> MOTION: ULTRA
+        </button>
+      </nav>
+      <button class="mobile-nav-toggle" aria-label="Toggle navigation menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" stroke="#fff" stroke-width="2" fill="none">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="wrap disclaimer-content">
+    <h1>Legal Disclaimer & Persona Boundaries</h1>
+    <div class="tagline">Formal boundaries, non-affiliation disclosures, and educational definitions.</div>
+
+    <div class="callout-box">
+      IMPORTANT NOTICE: Bourse Chamber is an educational multi-agent simulation and analytical thought experiment. It does not provide personalized investment advice, price targets, order execution, or financial planning.
+    </div>
+
+    <div class="disclaimer-section" style="margin-top:28px;">
+      <h2>1. Nature of the AI Personas</h2>
+      <p>
+        The nine personas participating in the chamber are artificial intelligence models constructed from publicly documented investing philosophies, published academic books, investor letters, and historical treatises.
+      </p>
+      <p>
+        They are <strong>not</strong> the living or historical individuals, do not speak for them, have no affiliation with them or their respective firms, and do not represent their personal or professional views. No endorsement, sponsorship, or partnership is implied or exists.
+      </p>
+    </div>
+
+    <div class="disclaimer-section">
+      <h2>2. No Financial Advice or Price Predictions</h2>
+      <p>
+        Nothing contained on Bourse Chamber constitutes investment, legal, tax, or accounting advice. Digital assets and cryptocurrencies are volatile, speculative, and carry significant risk of permanent capital impairment.
+      </p>
+      <p>
+        The Position Size Bands, dissenting opinions, and recorded ballots (ADD / REDUCE / PASS) are heuristic reasoning outputs intended to illustrate multi-disciplinary debate, not personalized recommendations to purchase, hold, or liquidate any security or token.
+      </p>
+    </div>
+
+    <div class="disclaimer-section">
+      <h2>3. Product Limitations</h2>
+      <p>
+        Bourse Chamber does not hold custody of user funds, does not connect to external crypto wallets, does not integrate with trading brokerages, and does not execute financial transactions.
+      </p>
+    </div>
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="site-footer">
+    <div class="wrap footer-content">
+      <div class="footer-disclaimer">
+        AI personas built from published investing philosophies — not the individuals, not financial advice.
+      </div>
+      <div class="footer-copy">
+        © 2026 Bourse Chamber
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/utils.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/motion.js"></script>
+</body>
+</html>

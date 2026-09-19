@@ -1,230 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="pagetitle">Verdict — Bourse Chamber</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@200;300;400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/shared.css">
-<style>
-.back{display:inline-block;font-family:var(--mono);font-size:.7rem;color:var(--g-meta-2);padding:26px 0 0}
-.back:hover{color:#fff}
-
-.case{display:grid;grid-template-columns:1.25fr .75fr;gap:22px;padding:22px 0 0;align-items:start}
-.casehead h1{font-size:clamp(1.5rem,3vw,2.1rem)}
-.casehead .q{font-size:.95rem;color:var(--g-text-2);margin-top:10px;max-width:52ch}
-.meta{display:flex;gap:22px;flex-wrap:wrap;margin-top:18px;font-family:var(--mono);font-size:.68rem;color:var(--g-meta)}
-.meta b{color:var(--g-text-3);font-weight:400}
-
-.verdictbox{background:#fff;color:#000;padding:26px}
-.verdictbox .lbl{font-family:var(--mono);font-size:.62rem;color:#666}
-.verdictbox .big{font-family:var(--mono);font-size:2.1rem;font-weight:300;line-height:1.1;margin-top:6px}
-.verdictbox p{font-size:.78rem;color:#333;margin-top:12px}
-.verdictbox .split{display:flex;gap:0;margin-top:20px;border-top:1px solid #DADADA}
-.verdictbox .split div{flex:1;padding-top:12px;border-right:1px solid #DADADA;padding-right:12px}
-.verdictbox .split div:last-child{border-right:none;padding-left:12px;padding-right:0}
-.verdictbox .split b{display:block;font-family:var(--mono);font-size:1rem;font-weight:400}
-.verdictbox .split span{font-size:.6rem;color:#666;font-family:var(--mono)}
-.sharebtn{margin-top:16px;width:100%;font-family:var(--mono);font-size:.72rem;background:#000;color:#fff;border:none;padding:10px;cursor:pointer;transition:background .2s}
-.sharebtn:hover{background:#222}
-.sharebtn.done{background:#000}
-
-.sec{padding:64px 0 0}
-.sec h2{font-size:1.15rem;font-weight:300;margin-bottom:6px}
-.sec .sub{font-size:.82rem;color:var(--dim);margin-bottom:22px}
-
-.votes{border:1px solid var(--g-border-4)}
-.vrow{display:grid;grid-template-columns:46px 1fr 150px 92px;gap:14px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--g-border-5)}
-.vrow:last-child{border-bottom:none}
-.vrow .ava{width:34px;height:34px;border:1px solid var(--g-border-7);display:flex;align-items:center;justify-content:center;background:var(--g-card-2)}
-.vrow .ava svg{width:24px;height:24px}
-.vrow .nm{font-size:.85rem}
-.vrow .dc{font-family:var(--mono);font-size:.62rem;color:var(--g-meta);margin-top:2px}
-.vrow .why{font-size:.74rem;color:var(--g-text-1)}
-.vrow .mark{font-family:var(--mono);font-size:.68rem;padding:5px 9px;text-align:center}
-.mark.for{background:#fff;color:#000}
-.mark.against{border:1px solid #4A4A4A;color:var(--g-text-3)}
-.mark.abstain{border:1px solid var(--g-border-6);color:var(--g-meta)}
-
-.trans{border:1px solid var(--g-border-4);padding:22px}
-.tmsg{padding:16px 0;border-bottom:1px solid var(--g-border-5)}
-.tmsg:last-child{border-bottom:none}
-.tmsg .who{font-family:var(--mono);font-size:.68rem;color:#fff}
-.tmsg .who span{color:#5F5F5F;margin-left:8px}
-.tmsg p{font-size:.85rem;color:var(--g-text-2);margin-top:7px;max-width:76ch}
-.tmsg.verdict{border-top:1px solid #fff;padding-top:16px}
-.tmsg.verdict p{color:var(--g-text-4)}
-
-.conditions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.cond{border:1px solid var(--g-border-6);padding:20px;background:var(--g-card)}
-.cond h4{font-family:var(--mono);font-size:.74rem;font-weight:500}
-.cond p{font-size:.78rem;color:var(--g-text-1);margin-top:8px}
-
-.fallback{border:1px dashed var(--g-border-6);padding:22px;color:var(--dim);font-size:.82rem}
-
-.cta{border:1px solid var(--g-border-6);padding:34px;display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;margin:64px 0 80px}
-.cta h2{font-size:1.2rem;font-weight:300}
-.cta p{font-size:.82rem;color:var(--dim);margin-top:5px}
-
-@media(max-width:900px){
-  .case{grid-template-columns:1fr}
-  .conditions{grid-template-columns:1fr}
-  .vrow{grid-template-columns:40px 1fr 80px}
-  .vrow .why{display:none}
-  .navlinks a:not(.on){display:none}
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verdict Record — Bourse Chamber</title>
+  <meta name="description" content="Permanent decision record of the Bourse Chamber council vote, individual member ballots, and review triggers.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/verdict.css">
 </head>
-<body>
+<body class="verdict-page">
 
-<header>
-  <div class="nav">
-    <a class="logo" href="bourse-chamber.html">
-      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
-        <rect x="0" y="0" width="5" height="5" fill="#fff"/><rect x="10" y="0" width="5" height="5" fill="#fff"/>
-        <rect x="5" y="5" width="5" height="5" fill="#fff"/><rect x="15" y="5" width="5" height="5" fill="#fff"/>
-        <rect x="0" y="10" width="5" height="5" fill="#fff"/><rect x="10" y="10" width="5" height="5" fill="#fff"/>
-        <rect x="5" y="15" width="5" height="5" fill="#fff"/><rect x="15" y="15" width="5" height="5" fill="#fff"/>
-      </svg>
-      Bourse Chamber
-    </a>
-    <div class="navlinks">
-      <a href="bench.html">Bench</a>
-      <a href="ledger.html" class="on">Ledger</a>
-      <a href="chamber.html">Session</a>
+  <!-- Sticky Global Navigation -->
+  <header class="site-header">
+    <div class="nav-container">
+      <a class="site-logo" href="index.html">
+        <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true">
+          <rect x="0" y="0" width="5" height="5" fill="#fff"/>
+          <rect x="10" y="0" width="5" height="5" fill="#fff"/>
+          <rect x="5" y="5" width="5" height="5" fill="#fff"/>
+          <rect x="15" y="5" width="5" height="5" fill="#fff"/>
+          <rect x="0" y="10" width="5" height="5" fill="#fff"/>
+          <rect x="10" y="10" width="5" height="5" fill="#fff"/>
+          <rect x="5" y="15" width="5" height="5" fill="#fff"/>
+          <rect x="15" y="15" width="5" height="5" fill="#fff"/>
+        </svg>
+        <span>Bourse Chamber</span>
+      </a>
+      <nav class="nav-links">
+        <a class="nav-link" href="bench.html">Bench</a>
+        <a class="nav-link" href="ledger.html">Ledger</a>
+        <a class="nav-link" href="chamber.html">Session</a>
+        <button class="nav-btn-motion" id="motion-mode-btn" type="button" title="Toggle Motion Effects">
+          <span class="motion-dot" aria-hidden="true"></span> MOTION: ULTRA
+        </button>
+      </nav>
+      <button class="mobile-nav-toggle" aria-label="Toggle navigation menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" stroke="#fff" stroke-width="2" fill="none">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
     </div>
-  </div>
-</header>
+  </header>
 
-<div class="wrap" id="app">
-  <a class="back" href="ledger.html">← Back to the ledger</a>
-  <p style="color:var(--dim);font-family:var(--mono);font-size:.8rem;padding:40px 0">Loading verdict…</p>
-</div>
+  <main class="wrap">
+    <!-- Back link to Ledger -->
+    <a href="ledger.html" class="verdict-back-link">
+      <span>← Return to Verdict Ledger</span>
+    </a>
 
-<footer>
-  <div class="wrap fbar">
-    <span>Illustrative record from a simulated committee of AI personas. Not financial advice.</span>
-    <span>© 2026 Bourse Chamber</span>
-  </div>
-</footer>
+    <!-- Case Overview & Verdict Stamp Grid -->
+    <div class="case-overview-grid">
+      <div class="case-info">
+        <div class="case-id-tag" id="case-id">SESSION BC-0411</div>
+        <h1 class="case-asset-title" id="case-asset">SOL — Solana</h1>
+        <p class="case-question" id="case-question">Is throughput a moat, or a commodity waiting to be priced?</p>
+        
+        <div class="case-meta-list">
+          <div>Opened: <b id="meta-opened">05 Sep 2026</b></div>
+          <div>Closed: <b id="meta-closed">09:47</b></div>
+          <div>Seats present: <b id="meta-seats">9 / 9</b></div>
+          <div>Speaking turns: <b id="meta-turns">14</b></div>
+        </div>
+      </div>
 
-<script src="js/shared.js"></script>
-<script>
-var params = new URLSearchParams(location.search);
-var requestedId = (params.get('id') || 'BC-0411').toUpperCase();
-var app = document.getElementById('app');
+      <!-- Prominent Verdict Stamp -->
+      <div class="verdict-stamp-card">
+        <div class="stamp-label">VERDICT</div>
+        <div class="stamp-outcome" id="verdict-outcome">REDUCE</div>
+        <div class="stamp-ratio" id="verdict-ratio">5 / 9 BENCH MAJORITY</div>
+        <div class="stamp-dissent" id="verdict-dissent">DISSENT: 3 ADD, 1 PASS</div>
+        <div class="stamp-size-band" id="verdict-size-band">
+          <strong>POSITION SIZE BAND: 1.0 – 2.0%</strong>
+          <small>Illustrative reasoning output — not personalized financial advice.</small>
+        </div>
+        <button class="share-action-btn" id="share-verdict-btn" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Share Verdict Record
+        </button>
+      </div>
+    </div>
 
-function fmtDateTime(iso){
-  var d = new Date(iso);
-  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
-}
-function fmtDate(iso){
-  var d = new Date(iso);
-  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return String(d.getDate()).padStart(2,'0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
-}
+    <!-- Section: Individual Ballots -->
+    <section class="verdict-section">
+      <h2 class="section-heading">Individual Ballots</h2>
+      <p class="section-subtext">Every seat votes on the record with their governing rationale.</p>
+      <div class="votes-table-wrap" id="votes-table-rows">
+        <!-- Rendered dynamically by js/verdict.js -->
+      </div>
+    </section>
 
-function render(id){
-  api('/api/sessions/' + encodeURIComponent(id)).then(function(data){
-    var s = data.session, votes = data.votes, transcript = data.transcript;
-    document.getElementById('pagetitle').textContent = 'Verdict ' + s.id + ' — Bourse Chamber';
+    <!-- Section: Synthesis & Consensus -->
+    <section class="verdict-section">
+      <h2 class="section-heading">Consensus & Core Contested Issues</h2>
+      <p class="section-subtext">Where the nine minds aligned, and where the fault lines held.</p>
+      <div class="consensus-grid">
+        <div class="consensus-card">
+          <h4>Key Agreement</h4>
+          <p id="consensus-agreement">Loading consensus summary…</p>
+        </div>
+        <div class="consensus-card">
+          <h4>Key Disagreement</h4>
+          <p id="consensus-disagreement">Loading disagreement points…</p>
+        </div>
+        <div class="consensus-card">
+          <h4>Unresolved Question</h4>
+          <p id="consensus-unresolved">Loading unresolved inquiries…</p>
+        </div>
+      </div>
+    </section>
 
-    var votesHtml = '';
-    if (votes.length){
-      votesHtml = votes.map(function(v){
-        var cls = v.vote.toLowerCase();
-        return '<div class="vrow"><div class="ava">' + avatar(v.agent_name, 8) + '</div>' +
-          '<div><div class="nm">' + v.agent_name + '</div><div class="dc">' + v.discipline + '</div></div>' +
-          '<div class="why">' + (v.reasoning || '—') + '</div>' +
-          '<div><span class="mark ' + cls + '">' + v.vote + '</span></div></div>';
-      }).join('');
-    }
+    <!-- Section: Review Triggers -->
+    <section class="verdict-section">
+      <h2 class="section-heading">Permanent Review Triggers</h2>
+      <p class="section-subtext">The specific evidentiary conditions that would trigger an automatic reconvening of the chamber.</p>
+      <div class="consensus-card" style="border:1px dashed var(--border-main);">
+        <ul class="dossier-questions" id="review-triggers-list">
+          <!-- Populated by js/verdict.js -->
+        </ul>
+      </div>
+    </section>
 
-    var transHtml = '';
-    if (transcript.length){
-      transHtml = transcript.filter(function(m){ return m.type === 'agent' || m.type === 'crossexam'; })
-        .map(function(m){
-          return '<div class="tmsg"><div class="who">' + m.speaker + (m.discipline ? '<span>· ' + m.discipline + '</span>' : '') + '</div><p>' + m.body + '</p></div>';
-        }).join('');
-      var verdictMsg = transcript.find(function(m){ return m.type === 'verdict'; });
-      if (verdictMsg) transHtml += '<div class="tmsg verdict"><div class="who">Verdict</div><p>' + verdictMsg.body + '</p></div>';
-    }
+    <!-- Section: Transcript Replay Player -->
+    <section class="verdict-section">
+      <h2 class="section-heading">Debate Transcript Replay</h2>
+      <p class="section-subtext">Step through the complete session floor proceedings from filing to roll-call.</p>
+      <div class="replay-player-wrap">
+        <div class="replay-controls-bar">
+          <div class="replay-btn-group">
+            <button class="replay-btn" id="replay-play-btn" type="button">Play</button>
+            <button class="replay-btn" id="replay-next-btn" type="button">Next Step ›</button>
+            <button class="replay-btn" id="replay-restart-btn" type="button">Restart ↺</button>
+          </div>
+          <span>SESSION LOG ARCHIVE</span>
+        </div>
+        <div class="replay-feed" id="replay-feed">
+          <!-- Populated by js/verdict.js -->
+        </div>
+      </div>
+    </section>
+  </main>
 
-    var forSeats = votes.filter(function(v){ return v.vote === 'AGAINST'; }).map(function(v){ return String(v.seat).padStart(2,'0'); });
-    var conditionsHtml =
-      '<div class="cond"><h4>Review trigger</h4><p>Two consecutive quarters of fee revenue growth above 25%, or a 35% drawdown from the close price.</p></div>' +
-      '<div class="cond"><h4>Sizing ceiling</h4><p>Position may not exceed ' + (s.size_band ? s.size_band.split('–')[0] : '1.0') + '% of book while the dissent from seat' + (forSeats.length === 1 ? '' : 's') + ' ' + (forSeats.length ? forSeats.join(' and ') : '—') + ' stands unresolved.</p></div>' +
-      '<div class="cond"><h4>Data gap</h4><p>Live market data and forward guidance beyond this session were unavailable on the floor and are flagged for the next session.</p></div>';
+  <!-- Dossier Drawer & Scrim -->
+  <div class="dossier-scrim" id="dossier-scrim"></div>
+  <aside class="dossier-drawer" id="dossier-drawer" aria-hidden="true">
+    <button class="dossier-close" id="dossier-close" aria-label="Close dossier">✕</button>
+    <div class="dossier-avatar-wrap" id="dossier-avatar"></div>
+    <div class="dossier-seat-tag" id="dossier-seat">SEAT 01 · VALUE</div>
+    <h3 class="dossier-name" id="dossier-name">Benjamin Graham</h3>
+    <div class="dossier-discipline" id="dossier-discipline">Margin of safety</div>
+    
+    <div class="dossier-section-title">CORE PHILOSOPHY</div>
+    <p class="dossier-bio" id="dossier-bio"></p>
 
-    app.innerHTML =
-      '<a class="back" href="ledger.html">← Back to the ledger</a>' +
-      '<div class="case">' +
-        '<div class="casehead">' +
-          '<h1>' + s.asset + ' — session ' + s.id + '</h1>' +
-          '<p class="q">' + s.thesis + '</p>' +
-          '<div class="meta">' +
-            '<span>Opened <b>' + fmtDate(s.opened_at) + ', ' + fmtDateTime(s.opened_at) + '</b></span>' +
-            '<span>Closed <b>' + fmtDateTime(s.closed_at) + '</b></span>' +
-            '<span>Seats present <b>' + s.seats_present + ' / 9</b></span>' +
-            '<span>Speaking turns <b>' + (s.speaking_turns || '—') + '</b></span>' +
-          '</div>' +
-        '</div>' +
-        '<div class="verdictbox">' +
-          '<div class="lbl">VERDICT</div>' +
-          '<div class="big">' + s.verdict + '</div>' +
-          '<p>' + (s.summary || 'Recorded on the ledger.') + '</p>' +
-          '<div class="split">' +
-            '<div><b>' + (s.size_band || '—') + '</b><span>SIZE BAND</span></div>' +
-            '<div><b>' + s.majority + ' / 9</b><span>MAJORITY</span></div>' +
-          '</div>' +
-          '<button class="sharebtn" id="share">Share verdict</button>' +
-        '</div>' +
-      '</div>' +
+    <div class="dossier-section-title">WHAT THIS SEAT ASKS FIRST</div>
+    <ul class="dossier-questions" id="dossier-questions"></ul>
 
-      '<div class="sec"><h2>How the nine voted</h2>' +
-        '<div class="sub">Each seat votes on the motion as worded, with one line of reasoning on the record.</div>' +
-        (votesHtml ? '<div class="votes">' + votesHtml + '</div>'
-          : '<div class="fallback">This session\'s per-seat vote table was not captured in detail — only the aggregate tally above is on record.</div>') +
-      '</div>' +
+    <div class="dossier-section-title">HISTORICAL RECORD</div>
+    <div class="dossier-record-grid">
+      <div class="dossier-record-col">
+        <div class="dossier-record-val" id="dossier-sessions">48</div>
+        <div class="dossier-record-lbl">Sessions</div>
+      </div>
+      <div class="dossier-record-col">
+        <div class="dossier-record-val" id="dossier-voted-for">14</div>
+        <div class="dossier-record-lbl">Voted In</div>
+      </div>
+      <div class="dossier-record-col">
+        <div class="dossier-record-val" id="dossier-dissents">34</div>
+        <div class="dossier-record-lbl">Dissents</div>
+      </div>
+    </div>
 
-      '<div class="sec"><h2>From the floor</h2>' +
-        '<div class="sub">' + (transcript.length ? 'The exchanges that decided the vote.' : '') + '</div>' +
-        (transHtml ? '<div class="trans">' + transHtml + '</div>'
-          : '<div class="fallback">Full transcript not on record for this session yet.</div>') +
-      '</div>' +
+    <div id="dossier-live-section" style="display:none;"></div>
+  </aside>
 
-      '<div class="sec"><h2>Conditions attached</h2>' +
-        '<div class="sub">A verdict is not a permanent position. These reopen the case automatically.</div>' +
-        '<div class="conditions">' + conditionsHtml + '</div>' +
-      '</div>' +
+  <!-- Global Footer -->
+  <footer class="site-footer">
+    <div class="wrap footer-content">
+      <div class="footer-disclaimer">
+        <span>AI personas built from published investing philosophies — not the individuals, not financial advice.</span>
+        <div style="margin-top:6px;display:flex;gap:14px;font-family:var(--font-mono);font-size:0.72rem;">
+          <a href="method.html" style="text-decoration:underline;">Method</a>
+          <a href="disclaimer.html" style="text-decoration:underline;">Disclaimer</a>
+        </div>
+      </div>
+      <div class="footer-copy">
+        © 2026 Bourse Chamber
+      </div>
+    </div>
+  </footer>
 
-      '<div class="cta">' +
-        '<div><h2>Bring your own case</h2><p>The floor is open and the nine are seated.</p></div>' +
-        '<a class="btn" href="chamber.html">Open a session</a>' +
-      '</div>';
-
-    document.getElementById('share').addEventListener('click', function(){
-      var btn = this;
-      navigator.clipboard.writeText(location.href).then(function(){
-        btn.textContent = 'Copied to clipboard';
-        btn.classList.add('done');
-        setTimeout(function(){ btn.textContent = 'Share verdict'; btn.classList.remove('done'); }, 2000);
-      }).catch(function(){
-        btn.textContent = 'Could not copy — copy the URL manually';
-      });
-    });
-  }).catch(function(){
-    if (id !== 'BC-0411'){
-      render('BC-0411'); // graceful fallback to the sample case (Part J #5)
-    } else {
-      app.innerHTML = '<a class="back" href="ledger.html">← Back to the ledger</a><div class="fallback" style="margin-top:30px">Verdict not found.</div>';
-    }
-  });
-}
-
-render(requestedId);
-</script>
+  <script src="js/utils.js"></script>
+  <script src="js/agents.js"></script>
+  <script src="js/mock-data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/motion.js"></script>
+  <script src="js/verdict.js"></script>
 </body>
 </html>

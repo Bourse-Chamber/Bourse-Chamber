@@ -1,0 +1,330 @@
+/* ==========================================================================
+   Bourse Chamber — The Bench Page Styling (css/bench.css)
+   Persona Dossier Cards · 5 Schools · Category Filtering
+   ========================================================================== */
+
+.bench-page {
+  padding-bottom: 80px;
+}
+
+.bench-header {
+  padding: 48px 0 32px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.bench-header h1 {
+  font-family: var(--font-sans);
+  font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.bench-header p {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  margin-top: 8px;
+  max-width: 64ch;
+  line-height: 1.55;
+}
+
+/* Category Filter Chips */
+.bench-filters-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 24px 0 28px;
+}
+
+.filter-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-main);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.filter-btn:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+  background: var(--bg-card-elevated);
+}
+
+.filter-btn.active {
+  background: linear-gradient(135deg, #A855F7 0%, #6366F1 100%);
+  color: #FFFFFF;
+  border-color: #C084FC;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.4);
+  font-weight: 600;
+}
+
+/* Cards Grid */
+.bench-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 64px;
+}
+
+.persona-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-main);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.persona-card:hover {
+  border-color: #4A4A4A;
+  background: var(--bg-card-elevated);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.school-pill {
+  display: inline-block;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 2px;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+}
+
+/* School: Value (Emerald) */
+.persona-card.school-value .school-pill {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34D399;
+  border: 1px solid rgba(16, 185, 129, 0.45);
+}
+.persona-card.school-value:hover {
+  border-color: rgba(16, 185, 129, 0.55);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 20px rgba(16, 185, 129, 0.18);
+}
+.persona-card.school-value:hover .card-avatar-box {
+  border-color: #10B981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+/* School: Quality (Cyan / Blue) */
+.persona-card.school-quality .school-pill {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38BDF8;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+}
+.persona-card.school-quality:hover {
+  border-color: rgba(56, 189, 248, 0.55);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 20px rgba(56, 189, 248, 0.18);
+}
+.persona-card.school-quality:hover .card-avatar-box {
+  border-color: #38BDF8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+
+/* School: Growth (Neon Violet) */
+.persona-card.school-growth .school-pill {
+  background: rgba(168, 85, 247, 0.15);
+  color: #C084FC;
+  border: 1px solid rgba(168, 85, 247, 0.45);
+}
+.persona-card.school-growth:hover {
+  border-color: rgba(168, 85, 247, 0.55);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 20px rgba(168, 85, 247, 0.18);
+}
+.persona-card.school-growth:hover .card-avatar-box {
+  border-color: #A855F7;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+}
+
+/* School: Macro (Amber / Gold) */
+.persona-card.school-macro .school-pill {
+  background: rgba(245, 158, 11, 0.15);
+  color: #FBBF24;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+}
+.persona-card.school-macro:hover {
+  border-color: rgba(245, 158, 11, 0.55);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 20px rgba(245, 158, 11, 0.18);
+}
+.persona-card.school-macro:hover .card-avatar-box {
+  border-color: #F59E0B;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+}
+
+/* School: Risk / Antifragility (Rose / Coral) */
+.persona-card.school-risk .school-pill {
+  background: rgba(244, 63, 94, 0.15);
+  color: #FB7185;
+  border: 1px solid rgba(244, 63, 94, 0.45);
+}
+.persona-card.school-risk:hover {
+  border-color: rgba(244, 63, 94, 0.55);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 20px rgba(244, 63, 94, 0.18);
+}
+.persona-card.school-risk:hover .card-avatar-box {
+  border-color: #F43F5E;
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.4);
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.card-avatar-box {
+  width: 52px;
+  height: 52px;
+  border: 1px solid var(--border-main);
+  background: var(--bg-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  border-radius: 3px;
+}
+
+.card-meta {
+  flex: 1;
+}
+
+.card-seat-tag {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-name {
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-top: 2px;
+}
+
+.card-discipline {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.card-bio {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 16px;
+  flex: 1;
+}
+
+.card-section-title {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin: 12px 0 8px;
+  letter-spacing: 0.05em;
+}
+
+.card-questions-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.card-questions-list li {
+  font-size: 0.76rem;
+  color: #8C8C8C;
+  line-height: 1.4;
+  padding-left: 12px;
+  position: relative;
+}
+
+.card-questions-list li::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: var(--text-muted);
+}
+
+.card-record-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-black);
+  margin-top: auto;
+}
+
+.card-record-item {
+  padding: 8px 4px;
+  text-align: center;
+  border-right: 1px solid var(--border-subtle);
+}
+
+.card-record-item:last-child {
+  border-right: none;
+}
+
+.card-record-item b {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  color: var(--text-primary);
+}
+
+.card-record-item span {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/* Floor CTA Banner */
+.bench-floor-cta {
+  border: 1px solid var(--border-main);
+  background: var(--bg-card);
+  padding: 36px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.bench-floor-cta h2 {
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+  font-weight: 400;
+}
+
+.bench-floor-cta p {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+@media (max-width: 992px) {
+  .bench-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .bench-grid {
+    grid-template-columns: 1fr;
+  }
+}
