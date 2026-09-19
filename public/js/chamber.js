@@ -92,8 +92,35 @@ const BourseChamber = (() => {
     setInterval(tick, 1000);
   }
 
+  // Canonical rectangular arena coordinates (1000 x 490)
+  // Seat 1 at top center, 4 seats on left flank, 4 seats on right flank, bottom open
+  const SEAT_COORDINATES = {
+    1: { x: 500, y: 44 },  // Graham (Chair / Value anchor)
+    2: { x: 910, y: 72 },  // Munger (Right Flank Row 1)
+    3: { x: 910, y: 188 }, // Lynch (Right Flank Row 2)
+    4: { x: 910, y: 304 }, // Wood (Right Flank Row 3)
+    5: { x: 910, y: 420 }, // Damodaran (Right Flank Row 4 - moved from bottom)
+    6: { x: 90,  y: 420 }, // Taleb (Left Flank Row 4 - moved from bottom)
+    7: { x: 90,  y: 304 }, // Pabrai (Left Flank Row 3)
+    8: { x: 90,  y: 188 }, // Ackman (Left Flank Row 2)
+    9: { x: 90,  y: 72 }   // Burry (Left Flank Row 1)
+  };
+
+  // Spoke connections: from seat edge to transcript border (rect: x 190..810, y 108..458)
+  const SPOKE_COORDINATES = {
+    1: { x1: 500, y1: 82,  x2: 500, y2: 108 }, // Vertical down to transcript top
+    2: { x1: 882, y1: 72,  x2: 810, y2: 120 }, // Right flank row 1
+    3: { x1: 882, y1: 188, x2: 810, y2: 188 }, // Right flank row 2 (horizontal)
+    4: { x1: 882, y1: 304, x2: 810, y2: 304 }, // Right flank row 3 (horizontal)
+    5: { x1: 882, y1: 420, x2: 810, y2: 420 }, // Right flank row 4 (horizontal)
+    6: { x1: 118, y1: 420, x2: 190, y2: 420 }, // Left flank row 4 (horizontal)
+    7: { x1: 118, y1: 304, x2: 190, y2: 304 }, // Left flank row 3 (horizontal)
+    8: { x1: 118, y1: 188, x2: 190, y2: 188 }, // Left flank row 2 (horizontal)
+    9: { x1: 118, y1: 72,  x2: 190, y2: 120 }  // Left flank row 1
+  };
+
   /**
-   * Render circular council ring with trigonometry
+   * Render rectangular council arena (1 Top, 4 Left, 4 Right, Open Bottom)
    */
   function renderChamberRing() {
     if (!seatsContainer || !spokesSvg) return;
@@ -101,26 +128,17 @@ const BourseChamber = (() => {
     spokesSvg.innerHTML = '';
 
     const agents = BourseAgents.AGENTS;
-    const count = agents.length;
-    const center = 360;
-    const innerRadius = 155;
-    const outerRadius = 295;
 
-    agents.forEach((agent, i) => {
-      const deg = (i * (360 / count)) - 90;
-      const rad = (deg * Math.PI) / 180;
+    agents.forEach((agent) => {
+      const pos = SEAT_COORDINATES[agent.seat] || { x: 500, y: 50 };
+      const spoke = SPOKE_COORDINATES[agent.seat] || { x1: pos.x, y1: pos.y, x2: 500, y2: 230 };
 
       // Spoke Line
-      const x1 = center + Math.cos(rad) * innerRadius;
-      const y1 = center + Math.sin(rad) * innerRadius;
-      const x2 = center + Math.cos(rad) * outerRadius;
-      const y2 = center + Math.sin(rad) * outerRadius;
-
       const spokeLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      spokeLine.setAttribute('x1', x1);
-      spokeLine.setAttribute('y1', y1);
-      spokeLine.setAttribute('x2', x2);
-      spokeLine.setAttribute('y2', y2);
+      spokeLine.setAttribute('x1', spoke.x1);
+      spokeLine.setAttribute('y1', spoke.y1);
+      spokeLine.setAttribute('x2', spoke.x2);
+      spokeLine.setAttribute('y2', spoke.y2);
       spokeLine.setAttribute('class', 'spoke-line');
       spokeLine.setAttribute('id', `spoke-${agent.seat}`);
       spokesSvg.appendChild(spokeLine);
@@ -129,7 +147,8 @@ const BourseChamber = (() => {
       const seatEl = document.createElement('div');
       seatEl.className = 'council-seat';
       seatEl.id = `seat-node-${agent.seat}`;
-      seatEl.style.setProperty('--angle', `${deg}deg`);
+      seatEl.style.left = `${pos.x}px`;
+      seatEl.style.top = `${pos.y}px`;
       seatEl.setAttribute('role', 'button');
       seatEl.setAttribute('tabindex', '0');
       seatEl.setAttribute('aria-pressed', 'false');
@@ -420,27 +439,17 @@ const BourseChamber = (() => {
   function drawDuelBeam(seatA, seatB) {
     clearDuelBeam();
     if (!spokesSvg) return;
-    const count = BourseAgents.AGENTS.length;
-    const center = 360;
-    const outerRadius = 295;
-
-    const degA = ((seatA - 1) * (360 / count)) - 90;
-    const radA = (degA * Math.PI) / 180;
-    const x1 = center + Math.cos(radA) * outerRadius;
-    const y1 = center + Math.sin(radA) * outerRadius;
-
-    const degB = ((seatB - 1) * (360 / count)) - 90;
-    const radB = (degB * Math.PI) / 180;
-    const x2 = center + Math.cos(radB) * outerRadius;
-    const y2 = center + Math.sin(radB) * outerRadius;
+    const posA = SEAT_COORDINATES[seatA];
+    const posB = SEAT_COORDINATES[seatB];
+    if (!posA || !posB) return;
 
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     line.setAttribute('id', 'active-duel-beam');
     line.setAttribute('class', 'duel-beam');
-    line.setAttribute('x1', x1);
-    line.setAttribute('y1', y1);
-    line.setAttribute('x2', x2);
-    line.setAttribute('y2', y2);
+    line.setAttribute('x1', posA.x);
+    line.setAttribute('y1', posA.y);
+    line.setAttribute('x2', posB.x);
+    line.setAttribute('y2', posB.y);
     spokesSvg.appendChild(line);
   }
 

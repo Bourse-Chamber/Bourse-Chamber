@@ -4,7 +4,10 @@
    ========================================================================== */
 
 :root {
-  --chamber-ring-size: 720px;
+  --chamber-arena-width: 1000px;
+  --chamber-arena-height: 490px;
+  --transcript-width: 620px;
+  --transcript-height: 350px;
 }
 
 .chamber-page {
@@ -134,91 +137,83 @@
 }
 
 /* ==========================================================================
-   Circular Chamber Stage
+   Rectangular Chamber Stage (Stadium / Council Floor)
    ========================================================================== */
 .chamber-stage {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 10px 0 20px;
+  padding: 10px 0 16px;
   position: relative;
 }
 
 .council-arena {
   position: relative;
-  width: var(--chamber-ring-size);
-  height: var(--chamber-ring-size);
-  max-width: 94vw;
-  max-height: 94vw;
+  width: var(--chamber-arena-width);
+  height: var(--chamber-arena-height);
+  max-width: 100%;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Concentric Ambient Rings & Radar Motion */
+/* Ambient Rectangular Stadium Border & Terminal Backdrop */
 .ambient-ring-outer {
   position: absolute;
-  inset: 7%;
-  border-radius: 50%;
-  border: 1px dashed rgba(255, 255, 255, 0.12);
+  inset: 6px;
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
   pointer-events: none;
-  animation: ambientSpinClockwise 120s linear infinite;
 }
 
 .ambient-ring-inner {
   position: absolute;
-  inset: 19%;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: radial-gradient(circle, #0D0D0D 0%, #050505 75%);
+  inset: 24px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: radial-gradient(ellipse at 50% 40%, #0D0D0D 0%, #050505 85%);
   pointer-events: none;
-  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.9);
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.9);
 }
 
-/* Radar Sweep Scanner Beam */
+/* Horizontal Laser Sweep Scanner Beam (Strict Monochrome) */
 .radar-sweep-beam {
   position: absolute;
-  inset: 6%;
-  border-radius: 50%;
-  background: conic-gradient(
-    from 0deg,
-    rgba(6, 182, 212, 0.28) 0deg,
-    rgba(168, 85, 247, 0.18) 25deg,
-    rgba(99, 102, 241, 0.08) 60deg,
-    transparent 110deg,
-    transparent 360deg
-  );
+  left: 20px;
+  right: 20px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
   pointer-events: none;
-  animation: radarSweep 9s linear infinite;
+  animation: radarScanH 6s ease-in-out infinite alternate;
   z-index: 2;
-  filter: drop-shadow(0 0 16px rgba(6, 182, 212, 0.25));
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
 }
 
-/* Sonar Expansion Pulse */
+/* Rectangular Sonar Expansion Pulse around Transcript Hub */
 .sonar-ping-ring {
   position: absolute;
-  inset: 18%;
-  border-radius: 50%;
-  border: 1px solid rgba(6, 182, 212, 0.5);
+  left: 50%;
+  top: calc(108px + 175px);
+  transform: translate(-50%, -50%);
+  width: var(--transcript-width);
+  height: var(--transcript-height);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
   pointer-events: none;
-  animation: sonarWave 4.5s cubic-bezier(0.1, 0.8, 0.25, 1) infinite;
+  animation: sonarRectPulse 4s cubic-bezier(0.1, 0.8, 0.25, 1) infinite;
   z-index: 1;
 }
 
-@keyframes radarSweep {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes radarScanH {
+  0% { top: 20px; opacity: 0.2; }
+  50% { opacity: 0.85; }
+  100% { top: 470px; opacity: 0.2; }
 }
 
-@keyframes sonarWave {
-  0% { transform: scale(0.65); opacity: 0.85; border-color: rgba(6, 182, 212, 0.65); box-shadow: 0 0 16px rgba(6, 182, 212, 0.35); }
-  50% { opacity: 0.4; border-color: rgba(168, 85, 247, 0.45); }
-  100% { transform: scale(1.48); opacity: 0; border-color: transparent; }
-}
-
-@keyframes ambientSpinClockwise {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes sonarRectPulse {
+  0% { transform: translate(-50%, -50%) scale(0.98); opacity: 0.75; border-color: rgba(255, 255, 255, 0.6); box-shadow: 0 0 16px rgba(255, 255, 255, 0.2); }
+  100% { transform: translate(-50%, -50%) scale(1.15); opacity: 0; border-color: transparent; }
 }
 
 /* Spoke Lines SVG */
@@ -275,15 +270,13 @@
 /* Council Seats */
 .council-seat {
   position: absolute;
-  top: 50%;
-  left: 50%;
   width: 108px;
-  margin: -54px 0 0 -54px;
-  transform: rotate(var(--angle)) translate(calc(var(--chamber-ring-size) / 2 - 58px)) rotate(calc(-1 * var(--angle)));
   text-align: center;
   cursor: pointer;
   z-index: 10;
-  transition: transform 0.2s ease;
+  transform: translate(-50%, -26px);
+  margin: 0;
+  transition: opacity 0.2s ease;
 }
 
 .seat-avatar-box {
@@ -637,15 +630,16 @@
 }
 
 /* ==========================================================================
-   Central Live Transcript Hub
+   Central Live Transcript Hub (Landscape Rectangle)
    ========================================================================== */
 .central-transcript-hub {
   position: absolute;
-  top: 50%;
+  top: 108px;
   left: 50%;
-  width: 44%;
-  height: 44%;
-  transform: translate(-50%, -50%);
+  width: var(--transcript-width);
+  max-width: calc(100% - 240px);
+  height: var(--transcript-height);
+  transform: translateX(-50%);
   background: var(--bg-card);
   border: 1px solid var(--border-main);
   display: flex;
@@ -1082,10 +1076,10 @@
 }
 
 /* ==========================================================================
-   Mobile Council Layout (< 860px)
-   Transforms circular layout into a functional compact vertical stack
+   Mobile Council Layout (< 980px)
+   Transforms stadium layout into a functional compact vertical stack
    ========================================================================== */
-@media (max-width: 860px) {
+@media (max-width: 980px) {
   .chamber-stage {
     padding: 0;
     display: block;
@@ -1102,8 +1096,10 @@
 
   .ambient-ring-outer,
   .ambient-ring-inner,
+  .radar-sweep-beam,
+  .sonar-ping-ring,
   .spoke-lines-svg {
-    display: none;
+    display: none !important;
   }
 
   .council-seats-container {
@@ -1116,11 +1112,13 @@
   }
 
   .council-seat {
-    position: static;
+    position: static !important;
     transform: none !important;
     margin: 0;
     width: 82px;
     flex: 0 0 82px;
+    left: auto !important;
+    top: auto !important;
   }
 
   .seat-name {
@@ -1131,10 +1129,11 @@
   }
 
   .central-transcript-hub {
-    position: static;
-    width: 100%;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
     height: 55vh;
-    transform: none;
+    transform: none !important;
     margin: 8px 0 16px;
   }
 
