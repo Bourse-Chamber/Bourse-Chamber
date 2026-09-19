@@ -7,15 +7,30 @@ try {
 
 const path = require("node:path");
 const fs = require("node:fs");
+const os = require("node:os");
 const { AGENTS } = require("./agents");
 
-const DB_PATH = path.join(__dirname, "bourse-chamber.sqlite");
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const DB_PATH = isServerless
+  ? path.join(os.tmpdir(), "bourse-chamber.sqlite")
+  : path.join(__dirname, "bourse-chamber.sqlite");
 const JSON_PATH = path.join(__dirname, "bourse-chamber.json");
 
-let db;
+let db = null;
 
 if (DatabaseSync) {
-  db = new DatabaseSync(DB_PATH);
+  try {
+    db = new DatabaseSync(DB_PATH);
+  } catch (err) {
+    try {
+      db = new DatabaseSync(":memory:");
+    } catch (memErr) {
+      db = null;
+    }
+  }
+}
+
+if (db) {
   db.exec(`
 CREATE TABLE IF NOT EXISTS sessions (
   id TEXT PRIMARY KEY,
