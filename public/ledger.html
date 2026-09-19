@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verdict Ledger — Bourse Chamber</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@200;300;400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css">
+<style>
+.phead{padding:56px 0 32px;border-bottom:1px solid var(--g-border-3)}
+.phead h1{font-size:clamp(1.6rem,3vw,2.2rem)}
+.phead p{margin-top:12px;font-size:.88rem;color:var(--dim);max-width:60ch}
+
+.summary{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--g-border-4);margin:28px 0 22px}
+.summary div{padding:20px;border-right:1px solid var(--g-border-4)}
+.summary div:last-child{border-right:none}
+.summary b{display:block;font-family:var(--mono);font-size:1.6rem;font-weight:300}
+.summary span{font-size:.64rem;color:var(--g-meta);font-family:var(--mono)}
+
+.toolbar{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.search{flex:1;min-width:220px;position:relative}
+.search input{width:100%;background:#0B0B0B;border:1px solid var(--g-border-6);color:#fff;font-family:var(--mono);font-size:.78rem;padding:10px 14px}
+.search input::placeholder{color:#5E5E5E}
+.search input:focus{border-color:#fff;outline:none}
+
+.tbl{border:1px solid var(--g-border-4);margin-bottom:80px}
+.trow{display:grid;grid-template-columns:96px 1fr 120px 110px 130px 90px;gap:14px;align-items:center;padding:16px 18px;border-bottom:1px solid var(--g-border-5);transition:background .2s}
+.trow:last-child{border-bottom:none}
+.trow.head{background:var(--g-card-3);font-family:var(--mono);font-size:.64rem;color:var(--g-meta)}
+a.trow:hover{background:#101010}
+.tk{font-family:var(--mono);font-size:.9rem}
+.q{font-size:.83rem;color:var(--g-text-2)}
+.vd{font-family:var(--mono);font-size:.7rem;padding:5px 10px;display:inline-block;text-align:center}
+.vd.pass{background:var(--g-border-1);border:1px solid #333;color:var(--g-text-3)}
+.vd.add{background:#fff;color:#000}
+.vd.reduce{background:var(--g-border-1);border:1px solid #6A6A6A;color:#fff}
+.vote{font-family:var(--mono);font-size:.74rem;color:var(--g-text-3)}
+.band{font-family:var(--mono);font-size:.72rem;color:var(--g-meta-2)}
+.dt{font-family:var(--mono);font-size:.68rem;color:var(--g-meta);text-align:right}
+.bars{display:flex;gap:2px;margin-top:5px}
+.bars i{width:8px;height:4px;background:#2E2E2E;display:block}
+.bars i.on{background:#fff}
+.empty{padding:40px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:.78rem}
+
+@media(max-width:900px){
+  .summary{grid-template-columns:1fr 1fr}
+  .summary div:nth-child(2){border-right:none}
+  .trow{grid-template-columns:70px 1fr 100px;gap:10px}
+  .trow .band,.trow .dt,.trow .vote{display:none}
+  .navlinks a:not(.on){display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a class="logo" href="bourse-chamber.html">
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+        <rect x="0" y="0" width="5" height="5" fill="#fff"/><rect x="10" y="0" width="5" height="5" fill="#fff"/>
+        <rect x="5" y="5" width="5" height="5" fill="#fff"/><rect x="15" y="5" width="5" height="5" fill="#fff"/>
+        <rect x="0" y="10" width="5" height="5" fill="#fff"/><rect x="10" y="10" width="5" height="5" fill="#fff"/>
+        <rect x="5" y="15" width="5" height="5" fill="#fff"/><rect x="15" y="15" width="5" height="5" fill="#fff"/>
+      </svg>
+      Bourse Chamber
+    </a>
+    <div class="navlinks">
+      <a href="bench.html">Bench</a>
+      <a href="ledger.html" class="on">Ledger</a>
+      <a href="chamber.html">Session</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="phead">
+    <h1>Verdict ledger</h1>
+    <p>Every closed session, with the vote and the dissent attached. Nothing is edited after the floor closes — including the calls the bench got wrong.</p>
+  </div>
+
+  <div class="summary" id="summary">
+    <div><b>—</b><span>SESSIONS CLOSED</span></div>
+    <div><b>—</b><span>VOTED IN</span></div>
+    <div><b>—</b><span>AVG MAJORITY</span></div>
+    <div><b>—</b><span>MEDIAN SIZE BAND</span></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="filters" id="filters"></div>
+    <div class="search"><input id="q" type="text" placeholder="Search by asset or question on the floor…" autocomplete="off"></div>
+  </div>
+
+  <div class="tbl" id="tbl">
+    <div class="trow head">
+      <span>ASSET</span><span>QUESTION ON THE FLOOR</span><span>VERDICT</span><span>VOTE</span><span>SIZE BAND</span><span>CLOSED</span>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap fbar">
+    <span>Illustrative records from a simulated committee. Not financial advice.</span>
+    <span>© 2026 Bourse Chamber</span>
+  </div>
+</footer>
+
+<script src="js/shared.js"></script>
+<script>
+var tbl = document.getElementById('tbl'), filters = document.getElementById('filters'), qInput = document.getElementById('q');
+var currentFilter = 'All', currentQuery = '';
+
+function bars(f){ var s=''; for(var i=0;i<9;i++) s += '<i class="' + (i<f?'on':'') + '"></i>'; return '<div class="bars">' + s + '</div>'; }
+function fmtDate(iso){
+  var d = new Date(iso);
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return String(d.getDate()).padStart(2,'0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function load(){
+  var params = new URLSearchParams();
+  if (currentQuery) params.set('q', currentQuery);
+  if (currentFilter !== 'All') params.set('verdict', currentFilter);
+
+  api('/api/ledger?' + params.toString()).then(function(data){
+    var s = data.summary;
+    document.getElementById('summary').innerHTML =
+      '<div><b>' + s.sessionsClosed + '</b><span>SESSIONS CLOSED</span></div>' +
+      '<div><b>' + s.votedIn + '</b><span>VOTED IN</span></div>' +
+      '<div><b>' + s.avgMajority + '</b><span>AVG MAJORITY</span></div>' +
+      '<div><b>' + s.medianSizeBand + '</b><span>MEDIAN SIZE BAND</span></div>';
+
+    tbl.querySelectorAll('a.trow, .empty').forEach(function(n){ n.remove(); });
+    if (!data.rows.length){
+      var e = document.createElement('div');
+      e.className = 'empty';
+      e.textContent = 'No sessions match that search.';
+      tbl.appendChild(e);
+      return;
+    }
+    data.rows.forEach(function(r){
+      var a = document.createElement('a');
+      a.className = 'trow';
+      // Real per-session links: BC-0411 (SOL) and any session run from the
+      // chamber all have a real verdict page; legacy rows fall back
+      // gracefully inside verdict.html itself (Part G.2).
+      a.href = 'verdict.html?id=' + encodeURIComponent(r.id);
+      a.innerHTML = '<span class="tk">' + r.asset + '</span>' +
+        '<span class="q">' + r.thesis + '</span>' +
+        '<span><span class="vd ' + r.verdict.toLowerCase() + '">' + r.verdict + '</span></span>' +
+        '<span class="vote">' + r.majority + ' of 9' + bars(r.majority) + '</span>' +
+        '<span class="band">' + (r.size_band || '—') + '</span>' +
+        '<span class="dt">' + fmtDate(r.closed_at) + '</span>';
+      tbl.appendChild(a);
+    });
+  });
+}
+
+['All','ADD','REDUCE','PASS'].forEach(function(f, i){
+  var b = document.createElement('button');
+  b.className = 'chipbtn' + (i === 0 ? ' on' : '');
+  b.textContent = f;
+  b.onclick = function(){
+    document.querySelectorAll('.chipbtn').forEach(function(x){ x.classList.remove('on'); });
+    b.classList.add('on');
+    currentFilter = f;
+    load();
+  };
+  filters.appendChild(b);
+});
+
+var searchTimer;
+qInput.addEventListener('input', function(){
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(function(){ currentQuery = qInput.value; load(); }, 200);
+});
+
+load();
+</script>
+</body>
+</html>

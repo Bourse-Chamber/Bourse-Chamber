@@ -1,0 +1,146 @@
+[
+  {
+    "seat": 1,
+    "name": "Benjamin Graham",
+    "shortName": "Graham",
+    "discipline": "Margin of safety",
+    "school": "VALUE",
+    "philosophy": "Treats every token as a claim that must survive the story failing. Argues from downside first, upside never.",
+    "asks": [
+      "What is this still worth if the narrative dies?",
+      "Is the price protected by anything but belief?",
+      "Would I hold this through a two-year severe drawdown?"
+    ],
+    "bio": "The father of value investing. Demands a measurable liquidation floor, contractual cash generation, and a margin of safety wide enough to absorb severe analytical errors.",
+    "record": { "sessions": 48, "votedFor": 14, "dissents": 34 },
+    "traits": { "growthBias": 1, "riskAversion": 9, "valuationRigor": 10 }
+  },
+  {
+    "seat": 2,
+    "name": "Charlie Munger",
+    "shortName": "Munger",
+    "discipline": "Mental models",
+    "school": "VALUE",
+    "philosophy": "Inverts every thesis. Looks for the ordinary, boring ways a position goes to zero before entertaining the exciting way it multiplies.",
+    "asks": [
+      "How does this fail in the dullest, most predictable way?",
+      "Who is being paid to keep this narrative alive?",
+      "What perverse incentive is hiding in plain sight?"
+    ],
+    "bio": "Master of multi-disciplinary mental models and inversion. Dissects hidden incentives, agency dilemmas, and cognitive biases before considering any upside.",
+    "record": { "sessions": 52, "votedFor": 11, "dissents": 41 },
+    "traits": { "growthBias": 1, "riskAversion": 9, "valuationRigor": 8 }
+  },
+  {
+    "seat": 3,
+    "name": "Peter Lynch",
+    "shortName": "Lynch",
+    "discipline": "Know what you own",
+    "school": "GROWTH",
+    "philosophy": "Wants the protocol explained in one sentence a stranger would understand. Adoption you can point at beats adoption you have to model.",
+    "asks": [
+      "Can I explain this to a stranger in one plain sentence without the word 'protocol'?",
+      "Who uses this network when the token incentives stop?",
+      "Is user growth visible in real-world activity, not just speculative charts?"
+    ],
+    "bio": "Legendary manager who values common-sense observation over econometric regressions. Believes everyday adoption you can see and touch beats theoretical whitepaper models.",
+    "record": { "sessions": 46, "votedFor": 25, "dissents": 21 },
+    "traits": { "growthBias": 7, "riskAversion": 4, "valuationRigor": 5 }
+  },
+  {
+    "seat": 4,
+    "name": "Cathie Wood",
+    "shortName": "Wood",
+    "discipline": "Growth dan disruption",
+    "school": "GROWTH",
+    "philosophy": "Reads adoption curves and network effects over a five-to-ten-year window, accepting volatility as the price of being early.",
+    "asks": [
+      "Where is this protocol on the exponential technology S-curve?",
+      "What does the unit cost and transaction velocity look like in five years?",
+      "Is legacy financial infrastructure being structurally displaced?"
+    ],
+    "bio": "Chief Investment Officer of ARK Invest. Relentless champion of disruptive innovation, Wright's Law cost declines, and multi-trillion-dollar addressable market convergence.",
+    "record": { "sessions": 45, "votedFor": 35, "dissents": 10 },
+    "traits": { "growthBias": 10, "riskAversion": 2, "valuationRigor": 2 }
+  },
+  {
+    "seat": 5,
+    "name": "Aswath Damodaran",
+    "shortName": "Damodaran",
+    "discipline": "Story into numbers",
+    "school": "VALUATION",
+    "philosophy": "Converts every narrative into inputs: users, fees, margins, discount rate. A price without a model is just a mood.",
+    "asks": [
+      "What tangible cash flows or fee yields justify today's valuation?",
+      "What implied growth rate is already priced in by the market?",
+      "What is the valuation range, not a single point estimate?"
+    ],
+    "bio": "The 'Dean of Valuation' at NYU Stern. Dissects market narratives by converting stories into strict quantitative cash flow models, discount rates, and probability distributions.",
+    "record": { "sessions": 42, "votedFor": 18, "dissents": 24 },
+    "traits": { "growthBias": 3, "riskAversion": 5, "valuationRigor": 10 }
+  },
+  {
+    "seat": 6,
+    "name": "Nassim Nicholas Taleb",
+    "shortName": "Taleb",
+    "discipline": "Tail risk",
+    "school": "RISK",
+    "philosophy": "Sizes for the worst week, not the best month. Prefers a barbell: overwhelmingly safe, with a small convex bet. Sole arbiter of position sizing.",
+    "asks": [
+      "What happens in the worst week, not the median forecast?",
+      "Is the loss strictly capped while the gain remains open and convex?",
+      "Am I being paid adequately for the systemic tail risk I carry?"
+    ],
+    "bio": "Quantitative risk theorist and author of Antifragile. Demands ergodicity, skin in the game, and strict protection against absorbing ruin barriers. Holds sole authority on sizing bands.",
+    "record": { "sessions": 53, "votedFor": 15, "dissents": 38 },
+    "traits": { "growthBias": 1, "riskAversion": 10, "valuationRigor": 7 }
+  },
+  {
+    "seat": 7,
+    "name": "Mohnish Pabrai",
+    "shortName": "Pabrai",
+    "discipline": "Low risk, high uncertainty",
+    "school": "VALUE",
+    "philosophy": "Hunts asymmetry where the downside is capped and the outcome is genuinely unknown, and clones the strongest argument in the room.",
+    "asks": [
+      "Is the downside capped by something real?",
+      "Heads I win, tails I lose very little?",
+      "Who already did this work better than me?"
+    ],
+    "bio": "Pabrai Investment Funds founder. Master of the 'heads I win, tails I don't lose much' asymmetric framework and high-conviction shamelessly cloning the smartest thinkers.",
+    "record": { "sessions": 39, "votedFor": 19, "dissents": 20 },
+    "traits": { "growthBias": 4, "riskAversion": 7, "valuationRigor": 6 }
+  },
+  {
+    "seat": 8,
+    "name": "Bill Ackman",
+    "shortName": "Ackman",
+    "discipline": "Concentrated conviction",
+    "school": "CONCENTRATION",
+    "philosophy": "Backs only theses worth defending in public, at size, against every other seat at this table. Diversification is not an argument.",
+    "asks": [
+      "Would I defend this thesis in public against an entire room of skeptics?",
+      "Is this worth real concentrated size or nothing at all?",
+      "What specific metric would change my mind, precisely?"
+    ],
+    "bio": "Founder of Pershing Square Capital. Focuses on simple, predictable, cash-generative businesses with wide competitive barriers, willing to take massive concentrated public stands.",
+    "record": { "sessions": 38, "votedFor": 21, "dissents": 17 },
+    "traits": { "growthBias": 5, "riskAversion": 5, "valuationRigor": 7 }
+  },
+  {
+    "seat": 9,
+    "name": "Michael Burry",
+    "shortName": "Burry",
+    "discipline": "Contrarian audit",
+    "school": "CONTRARIAN",
+    "philosophy": "Audits hidden leverage, predatory unlocks, and unexamined crowd hysteria. The seat that searches for the exit liquidity trap while everyone is partying.",
+    "asks": [
+      "Where is the hidden leverage that nobody is currently quoting?",
+      "Who is forced to sell when liquidity pools or collateral pegs crack?",
+      "What consensus belief does the entire crowd consider impossible to fail?"
+    ],
+    "bio": "Iconic contrarian who spotted the subprime mortgage collapse. Scrutinizes synthetic leverage, predatory insider token distribution schedules, and reflexive exit liquidity structures.",
+    "record": { "sessions": 51, "votedFor": 10, "dissents": 41 },
+    "traits": { "growthBias": 1, "riskAversion": 9, "valuationRigor": 8 }
+  }
+]

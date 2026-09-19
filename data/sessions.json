@@ -1,0 +1,98 @@
+[
+  {
+    "id": "BC-0411",
+    "ticker": "SOL",
+    "assetName": "Solana",
+    "question": "Is throughput a moat, or a commodity waiting to be priced?",
+    "createdAt": "2026-09-05T09:12:00Z",
+    "closedAt": "09:47",
+    "evidence": {
+      "ticker": "SOL",
+      "name": "Solana",
+      "priceFormatted": "$142.50",
+      "change24h": 6.12,
+      "marketCapFormatted": "$66.80B",
+      "volume24hFormatted": "$4.80B",
+      "networkActivity": "2,850 sustained non-vote TPS; $5.2B DEX settlement",
+      "supply": "468.5M circulating",
+      "macroContext": "High retail DEX throughput; hardware requirements centralizing validator set.",
+      "retrievalDate": "05 Sep 2026",
+      "isDemoData": true
+    },
+    "verdict": {
+      "outcome": "REDUCE",
+      "majorityRatio": "5 / 9",
+      "dissentBreakdown": "3 ADD, 1 PASS",
+      "positionSizeBand": "1.0 – 2.0%",
+      "keyAgreement": "Solana has achieved genuine retail product-market fit in low-latency DEX activity.",
+      "keyDisagreement": "Whether transaction execution throughput will remain a defensible competitive moat once rival rollups achieve sub-cent finality.",
+      "unresolvedQuestion": "Can high validator hardware requirements and storage state growth survive without structural centralization?",
+      "reviewTriggers": [
+        "Network activity declines materially below 1,500 non-vote TPS.",
+        "Valuation expands above $100B without corresponding non-speculative fee economics.",
+        "Foundation or early venture unlock schedule accelerates distribution."
+      ]
+    },
+    "speakingTurns": 14,
+    "seatsPresent": "9 / 9",
+    "votes": [
+      { "seat": 1, "name": "Benjamin Graham", "school": "VALUE", "discipline": "Margin of safety", "vote": "REDUCE", "reason": "Current valuation assumes indefinite speculative volume. Lacks a tangible cash margin of safety." },
+      { "seat": 2, "name": "Charlie Munger", "school": "VALUE", "discipline": "Mental models", "vote": "REDUCE", "reason": "Invert: validator economics and state bloat represent unmodeled operational fragilities." },
+      { "seat": 3, "name": "Warren Buffett", "school": "VALUE", "discipline": "Quality / economics", "vote": "REDUCE", "reason": "Raw throughput is an engineering specification, not a durable monopoly toll moat." },
+      { "seat": 4, "name": "Peter Lynch", "school": "GROWTH", "discipline": "Growth at reasonable price", "vote": "ADD", "reason": "Organic retail user volume is observable in real life; consumer apps are choosing Solana." },
+      { "seat": 5, "name": "Howard Marks", "school": "RISK", "discipline": "Risk / cycles", "vote": "PASS", "reason": "Pendulum has swung from existential post-FTX distress to excessive euphoria; wait for equilibrium." },
+      { "seat": 6, "name": "Ray Dalio", "school": "MACRO", "discipline": "Macro / regime", "vote": "PASS", "reason": "High-beta technology asset rather than a neutral macro reserve; maintain neutral benchmark weight." },
+      { "seat": 7, "name": "Cathie Wood", "school": "GROWTH", "discipline": "Innovation / disruption", "vote": "ADD", "reason": "Frictionless execution and monolithic composability represent the future of decentralized finance." },
+      { "seat": 8, "name": "Michael Burry", "school": "CONTRARIAN", "discipline": "Contrarian / asymmetric risk", "vote": "REDUCE", "reason": "Concentrated venture backing and reflexive liquidity loops create an asymmetric downside trap." },
+      { "seat": 9, "name": "Nassim Nicholas Taleb", "school": "RISK", "discipline": "Tail risk / antifragility", "vote": "ADD", "reason": "Demonstrated antifragility by surviving catastrophic external collapse and regaining network velocity." }
+    ]
+  },
+  {
+    "id": "BC-0101",
+    "ticker": "BTC",
+    "assetName": "Bitcoin",
+    "question": "Is BTC still a reasonable core holding at current market levels?",
+    "createdAt": "2026-09-12T14:20:00Z",
+    "closedAt": "14:52",
+    "evidence": {
+      "ticker": "BTC",
+      "name": "Bitcoin",
+      "priceFormatted": "$64,280",
+      "change24h": 2.35,
+      "marketCapFormatted": "$1.27T",
+      "volume24hFormatted": "$28.40B",
+      "networkActivity": "840,000 active settlement addresses / 24h",
+      "supply": "19.75M circulating / 21.0M hard cap",
+      "macroContext": "Global liquidity expansion; institutional ETF inflows; sovereign treasury diversification.",
+      "retrievalDate": "12 Sep 2026",
+      "isDemoData": true
+    },
+    "verdict": {
+      "outcome": "ADD",
+      "majorityRatio": "6 / 9",
+      "dissentBreakdown": "2 REDUCE, 1 PASS",
+      "positionSizeBand": "3.0 – 5.0%",
+      "keyAgreement": "BTC retains unmatched monetary liquidity, institutional custody adoption, and unforgeable scarcity.",
+      "keyDisagreement": "Whether absent cash flows, Bitcoin can sustain a trillion-dollar valuation across sovereign liquidity drawdowns.",
+      "unresolvedQuestion": "Will long-term transaction fee revenue adequately incentivize hashpower security after subsequent halvings?",
+      "reviewTriggers": [
+        "Material deterioration in global on-chain settlement volume.",
+        "Significant synchronous tightening in G10 central bank balance sheets.",
+        "Structural shift in US/global regulatory clarity for regulated custody."
+      ]
+    },
+    "speakingTurns": 16,
+    "seatsPresent": "9 / 9",
+    "votes": [
+      { "seat": 1, "name": "Benjamin Graham", "school": "VALUE", "discipline": "Margin of safety", "vote": "PASS", "reason": "Monetary brand acknowledged, but absence of cash flow floor warrants caution over accumulation." },
+      { "seat": 2, "name": "Charlie Munger", "school": "VALUE", "discipline": "Mental models", "vote": "REDUCE", "reason": "Remains an artificial speculative token with excessive social friction and non-productive economics." },
+      { "seat": 3, "name": "Warren Buffett", "school": "VALUE", "discipline": "Quality / economics", "vote": "PASS", "reason": "Non-productive asset: does not produce food, oil, or dividends. Neutral stance." },
+      { "seat": 4, "name": "Peter Lynch", "school": "GROWTH", "discipline": "Growth at reasonable price", "vote": "ADD", "reason": "Global brand awareness is total; institutional adoption has crossed the chasm." },
+      { "seat": 5, "name": "Howard Marks", "school": "RISK", "discipline": "Risk / cycles", "vote": "ADD", "reason": "Cycle placement shows steady accumulation rather than late-stage blow-off mania." },
+      { "seat": 6, "name": "Ray Dalio", "school": "MACRO", "discipline": "Macro / regime", "vote": "ADD", "reason": "Essential non-debt reserve alternative in an era of aggressive sovereign debt monetization." },
+      { "seat": 7, "name": "Cathie Wood", "school": "GROWTH", "discipline": "Innovation / disruption", "vote": "ADD", "reason": "Global monetary protocol on track for multi-trillion market capture; supreme conviction." },
+      { "seat": 8, "name": "Michael Burry", "school": "CONTRARIAN", "discipline": "Contrarian / asymmetric risk", "vote": "REDUCE", "reason": "Derivative leverage concentration creates severe risk of flash liquidations." },
+      { "seat": 9, "name": "Nassim Nicholas Taleb", "school": "RISK", "discipline": "Tail risk / antifragility", "vote": "ADD", "reason": "Proven survival through multiple 80% drawdowns without bankruptcy gives it convexity." }
+    ]
+  }
+]

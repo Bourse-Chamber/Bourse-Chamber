@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Bench — Bourse Chamber</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@200;300;400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css">
+<style>
+.phead{padding:56px 0 34px;border-bottom:1px solid var(--g-border-3)}
+.phead h1{font-size:clamp(1.6rem,3vw,2.2rem)}
+.phead p{margin-top:12px;font-size:.88rem;color:var(--dim);max-width:60ch}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;padding:26px 0 0}
+
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:26px 0 90px}
+.card{border:1px solid var(--g-border-6);background:var(--g-card);padding:22px;display:flex;flex-direction:column;transition:border-color .2s,background .2s,transform .2s}
+.card:hover{border-color:#4E4E4E;background:#111;transform:translateY(-3px)}
+.card .top{display:flex;gap:14px;align-items:center}
+.card .ava{width:52px;height:52px;border:1px solid var(--g-border-7);display:flex;align-items:center;justify-content:center;background:var(--g-card-2);flex:0 0 52px}
+.card .ava svg{width:38px;height:38px}
+.card h3{font-size:1rem;font-weight:400}
+.card .dc{font-family:var(--mono);font-size:.66rem;color:var(--g-meta-2);margin-top:3px}
+.card .bio{font-size:.8rem;color:var(--g-text-2);margin-top:16px;flex:1}
+.card h5{font-family:var(--mono);font-size:.62rem;color:#666;margin:18px 0 8px}
+.card li{list-style:none;font-size:.75rem;color:var(--g-text-2);padding:7px 0;border-top:1px solid var(--g-border-3)}
+.record{display:flex;gap:0;margin-top:18px;border:1px solid var(--g-border-4)}
+.record div{flex:1;padding:9px 6px;text-align:center;border-right:1px solid var(--g-border-4)}
+.record div:last-child{border-right:none}
+.record b{display:block;font-family:var(--mono);font-size:.95rem;font-weight:400}
+.record span{font-size:.6rem;color:var(--g-meta);font-family:var(--mono)}
+
+.cta{border:1px solid var(--g-border-6);padding:40px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:70px}
+.cta h2{font-size:1.3rem;font-weight:300}
+.cta p{font-size:.84rem;color:var(--dim);margin-top:6px}
+
+@media(max-width:980px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.grid{grid-template-columns:1fr}.navlinks a:not(.on){display:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a class="logo" href="bourse-chamber.html">
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+        <rect x="0" y="0" width="5" height="5" fill="#fff"/><rect x="10" y="0" width="5" height="5" fill="#fff"/>
+        <rect x="5" y="5" width="5" height="5" fill="#fff"/><rect x="15" y="5" width="5" height="5" fill="#fff"/>
+        <rect x="0" y="10" width="5" height="5" fill="#fff"/><rect x="10" y="10" width="5" height="5" fill="#fff"/>
+        <rect x="5" y="15" width="5" height="5" fill="#fff"/><rect x="15" y="15" width="5" height="5" fill="#fff"/>
+      </svg>
+      Bourse Chamber
+    </a>
+    <div class="navlinks">
+      <a href="bench.html" class="on">Bench</a>
+      <a href="ledger.html">Ledger</a>
+      <a href="chamber.html">Session</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="phead">
+    <h1>The bench</h1>
+    <p>Nine seats, five schools, one rule: no doctrine gets to win unopposed. Each dossier lists what that seat asks before it will vote, and how it has voted across recorded sessions.</p>
+  </div>
+
+  <div class="filters" id="filters"></div>
+  <div class="grid" id="grid">
+    <p style="color:var(--dim);font-family:var(--mono);font-size:.78rem;padding:20px 0">Loading the bench…</p>
+  </div>
+
+  <div class="cta">
+    <div>
+      <h2>Take a thesis to the floor</h2>
+      <p>The full bench convenes in the session room.</p>
+    </div>
+    <a class="btn" href="chamber.html">Open a session</a>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap fbar">
+    <span>These are AI reasoning personas built from each investor's publicly documented philosophy. They are not the individuals, they do not speak for them, and nothing here is financial advice.</span>
+    <span>© 2026 Bourse Chamber</span>
+  </div>
+</footer>
+
+<script src="js/shared.js"></script>
+<script>
+var grid = document.getElementById('grid'), filters = document.getElementById('filters');
+var AGENTS = [], SCHOOL_ORDER = ['All'];
+
+function render(school){
+  grid.innerHTML = '';
+  AGENTS.filter(function(m){ return school === 'All' || m.school === school; }).forEach(function(m){
+    var el = document.createElement('article');
+    el.className = 'card';
+    el.innerHTML =
+      '<div class="top"><div class="ava">' + avatar(m.name, 10) + '</div><div><h3>' + m.name + '</h3><div class="dc">' + m.discipline + '</div></div></div>' +
+      '<p class="bio">' + m.bio + '</p>' +
+      '<h5>ASKS FIRST</h5><ul>' + m.asks.map(function(a){ return '<li>' + a + '</li>'; }).join('') + '</ul>' +
+      '<div class="record"><div><b>' + m.record.sessions + '</b><span>SESSIONS</span></div><div><b>' + m.record.votedFor + '</b><span>VOTED FOR</span></div><div><b>' + m.record.dissents + '</b><span>DISSENTS</span></div></div>';
+    grid.appendChild(el);
+  });
+}
+
+api('/api/agents').then(function(data){
+  AGENTS = data.agents;
+  SCHOOL_ORDER = data.schoolOrder;
+  SCHOOL_ORDER.forEach(function(s, i){
+    var b = document.createElement('button');
+    b.className = 'chipbtn' + (i === 0 ? ' on' : '');
+    b.textContent = s;
+    b.onclick = function(){
+      document.querySelectorAll('.chipbtn').forEach(function(x){ x.classList.remove('on'); });
+      b.classList.add('on');
+      render(s);
+    };
+    filters.appendChild(b);
+  });
+  render('All');
+}).catch(function(err){
+  grid.innerHTML = '<p style="color:var(--dim);font-family:var(--mono);font-size:.78rem;padding:20px 0">Could not load the bench (' + err.message + ').</p>';
+});
+</script>
+</body>
+</html>

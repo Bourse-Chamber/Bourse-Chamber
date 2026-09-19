@@ -1,0 +1,62 @@
+[
+  {
+    "id": "BC-0411",
+    "ticker": "SOL",
+    "assetName": "Solana",
+    "question": "Is throughput a moat, or a commodity waiting to be priced?",
+    "createdAt": "2026-09-05T09:12:00Z",
+    "closedAt": "09:47",
+    "outcome": "REDUCE",
+    "majorityRatio": "5 / 9",
+    "dissentBreakdown": "3 ADD, 1 PASS",
+    "positionSizeBand": "1.0 – 2.0%"
+  },
+  {
+    "id": "BC-0101",
+    "ticker": "BTC",
+    "assetName": "Bitcoin",
+    "question": "Is BTC still a reasonable core holding at current market levels?",
+    "createdAt": "2026-09-12T14:20:00Z",
+    "closedAt": "14:52",
+    "outcome": "ADD",
+    "majorityRatio": "6 / 9",
+    "dissentBreakdown": "2 REDUCE, 1 PASS",
+    "positionSizeBand": "3.0 – 5.0%"
+  },
+  {
+    "id": "BC-0202",
+    "ticker": "ETH",
+    "assetName": "Ethereum",
+    "question": "Does Layer-2 fragmentation permanently impair Ethereum's fee accrual moat?",
+    "createdAt": "2026-09-15T11:00:00Z",
+    "closedAt": "11:35",
+    "outcome": "PASS",
+    "majorityRatio": "5 / 9",
+    "dissentBreakdown": "3 ADD, 1 REDUCE",
+    "positionSizeBand": "2.0 – 3.0%"
+  },
+  {
+    "id": "BC-0305",
+    "ticker": "AVAX",
+    "assetName": "Avalanche",
+    "question": "Subnet architecture vs monolithic scaling in a liquidity-constrained cycle",
+    "createdAt": "2026-09-17T16:15:00Z",
+    "closedAt": "16:48",
+    "outcome": "REDUCE",
+    "majorityRatio": "6 / 9",
+    "dissentBreakdown": "2 PASS, 1 ADD",
+    "positionSizeBand": "0.5 – 1.5%"
+  },
+  {
+    "id": "BC-0189",
+    "ticker": "LINK",
+    "assetName": "Chainlink",
+    "question": "Is Cross-Chain Interoperability Protocol (CCIP) the definitive plumbing of tokenized RWAs?",
+    "createdAt": "2026-09-18T10:10:00Z",
+    "closedAt": "10:45",
+    "outcome": "ADD",
+    "majorityRatio": "7 / 9",
+    "dissentBreakdown": "1 REDUCE, 1 PASS",
+    "positionSizeBand": "2.5 – 4.0%"
+  }
+]

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Session Floor — Bourse Chamber</title>
+  <meta name="description" content="Convene the nine-seat investment chamber to independently evaluate crypto theses, cross-examine opposing viewpoints, and record ballots into the ledger.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/chamber.css">
+</head>
+<body class="chamber-page">
+
+  <!-- Sticky Global Navigation -->
+  <header class="site-header">
+    <div class="nav-container">
+      <a class="site-logo" href="index.html">
+        <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true">
+          <rect x="0" y="0" width="5" height="5" fill="#fff"/>
+          <rect x="10" y="0" width="5" height="5" fill="#fff"/>
+          <rect x="5" y="5" width="5" height="5" fill="#fff"/>
+          <rect x="15" y="5" width="5" height="5" fill="#fff"/>
+          <rect x="0" y="10" width="5" height="5" fill="#fff"/>
+          <rect x="10" y="10" width="5" height="5" fill="#fff"/>
+          <rect x="5" y="15" width="5" height="5" fill="#fff"/>
+          <rect x="15" y="15" width="5" height="5" fill="#fff"/>
+        </svg>
+        <span>Bourse Chamber</span>
+      </a>
+      <nav class="nav-links">
+        <a class="nav-link" href="bench.html">Bench</a>
+        <a class="nav-link" href="ledger.html">Ledger</a>
+        <a class="nav-link active" href="chamber.html">Session</a>
+      </nav>
+      <button class="mobile-nav-toggle" aria-label="Toggle navigation menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" stroke="#fff" stroke-width="2" fill="none">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- Session Floor Header -->
+    <div class="floor-header">
+      <div>
+        <h1>Session floor</h1>
+        <p>Put a ticker or a thesis on the table. All nine speak in turn, two cross-examine, then the vote is tallied and recorded.</p>
+      </div>
+      <div class="session-metadata-bar">
+        <div class="state-pill" id="chamber-state-pill">
+          <span class="state-blip"></span>
+          <span id="chamber-state-label">IDLE</span>
+        </div>
+        <span>Session: <b id="session-id-display">—</b></span>
+        <span>Seats present: <b>9 / 9</b></span>
+      </div>
+    </div>
+
+    <!-- Evidence Pack Panel -->
+    <section class="evidence-panel" id="evidence-panel">
+      <div class="evidence-header">
+        <span>EVIDENCE PACK: SUBMIT A THESIS TO LOAD A SNAPSHOT</span>
+        <span class="badge">DEMO DATA — NOT A LIVE FEED</span>
+      </div>
+      <p style="font-size:0.78rem;color:var(--text-muted);font-family:var(--font-mono);">
+        Once convened, baseline market liquidity, supply metrics, and on-chain activity will lock before seat analysis begins.
+      </p>
+    </section>
+
+    <!-- Council Circular Stage -->
+    <div class="chamber-stage">
+      <div class="council-arena" id="council-arena">
+        <div class="ambient-ring-outer"></div>
+        <div class="ambient-ring-inner"></div>
+        <svg class="spoke-lines-svg" id="spoke-lines-svg" viewBox="0 0 720 720" aria-hidden="true"></svg>
+
+        <!-- 9 Circular Seats Container -->
+        <div class="council-seats-container" id="council-seats"></div>
+
+        <!-- Central Live Transcript Hub -->
+        <div class="central-transcript-hub">
+          <div class="transcript-header-bar">
+            <span>LIVE TRANSCRIPT</span>
+            <div class="transcript-controls">
+              <button class="transcript-btn-mini" id="pause-transcript-btn" type="button">Pause</button>
+              <button class="transcript-btn-mini" id="speed-transcript-btn" type="button">Speed: 1x</button>
+              <span id="chamber-clock">00:00:00</span>
+            </div>
+          </div>
+          <div class="transcript-feed" id="transcript-feed">
+            <div class="transcript-msg chair">
+              <div class="msg-meta">
+                <span>CHAIR</span>
+                <span class="msg-time">--:--</span>
+              </div>
+              <div class="msg-body">Chamber floor is clear. Present a ticker or investment thesis below to convene the bench.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Voting Scoreboard Ribbon -->
+    <div class="voting-scoreboard-panel" id="voting-scoreboard">
+      <div style="font-size:0.78rem;color:var(--text-muted);">LIVE BALLOT TALLY</div>
+      <div class="tally-group">
+        <div class="tally-item">
+          <span class="badge add">ADD</span>
+          <span class="tally-count" id="tally-add">0</span>
+        </div>
+        <div class="tally-item">
+          <span class="badge reduce">REDUCE</span>
+          <span class="tally-count" id="tally-reduce">0</span>
+        </div>
+        <div class="tally-item">
+          <span class="badge pass">PASS</span>
+          <span class="tally-count" id="tally-pass">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Post-Session Action Bar -->
+    <div class="post-session-actions" id="post-session-actions">
+      <div class="post-session-text">
+        <strong>SESSION CLOSED & RECORDED</strong>
+        <p style="color:var(--text-secondary);font-size:0.75rem;margin-top:2px;">All ballots tallied. Verdict permanently saved to the ledger.</p>
+      </div>
+      <div class="post-session-btns">
+        <button class="btn btn-outline" id="reset-chamber-btn" type="button">Convene New</button>
+        <button class="btn btn-secondary" id="share-verdict-btn" type="button">Share Verdict</button>
+        <button class="btn btn-primary" id="view-verdict-btn" type="button">Open Full Verdict Record →</button>
+      </div>
+    </div>
+
+    <!-- Composer Form & Hints -->
+    <div class="chamber-composer-wrap">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;">
+        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-secondary);">
+          <span id="composer-mode-label">What should the bench examine?</span>
+          <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">Tip: Click any avatar on the ring to direct questions to specific seats.</div>
+        </div>
+        
+        <!-- F13 Answer Budget Counter HUD -->
+        <div class="budget-counter-hud" id="budget-counter-hud">
+          <div class="budget-counter-top">
+            <span class="budget-counter-text" id="budget-counter-text">13 / 13 answers left today</span>
+            <span class="budget-reset-countdown" id="budget-reset-countdown">Resets 00:00 UTC</span>
+          </div>
+          <div class="budget-pixel-grid" id="budget-pixel-grid"></div>
+        </div>
+      </div>
+
+      <div class="budget-warning-text" id="budget-warning-text"></div>
+
+      <!-- F14 Directed Selection Bar -->
+      <div class="directed-selection-bar" id="directed-selection-bar" style="display:none;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="color:var(--text-muted);font-size:0.65rem;text-transform:uppercase;">Directed to:</span>
+          <div class="selected-chips-group" id="selected-chips-group"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="crossexam-toggle-btn" id="crossexam-toggle-btn" type="button" style="display:none;">Cross-examine (4)</button>
+          <button class="clear-selection-btn" id="clear-selection-btn" type="button">Clear selection</button>
+        </div>
+      </div>
+
+      <form class="composer-form" onsubmit="event.preventDefault();">
+        <input class="composer-input" id="composer-input" type="text" placeholder="Present a ticker or a thesis to the committee (e.g. BTC, or @graham is SOL an enduring moat?)" autocomplete="off">
+        <button class="composer-btn" id="convene-btn" type="button">Ask the full bench (9)</button>
+      </form>
+      <div class="hint-chips-row">
+        <span class="hint-chip-label">Examples:</span>
+        <button class="hint-chip" data-thesis="Is BTC still a reasonable core holding at current market levels?" type="button">BTC core holding?</button>
+        <button class="hint-chip" data-thesis="Is throughput a moat, or a commodity waiting to be priced?" type="button">SOL throughput moat?</button>
+        <button class="hint-chip" data-thesis="Does Layer-2 fragmentation permanently impair Ethereum's fee accrual moat?" type="button">ETH Layer-2 fragmentation</button>
+        <button class="hint-chip" data-thesis="A new L2 protocol offering 40% APY" type="button">New L2 40% APY</button>
+        <button class="hint-chip" data-thesis="LINK as the definitive institutional RWA plumbing" type="button">LINK RWA infrastructure</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Dossier Drawer & Scrim -->
+  <div class="dossier-scrim" id="dossier-scrim"></div>
+  <aside class="dossier-drawer" id="dossier-drawer" aria-hidden="true">
+    <button class="dossier-close" id="dossier-close" aria-label="Close dossier">✕</button>
+    <div class="dossier-avatar-wrap" id="dossier-avatar"></div>
+    <div class="dossier-seat-tag" id="dossier-seat">SEAT 01 · VALUE</div>
+    <h3 class="dossier-name" id="dossier-name">Benjamin Graham</h3>
+    <div class="dossier-discipline" id="dossier-discipline">Margin of safety</div>
+    
+    <div class="dossier-section-title">CORE PHILOSOPHY</div>
+    <p class="dossier-bio" id="dossier-bio"></p>
+
+    <div class="dossier-section-title">WHAT THIS SEAT ASKS FIRST</div>
+    <ul class="dossier-questions" id="dossier-questions"></ul>
+
+    <div class="dossier-section-title">HISTORICAL RECORD</div>
+    <div class="dossier-record-grid">
+      <div class="dossier-record-col">
+        <div class="dossier-record-val" id="dossier-sessions">48</div>
+        <div class="dossier-record-lbl">Sessions</div>
+      </div>
+      <div class="dossier-record-col">
+        <div class="dossier-record-val" id="dossier-voted-for">14</div>
+        <div class="dossier-record-lbl">Voted In</div>
+      </div>
+      <div class="dossier-record-col">
+        <div class="dossier-record-val" id="dossier-dissents">34</div>
+        <div class="dossier-record-lbl">Dissents</div>
+      </div>
+    </div>
+
+    <div id="dossier-live-section" style="display:none;"></div>
+  </aside>
+
+  <!-- Global Footer -->
+  <footer class="site-footer">
+    <div class="wrap footer-content">
+      <div class="footer-disclaimer">
+        <span>Educational simulation. AI personas built from published investing philosophies — not the individuals, not financial advice.</span>
+        <div style="margin-top:6px;display:flex;gap:14px;font-family:var(--font-mono);font-size:0.72rem;">
+          <a href="method.html" style="text-decoration:underline;">Method</a>
+          <a href="disclaimer.html" style="text-decoration:underline;">Disclaimer</a>
+        </div>
+      </div>
+      <div class="footer-copy">
+        © 2026 Bourse Chamber
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/utils.js"></script>
+  <script src="js/agents.js"></script>
+  <script src="js/mock-data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/budget.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/chamber.js"></script>
+</body>
+</html>

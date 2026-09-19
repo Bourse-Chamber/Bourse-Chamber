@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/chamber", "destination": "/chamber.html" },
+    { "source": "/bench", "destination": "/bench.html" },
+    { "source": "/ledger", "destination": "/ledger.html" },
+    { "source": "/verdict", "destination": "/verdict.html" },
+    { "source": "/method", "destination": "/method.html" },
+    { "source": "/disclaimer", "destination": "/disclaimer.html" },
+    { "source": "/legal/disclaimer", "destination": "/disclaimer.html" },
+    { "source": "/api/(.*)", "destination": "/api/$1" }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "bourse-chamber",
+  "version": "1.0.0",
+  "description": "Bourse Chamber — nine investing-persona AI agents debate a thesis, vote, and record a verdict. Full-stack build with a real Express API and a SQLite database.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

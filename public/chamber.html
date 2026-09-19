@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session — Bourse Chamber</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@200;300;400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/shared.css">
+<style>
+:root{--ring:720px}
+body{overflow-x:hidden}
+
+.phead{padding:44px 0 26px;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.phead h1{font-size:clamp(1.4rem,2.6vw,1.9rem);font-weight:300}
+.phead p{font-size:.85rem;color:var(--dim);margin-top:6px;max-width:56ch}
+.session-meta{font-family:var(--mono);font-size:.72rem;color:var(--g-meta-2);display:flex;gap:18px;flex-wrap:wrap}
+.session-meta b{color:#fff;font-weight:400}
+.livedot{width:6px;height:6px;background:#fff;display:inline-block;margin-right:7px;animation:blip 1.6s steps(2,end) infinite}
+@keyframes blip{0%,60%{opacity:1}61%,100%{opacity:.2}}
+
+/* evidence pack */
+.evidence{max-width:1180px;margin:0 auto;padding:0 28px 8px}
+.evbox{border:1px dashed var(--g-border-6);padding:14px 18px;display:flex;gap:24px;flex-wrap:wrap;align-items:center;font-family:var(--mono);font-size:.72rem;color:var(--g-text-1)}
+.evbox b{color:#fff;font-weight:400}
+.evbox .tag{margin-left:auto;color:#7A7A7A;letter-spacing:.04em}
+
+.stage{display:flex;justify-content:center;padding:18px 0 10px}
+.table{position:relative;width:var(--ring);height:var(--ring);max-width:92vw;max-height:92vw}
+.tring{position:absolute;inset:8%;border-radius:50%;border:1px dashed rgba(255,255,255,.12)}
+.tring2{position:absolute;inset:20%;border-radius:50%;border:1px solid rgba(255,255,255,.07);background:radial-gradient(circle,#101010,#070707 70%)}
+.spokes{position:absolute;inset:0;pointer-events:none}
+.spokes line{stroke:rgba(255,255,255,.09);stroke-width:1}
+.spokes line.hot{stroke:rgba(255,255,255,.75);stroke-dasharray:3 4;animation:dash 1s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-14}}
+
+.seat{
+  position:absolute;top:50%;left:50%;width:104px;margin:-52px 0 0 -52px;
+  transform:rotate(var(--a)) translate(calc(var(--ring)/2 - 54px)) rotate(calc(-1 * var(--a)));
+  text-align:center;cursor:pointer;
+}
+.seat .ava{
+  width:52px;height:52px;margin:0 auto;border:1px solid var(--g-border-7);background:#0B0B0B;
+  display:flex;align-items:center;justify-content:center;transition:all .25s ease;
+}
+.seat .ava svg{width:38px;height:38px;display:block}
+.seat .nm{font-family:var(--mono);font-size:.66rem;margin-top:8px;color:var(--g-text-3);line-height:1.3}
+.seat .dc{font-size:.58rem;color:#6C6C6C;font-family:var(--mono);margin-top:2px}
+.seat:hover .ava{border-color:#fff;transform:translateY(-3px)}
+.seat.speaking .ava{background:#fff;border-color:#fff;box-shadow:0 0 0 5px rgba(255,255,255,.08)}
+.seat.speaking .ava svg rect{fill:#000!important}
+.seat.speaking .nm{color:#fff}
+.seat.muted{opacity:.34}
+
+.core{
+  position:absolute;top:50%;left:50%;width:44%;height:44%;transform:translate(-50%,-50%);
+  background:var(--g-card);border:1px solid var(--g-border-6);display:flex;flex-direction:column;overflow:hidden;
+}
+.core .ch{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-bottom:1px solid var(--g-border-4);font-family:var(--mono);font-size:.62rem;color:var(--g-meta-2);flex:0 0 auto}
+.feed{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin}
+.feed::-webkit-scrollbar{width:6px}
+.feed::-webkit-scrollbar-thumb{background:var(--g-border-6)}
+.msg .who{font-family:var(--mono);font-size:.6rem;color:#fff;display:flex;gap:8px;align-items:baseline}
+.msg .who .t{color:#5F5F5F}
+.msg .bd{font-size:.72rem;line-height:1.55;color:#AFAFAF;margin-top:5px;border-left:1px solid #262626;padding-left:9px}
+.msg.chair .bd{border-color:#fff;color:var(--g-text-5)}
+.msg.crossexam .bd{border-color:#6E6E6E;color:var(--g-text-4)}
+.msg.verdict{border:1px solid #fff;background:#fff;color:#000;padding:10px}
+.msg.verdict .who{color:#000}
+.msg.verdict .who .t{color:#666}
+.msg.verdict .bd{color:#222;border-color:#000;font-size:.7rem}
+.typing{font-family:var(--mono);font-size:.62rem;color:#7A7A7A}
+.typing i{display:inline-block;width:4px;height:4px;background:#7A7A7A;margin-left:3px;animation:blip 1s steps(2,end) infinite;font-style:normal}
+.typing i:nth-child(2){animation-delay:.2s}
+.typing i:nth-child(3){animation-delay:.4s}
+
+.composer{display:flex;gap:10px;align-items:center;max-width:820px;margin:26px auto 0;padding:0 28px}
+.composer input{
+  flex:1;background:#0B0B0B;border:1px solid var(--g-border-6);color:#fff;
+  font-family:var(--sans);font-size:.85rem;padding:14px 16px;
+}
+.composer input::placeholder{color:#5E5E5E}
+.composer input:focus{border-color:#fff;outline:none}
+.composer button{
+  font-family:var(--mono);font-size:.8rem;background:#fff;color:#000;border:none;
+  padding:14px 24px;cursor:pointer;transition:background .2s,transform .2s;
+}
+.composer button:hover{background:#D6D6D6;transform:translateY(-2px)}
+.composer button:disabled{background:var(--g-border-6);color:#777;cursor:not-allowed;transform:none}
+.hintrow{max-width:820px;margin:12px auto 0;padding:0 28px;display:flex;gap:8px;flex-wrap:wrap}
+
+.dossier{
+  position:fixed;right:0;top:0;bottom:0;width:380px;max-width:88vw;background:var(--g-card);
+  border-left:1px solid var(--g-border-6);z-index:80;transform:translateX(102%);transition:transform .4s cubic-bezier(.2,.7,.2,1);
+  padding:26px;overflow-y:auto;
+}
+.dossier.open{transform:none}
+.dossier .x{position:absolute;right:16px;top:14px;background:none;border:none;color:var(--g-text-1);font-family:var(--mono);font-size:1rem;cursor:pointer}
+.dossier .x:hover{color:#fff}
+.dossier .ava-lg{width:76px;height:76px;border:1px solid var(--g-border-7);display:flex;align-items:center;justify-content:center;background:var(--g-card-2)}
+.dossier h3{font-size:1.1rem;font-weight:400;margin-top:16px}
+.dossier .dc{font-family:var(--mono);font-size:.68rem;color:var(--g-meta-2);margin-top:3px}
+.dossier p{font-size:.82rem;color:#A5A5A5;margin-top:14px}
+.dossier h5{font-family:var(--mono);font-size:.68rem;color:var(--g-meta);margin:22px 0 8px}
+.dossier li{font-size:.78rem;color:var(--g-text-2);list-style:none;padding:8px 0;border-top:1px solid var(--g-border-4)}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:70;opacity:0;pointer-events:none;transition:opacity .3s}
+.scrim.on{opacity:1;pointer-events:auto}
+
+@media(max-width:820px){
+  .stage{display:block;padding:10px 0 0}
+  .table{width:auto;height:auto;max-width:none;max-height:none}
+  .tring,.tring2,.spokes{display:none}
+  .seat{position:static;transform:none!important;margin:0;width:78px;flex:0 0 78px}
+  .seatrail{display:flex!important;gap:12px;overflow-x:auto;padding:4px 28px 16px;scrollbar-width:none}
+  .seatrail::-webkit-scrollbar{display:none}
+  .core{position:static;width:auto;height:64vh;transform:none;margin:0 28px}
+}
+.seatrail{display:contents}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a class="logo" href="bourse-chamber.html">
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+        <rect x="0" y="0" width="5" height="5" fill="#fff"/><rect x="10" y="0" width="5" height="5" fill="#fff"/>
+        <rect x="5" y="5" width="5" height="5" fill="#fff"/><rect x="15" y="5" width="5" height="5" fill="#fff"/>
+        <rect x="0" y="10" width="5" height="5" fill="#fff"/><rect x="10" y="10" width="5" height="5" fill="#fff"/>
+        <rect x="5" y="15" width="5" height="5" fill="#fff"/><rect x="15" y="15" width="5" height="5" fill="#fff"/>
+      </svg>
+      Bourse Chamber
+    </a>
+    <div class="navlinks">
+      <a href="bench.html">Bench</a>
+      <a href="ledger.html">Ledger</a>
+      <a href="chamber.html" class="on">Session</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="phead">
+    <div>
+      <h1>Session floor</h1>
+      <p>Put a ticker or a thesis on the table. All nine speak in turn, two cross-examine, then the vote is tallied and recorded.</p>
+    </div>
+    <div class="session-meta">
+      <span><span class="livedot"></span>Floor open</span>
+      <span>Session <b id="sid">—</b></span>
+      <span>Seats present <b>9 / 9</b></span>
+    </div>
+  </div>
+</div>
+
+<div class="evidence">
+  <div class="evbox" id="evbox">
+    <span>Evidence pack: submit a thesis to load a snapshot</span>
+    <span class="tag">DEMO DATA — not a live feed</span>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="table" id="table">
+    <div class="tring"></div>
+    <div class="tring2"></div>
+    <svg class="spokes" id="spokes" viewBox="0 0 720 720" aria-hidden="true"></svg>
+
+    <div class="seatrail" id="seats"></div>
+
+    <div class="core">
+      <div class="ch">
+        <span>LIVE TRANSCRIPT</span>
+        <span id="clock">--:--</span>
+      </div>
+      <div class="feed" id="feed"></div>
+    </div>
+  </div>
+</div>
+
+<div class="composer">
+  <input id="input" type="text" placeholder="Present a ticker or a thesis to the committee (e.g. is SOL still worth holding?)" autocomplete="off">
+  <button id="deploy">Convene the bench</button>
+</div>
+<div class="hintrow" id="hints"></div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="dossier" id="dossier" aria-hidden="true">
+  <button class="x" id="close">×</button>
+  <div class="ava-lg" id="dAva"></div>
+  <h3 id="dName"></h3>
+  <div class="dc" id="dDoc"></div>
+  <p id="dBio"></p>
+  <h5>WHAT THIS SEAT ASKS FIRST</h5>
+  <ul id="dAsk"></ul>
+</aside>
+
+<footer>
+  <div class="wrap fbar">
+    <span>Educational simulation. AI personas built from published investing philosophy — not the individuals, not financial advice.</span>
+    <span>© 2026 Bourse Chamber</span>
+  </div>
+</footer>
+
+<script src="js/shared.js"></script>
+<script>
+var HINTS = [
+  'BTC at these levels',
+  'Is SOL still worth holding?',
+  'A new L2 with 40% APY',
+  'ETH staking as a core position'
+];
+var REDUCED_MOTION = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+var BENCH = [];
+var seatsEl = document.getElementById('seats');
+var sv = document.getElementById('spokes'), R = 720 / 2, r0 = 160, r1 = R - 96;
+var feed = document.getElementById('feed'), input = document.getElementById('input'),
+    deploy = document.getElementById('deploy'), clock = document.getElementById('clock'),
+    sidEl = document.getElementById('sid'), evbox = document.getElementById('evbox');
+var seatEls, spokeEls;
+
+function stamp(){ var d = new Date(); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0'); }
+setInterval(function(){ clock.textContent = stamp(); }, 1000);
+clock.textContent = stamp();
+
+function push(who, body, cls){
+  var m = document.createElement('div');
+  m.className = 'msg ' + (cls || '');
+  m.innerHTML = '<div class="who"><span>' + who + '</span><span class="t">' + stamp() + '</span></div><div class="bd">' + body + '</div>';
+  feed.appendChild(m); feed.scrollTop = feed.scrollHeight; return m;
+}
+function typing(who){
+  var m = document.createElement('div'); m.className = 'typing';
+  m.innerHTML = who + ' is drafting<i></i><i></i><i></i>';
+  feed.appendChild(m); feed.scrollTop = feed.scrollHeight; return m;
+}
+function highlight(i){
+  seatEls.forEach(function(s, k){ s.classList.toggle('speaking', k === i); s.classList.toggle('muted', i !== null && k !== i); });
+  spokeEls.forEach(function(l, k){ l.classList.toggle('hot', k === i); });
+}
+function nameToIndex(name){
+  for (var i = 0; i < BENCH.length; i++) if (BENCH[i].name === name) return i;
+  return null;
+}
+
+function buildRing(){
+  BENCH.forEach(function(m, i){
+    var a = (i * (360 / 9)) - 90;
+    var el = document.createElement('div');
+    el.className = 'seat'; el.style.setProperty('--a', a + 'deg');
+    el.dataset.i = i; el.tabIndex = 0; el.setAttribute('role', 'button');
+    el.innerHTML = '<div class="ava">' + avatar(m.name, 10) + '</div><div class="nm">' + m.name.split(' ').slice(-1)[0] + '</div><div class="dc">' + m.discipline + '</div>';
+    el.addEventListener('click', function(){ openDossier(i); });
+    el.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') openDossier(i); });
+    seatsEl.appendChild(el);
+  });
+  BENCH.forEach(function(m, i){
+    var a = ((i * (360 / 9)) - 90) * Math.PI / 180;
+    var l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    l.setAttribute('x1', R + Math.cos(a) * r0); l.setAttribute('y1', R + Math.sin(a) * r0);
+    l.setAttribute('x2', R + Math.cos(a) * r1); l.setAttribute('y2', R + Math.sin(a) * r1);
+    l.dataset.i = i; sv.appendChild(l);
+  });
+  seatEls = document.querySelectorAll('.seat');
+  spokeEls = sv.querySelectorAll('line');
+}
+
+var running = false;
+async function runSession(asset){
+  if (running) return; running = true; deploy.disabled = true; input.value = '';
+  feed.innerHTML = '';
+  highlight(null);
+
+  try{
+    var data = await api('/api/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ asset: asset })
+    });
+
+    sidEl.textContent = data.session.id;
+    var ev = data.evidence;
+    evbox.innerHTML =
+      '<span>Price <b>$' + ev.price + '</b></span>' +
+      '<span>24h <b>' + (ev.change24h >= 0 ? '+' : '') + ev.change24h + '%</b></span>' +
+      '<span>24h volume <b>$' + ev.volume24h.toLocaleString() + '</b></span>' +
+      '<span class="tag">' + ev.label + '</span>';
+
+    for (var k = 0; k < data.transcript.length; k++){
+      var m = data.transcript[k];
+      var idx = nameToIndex(m.speaker);
+      if (m.type === 'chair'){
+        highlight(null);
+        push('Chairman', m.body, 'chair');
+        await wait(600);
+        continue;
+      }
+      if (m.type === 'verdict'){
+        highlight(null);
+        push('Verdict', '<b>' + m.body.split(' — ')[0] + '</b> — ' + m.body.split(' — ').slice(1).join(' — '), 'verdict');
+        continue;
+      }
+      highlight(idx);
+      var t = typing(m.speaker);
+      await wait(1100 + Math.random() * 700);
+      t.remove();
+      var label = m.type === 'crossexam' ? m.speaker + ' <span style="color:#6E6E6E">· cross-exam</span>' : m.speaker + ' <span style="color:#6E6E6E">· ' + m.discipline + '</span>';
+      push(label, m.body, m.type === 'crossexam' ? 'crossexam' : '');
+      await wait(500);
+    }
+    highlight(null);
+  } catch(err){
+    push('Chairman', 'The floor could not convene (' + err.message + '). Try again.', 'chair');
+  } finally {
+    running = false; deploy.disabled = false;
+  }
+}
+function wait(ms){ return new Promise(function(r){ setTimeout(r, REDUCED_MOTION ? 0 : ms); }); }
+
+deploy.addEventListener('click', function(){
+  var v = input.value.trim(); if (!v) return; runSession(v);
+});
+input.addEventListener('keydown', function(e){ if (e.key === 'Enter') deploy.click(); });
+
+var hints = document.getElementById('hints');
+HINTS.forEach(function(h){
+  var b = document.createElement('button'); b.className = 'chipbtn'; b.textContent = h;
+  b.onclick = function(){ input.value = h; deploy.click(); };
+  hints.appendChild(b);
+});
+
+var dos = document.getElementById('dossier'), scrim = document.getElementById('scrim');
+function openDossier(i){
+  var m = BENCH[i];
+  document.getElementById('dAva').innerHTML = avatar(m.name, 14);
+  document.getElementById('dName').textContent = m.name;
+  document.getElementById('dDoc').textContent = m.discipline;
+  document.getElementById('dBio').textContent = m.bio;
+  document.getElementById('dAsk').innerHTML = m.asks.map(function(a){ return '<li>' + a + '</li>'; }).join('');
+  dos.classList.add('open'); scrim.classList.add('on'); dos.setAttribute('aria-hidden', 'false');
+}
+function closeDossier(){ dos.classList.remove('open'); scrim.classList.remove('on'); dos.setAttribute('aria-hidden', 'true'); }
+document.getElementById('close').onclick = closeDossier;
+scrim.onclick = closeDossier;
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeDossier(); });
+
+api('/api/agents').then(function(data){
+  BENCH = data.agents;
+  buildRing();
+  push('Chairman', 'The floor is open. Present a ticker or a thesis and the nine will take it in turn.', 'chair');
+}).catch(function(err){
+  push('Chairman', 'Could not load the bench (' + err.message + ').', 'chair');
+});
+</script>
+</body>
+</html>
