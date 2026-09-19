@@ -112,30 +112,24 @@
 }
 
 .stamp-outcome.add {
-  color: #059669;
-  text-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
+  color: #000000;
+  text-shadow: none;
 }
 
 .stamp-outcome.reduce {
-  color: #E11D48;
-  text-shadow: 0 0 16px rgba(244, 63, 94, 0.35);
+  color: #000000;
+  text-shadow: none;
 }
 
 .stamp-outcome.pass {
-  color: #D97706;
-  text-shadow: 0 0 16px rgba(245, 158, 11, 0.35);
+  color: #444444;
+  text-shadow: none;
 }
 
-.verdict-stamp-card.add {
-  border-top: 4px solid #10B981;
-}
-
-.verdict-stamp-card.reduce {
-  border-top: 4px solid #F43F5E;
-}
-
+.verdict-stamp-card.add,
+.verdict-stamp-card.reduce,
 .verdict-stamp-card.pass {
-  border-top: 4px solid #F59E0B;
+  border-top: 4px solid #000000;
 }
 
 .stamp-ratio {
@@ -177,9 +171,9 @@
   font-family: var(--font-mono);
   font-size: 0.76rem;
   font-weight: 600;
-  background: linear-gradient(135deg, #A855F7 0%, #6366F1 55%, #06B6D4 100%);
+  background: #000000;
   color: #FFFFFF;
-  border: none;
+  border: 1px solid #000000;
   border-radius: 4px;
   padding: 12px;
   cursor: pointer;
@@ -188,13 +182,14 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 0 14px rgba(168, 85, 247, 0.35);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
 
 .share-action-btn:hover {
-  background: linear-gradient(135deg, #C084FC 0%, #818CF8 55%, #38BDF8 100%);
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.6), 0 0 10px rgba(6, 182, 212, 0.3);
+  background: #222222;
+  border-color: #222222;
   transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
 }
 
 /* Sections */

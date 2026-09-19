@@ -50,10 +50,10 @@
     }
     .hero-title span:last-child {
       display: block;
-      background: linear-gradient(135deg, #FFFFFF 5%, #C084FC 45%, #38BDF8 90%);
+      background: linear-gradient(135deg, #FFFFFF 20%, #A3A3A3 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 0 24px rgba(192, 132, 252, 0.35));
+      filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.2));
     }
     .hero-tagline {
       font-family: var(--font-mono);
@@ -90,11 +90,11 @@
       border-radius: 1px;
       display: inline-block;
     }
-    .hero-ticks span:nth-child(1) i { background: #38BDF8; box-shadow: 0 0 8px #38BDF8; }
-    .hero-ticks span:nth-child(2) i { background: #C084FC; box-shadow: 0 0 8px #C084FC; }
-    .hero-ticks span:nth-child(3) i { background: #34D399; box-shadow: 0 0 8px #34D399; }
-    .hero-ticks span:nth-child(4) i { background: #FBBF24; box-shadow: 0 0 8px #FBBF24; }
-    .hero-ticks span:nth-child(5) i { background: #FB7185; box-shadow: 0 0 8px #FB7185; }
+    .hero-ticks span:nth-child(1) i { background: #FFFFFF; box-shadow: 0 0 6px #FFFFFF; }
+    .hero-ticks span:nth-child(2) i { background: #E5E5E5; box-shadow: 0 0 6px #E5E5E5; }
+    .hero-ticks span:nth-child(3) i { background: #CCCCCC; box-shadow: 0 0 6px #CCCCCC; }
+    .hero-ticks span:nth-child(4) i { background: #999999; box-shadow: 0 0 6px #999999; }
+    .hero-ticks span:nth-child(5) i { background: #666666; box-shadow: 0 0 6px #666666; }
 
     /* Jump Tiles Grid */
     .hero-jump-grid {
@@ -118,22 +118,10 @@
       text-decoration: none;
       color: inherit;
     }
-    .jump-tile:nth-child(1):hover {
-      border-color: rgba(6, 182, 212, 0.6);
-      background: linear-gradient(180deg, rgba(6, 182, 212, 0.07) 0%, var(--bg-card-elevated) 100%);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(6, 182, 212, 0.2);
-      transform: translateY(-2px);
-    }
-    .jump-tile:nth-child(2):hover {
-      border-color: rgba(168, 85, 247, 0.6);
-      background: linear-gradient(180deg, rgba(168, 85, 247, 0.07) 0%, var(--bg-card-elevated) 100%);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(168, 85, 247, 0.2);
-      transform: translateY(-2px);
-    }
-    .jump-tile:nth-child(3):hover {
-      border-color: rgba(16, 185, 129, 0.6);
-      background: linear-gradient(180deg, rgba(16, 185, 129, 0.07) 0%, var(--bg-card-elevated) 100%);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(16, 185, 129, 0.2);
+    .jump-tile:hover {
+      border-color: #FFFFFF !important;
+      background: #141414 !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(255, 255, 255, 0.12) !important;
       transform: translateY(-2px);
     }
     .jump-tile-label {

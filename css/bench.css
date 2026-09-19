@@ -54,10 +54,10 @@
 }
 
 .filter-btn.active {
-  background: linear-gradient(135deg, #A855F7 0%, #6366F1 100%);
-  color: #FFFFFF;
-  border-color: #C084FC;
-  box-shadow: 0 0 14px rgba(168, 85, 247, 0.4);
+  background: #FFFFFF;
+  color: #000000;
+  border-color: #FFFFFF;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
   font-weight: 600;
 }
 
@@ -82,94 +82,58 @@
 }
 
 .persona-card:hover {
-  border-color: #4A4A4A;
-  background: var(--bg-card-elevated);
+  border-color: #FFFFFF;
+  background: #141414;
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.persona-card:hover .card-avatar-box {
+  border-color: #FFFFFF;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
 }
 
 .school-pill {
   display: inline-block;
   font-weight: 600;
-  padding: 1px 6px;
+  padding: 2px 7px;
   border-radius: 2px;
   font-size: 0.6rem;
   letter-spacing: 0.04em;
+  background: #181818;
+  color: #D4D4D4;
+  border: 1px solid #383838;
 }
 
-/* School: Value (Emerald) */
+/* School Variations — Clean Grayscale Accents */
 .persona-card.school-value .school-pill {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34D399;
-  border: 1px solid rgba(16, 185, 129, 0.45);
-}
-.persona-card.school-value:hover {
-  border-color: rgba(16, 185, 129, 0.55);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 20px rgba(16, 185, 129, 0.18);
-}
-.persona-card.school-value:hover .card-avatar-box {
-  border-color: #10B981;
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+  background: #1F1F1F;
+  color: #FFFFFF;
+  border-color: #555555;
 }
 
-/* School: Quality (Cyan / Blue) */
 .persona-card.school-quality .school-pill {
-  background: rgba(56, 189, 248, 0.15);
-  color: #38BDF8;
-  border: 1px solid rgba(56, 189, 248, 0.45);
-}
-.persona-card.school-quality:hover {
-  border-color: rgba(56, 189, 248, 0.55);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 20px rgba(56, 189, 248, 0.18);
-}
-.persona-card.school-quality:hover .card-avatar-box {
-  border-color: #38BDF8;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+  background: #181818;
+  color: #E5E5E5;
+  border-color: #444444;
 }
 
-/* School: Growth (Neon Violet) */
 .persona-card.school-growth .school-pill {
-  background: rgba(168, 85, 247, 0.15);
-  color: #C084FC;
-  border: 1px solid rgba(168, 85, 247, 0.45);
-}
-.persona-card.school-growth:hover {
-  border-color: rgba(168, 85, 247, 0.55);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 20px rgba(168, 85, 247, 0.18);
-}
-.persona-card.school-growth:hover .card-avatar-box {
-  border-color: #A855F7;
-  box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+  background: #141414;
+  color: #CCCCCC;
+  border-color: #383838;
 }
 
-/* School: Macro (Amber / Gold) */
 .persona-card.school-macro .school-pill {
-  background: rgba(245, 158, 11, 0.15);
-  color: #FBBF24;
-  border: 1px solid rgba(245, 158, 11, 0.45);
-}
-.persona-card.school-macro:hover {
-  border-color: rgba(245, 158, 11, 0.55);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 20px rgba(245, 158, 11, 0.18);
-}
-.persona-card.school-macro:hover .card-avatar-box {
-  border-color: #F59E0B;
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+  background: #111111;
+  color: #B5B5B5;
+  border-color: #303030;
 }
 
-/* School: Risk / Antifragility (Rose / Coral) */
 .persona-card.school-risk .school-pill {
-  background: rgba(244, 63, 94, 0.15);
-  color: #FB7185;
-  border: 1px solid rgba(244, 63, 94, 0.45);
-}
-.persona-card.school-risk:hover {
-  border-color: rgba(244, 63, 94, 0.55);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), 0 0 20px rgba(244, 63, 94, 0.18);
-}
-.persona-card.school-risk:hover .card-avatar-box {
-  border-color: #F43F5E;
-  box-shadow: 0 0 12px rgba(244, 63, 94, 0.4);
+  background: #0E0E0E;
+  color: #999999;
+  border-color: #282828;
 }
 
 .card-top {

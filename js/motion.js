@@ -148,37 +148,9 @@ const BourseMotion = (() => {
             const gIdx = Math.min(glyphs.length - 1, Math.floor(val * (glyphs.length - 1)));
             const char = glyphs[gIdx];
             if (char !== ' ') {
-              const alpha = Math.min(0.65, val * 0.75);
-              // Holographic chromatic spectral coloring
-              // Left: Violet (#C084FC) -> Indigo (#818CF8) -> Cyan (#38BDF8) -> Emerald (#34D399) on right
-              const hueRatio = Math.max(0, Math.min(1, px / width));
-              let r, g, b;
-              if (hueRatio < 0.4) {
-                const t = hueRatio / 0.4;
-                r = Math.round(192 * (1 - t) + 129 * t);
-                g = Math.round(132 * (1 - t) + 140 * t);
-                b = Math.round(252 * (1 - t) + 248 * t);
-              } else if (hueRatio < 0.75) {
-                const t = (hueRatio - 0.4) / 0.35;
-                r = Math.round(129 * (1 - t) + 56 * t);
-                g = Math.round(140 * (1 - t) + 189 * t);
-                b = Math.round(248 * (1 - t) + 248 * t);
-              } else {
-                const t = (hueRatio - 0.75) / 0.25;
-                r = Math.round(56 * (1 - t) + 52 * t);
-                g = Math.round(189 * (1 - t) + 211 * t);
-                b = Math.round(248 * (1 - t) + 153 * t);
-              }
-
-              // Brighten crests towards luminescent white
-              if (val > 0.45) {
-                const w = Math.min(1, (val - 0.45) * 1.6);
-                r = Math.round(r * (1 - w) + 255 * w);
-                g = Math.round(g * (1 - w) + 255 * w);
-                b = Math.round(b * (1 - w) + 255 * w);
-              }
-
-              ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha.toFixed(3)})`;
+              const alpha = Math.min(0.5, val * 0.6);
+              // Pure Institutional Monochrome white
+              ctx.fillStyle = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
               ctx.fillText(char, px, py);
             }
           }

@@ -238,19 +238,19 @@
 }
 
 .spoke-line.active {
-  stroke: #A855F7;
+  stroke: #FFFFFF;
   stroke-width: 2.4;
   stroke-dasharray: 6 6;
   animation: spokePhotonStream 0.6s linear infinite;
-  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.95));
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.95));
 }
 
 .spoke-line.clash {
-  stroke: #F43F5E;
+  stroke: #FFFFFF;
   stroke-width: 2.8;
   stroke-dasharray: 4 4;
   animation: spokePhotonStream 0.3s linear infinite;
-  filter: drop-shadow(0 0 10px #F43F5E);
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.95));
 }
 
 @keyframes spokePhotonStream {
@@ -260,16 +260,16 @@
 
 /* Cross-Examination Electric Duel Vector */
 .duel-beam {
-  stroke: #F43F5E;
+  stroke: #FFFFFF;
   stroke-width: 2.6;
   stroke-dasharray: 7 5;
-  filter: drop-shadow(0 0 10px rgba(244, 63, 94, 0.95));
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.95));
   animation: duelJitter 0.16s infinite alternate, spokePhotonStream 0.4s linear infinite;
 }
 
 @keyframes duelJitter {
   0% { stroke-width: 2px; opacity: 0.8; }
-  100% { stroke-width: 3.8px; opacity: 1; filter: drop-shadow(0 0 14px #FB7185); }
+  100% { stroke-width: 3.8px; opacity: 1; filter: drop-shadow(0 0 14px rgba(255, 255, 255, 1)); }
 }
 
 /* Council Seats */
@@ -462,10 +462,10 @@
 }
 
 .crossexam-toggle-btn.active {
-  background: linear-gradient(135deg, #A855F7 0%, #6366F1 100%);
-  color: #FFFFFF;
-  border-color: #C084FC;
-  box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+  background: #FFFFFF;
+  color: #000000;
+  border-color: #FFFFFF;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
 }
 
 .clear-selection-btn {
@@ -484,8 +484,8 @@
 
 /* Selected Seat on Arena */
 .council-seat.selected .seat-avatar-box {
-  border-color: #A855F7;
-  box-shadow: 0 0 0 3px #A855F7, 0 0 16px rgba(168, 85, 247, 0.5);
+  border-color: #FFFFFF;
+  box-shadow: 0 0 0 3px #FFFFFF, 0 0 16px rgba(255, 255, 255, 0.5);
 }
 
 .council-seat.selected .seat-name {
@@ -504,9 +504,9 @@
 }
 
 .council-seat.speaking .seat-avatar-box {
-  border-color: #A855F7;
+  border-color: #FFFFFF;
   background: #FFFFFF;
-  box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.35), 0 0 32px rgba(168, 85, 247, 0.75);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35), 0 0 32px rgba(255, 255, 255, 0.75);
   transform: translateY(-3px) scale(1.04);
 }
 
@@ -514,14 +514,14 @@
   content: '';
   position: absolute;
   inset: -10px;
-  border: 1px solid #A855F7;
+  border: 1px solid #FFFFFF;
   pointer-events: none;
   animation: speakerBeaconEcho 1.25s cubic-bezier(0.1, 0.8, 0.2, 1) infinite;
 }
 
 @keyframes speakerBeaconEcho {
-  0% { transform: scale(0.88); opacity: 1; border-color: #C084FC; }
-  100% { transform: scale(1.45); opacity: 0; border-color: rgba(168, 85, 247, 0); }
+  0% { transform: scale(0.88); opacity: 1; border-color: #FFFFFF; }
+  100% { transform: scale(1.45); opacity: 0; border-color: rgba(255, 255, 255, 0); }
 }
 
 /* 5-Bar Voice Frequency Equalizer */
@@ -537,8 +537,8 @@
   z-index: 15;
   background: #000000;
   padding: 1px 4px;
-  border: 1px solid rgba(168, 85, 247, 0.5);
-  box-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
 }
 
 .council-seat.speaking .voice-equalizer-bars {
@@ -547,9 +547,9 @@
 
 .voice-equalizer-bars span {
   width: 2px;
-  background: linear-gradient(180deg, #38BDF8 0%, #A855F7 100%);
+  background: #FFFFFF;
   border-radius: 1px;
-  box-shadow: 0 0 4px #38BDF8;
+  box-shadow: 0 0 4px #FFFFFF;
   animation: eqHop 0.55s infinite ease-in-out alternate;
 }
 
