@@ -10,5 +10,11 @@
     { "source": "/disclaimer", "destination": "/disclaimer.html" },
     { "source": "/legal/disclaimer", "destination": "/disclaimer.html" },
     { "source": "/api/(.*)", "destination": "/api/$1" }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron-watcher",
+      "schedule": "0 0 * * *"
+    }
   ]
 }

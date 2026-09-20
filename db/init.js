@@ -72,17 +72,31 @@ CREATE TABLE IF NOT EXISTS transcript (
   FOREIGN KEY(session_id) REFERENCES sessions(id)
 );
 
+CREATE TABLE IF NOT EXISTS watches (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  asset TEXT NOT NULL,
+  trigger_condition TEXT NOT NULL,
+  drawdown_threshold REAL DEFAULT 30.0,
+  email TEXT NOT NULL,
+  status TEXT DEFAULT 'ACTIVE',
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_votes_session ON votes(session_id);
 CREATE INDEX IF NOT EXISTS idx_transcript_session ON transcript(session_id);
+CREATE INDEX IF NOT EXISTS idx_watches_session ON watches(session_id);
+CREATE INDEX IF NOT EXISTS idx_watches_status ON watches(status);
 `);
 } else {
   // Compatibility fallback for Node.js < 22 (e.g. Node 18, 20)
   class SimpleStore {
     constructor() {
-      this.data = { sessions: [], votes: [], transcript: [] };
+      this.data = { sessions: [], votes: [], transcript: [], watches: [] };
       if (fs.existsSync(JSON_PATH)) {
         try {
           this.data = JSON.parse(fs.readFileSync(JSON_PATH, "utf-8"));
+          if (!this.data.watches) this.data.watches = [];
         } catch (err) {
           // ignore corrupted json, start fresh
         }
@@ -114,6 +128,10 @@ CREATE INDEX IF NOT EXISTS idx_transcript_session ON transcript(session_id);
             const id = (args[0] || "").toUpperCase();
             return self.data.sessions.find((s) => s.id.toUpperCase() === id) || null;
           }
+          if (/SELECT \* FROM watches WHERE id = \?/i.test(cleanSql)) {
+            const id = args[0] || "";
+            return (self.data.watches || []).find((w) => w.id === id) || null;
+          }
           return null;
         },
 
@@ -138,6 +156,17 @@ CREATE INDEX IF NOT EXISTS idx_transcript_session ON transcript(session_id);
             return self.data.transcript
               .filter((t) => t.session_id.toUpperCase() === sid)
               .sort((a, b) => a.seq - b.seq);
+          }
+          if (/SELECT \* FROM watches WHERE status = \?/i.test(cleanSql)) {
+            const status = args[0] || 'ACTIVE';
+            return (self.data.watches || []).filter((w) => w.status === status);
+          }
+          if (/SELECT \* FROM watches WHERE session_id = \?/i.test(cleanSql)) {
+            const sid = (args[0] || "").toUpperCase();
+            return (self.data.watches || []).filter((w) => w.session_id.toUpperCase() === sid);
+          }
+          if (/SELECT \* FROM watches/i.test(cleanSql)) {
+            return [...(self.data.watches || [])];
           }
           return [];
         },
@@ -166,6 +195,21 @@ CREATE INDEX IF NOT EXISTS idx_transcript_session ON transcript(session_id);
               session_id, seq, speaker, discipline, type, body
             });
             self._persist();
+          } else if (/INSERT INTO watches/i.test(cleanSql)) {
+            const [id, session_id, asset, trigger_condition, drawdown_threshold, email, status] = args;
+            if (!self.data.watches) self.data.watches = [];
+            self.data.watches.push({
+              id, session_id, asset, trigger_condition, drawdown_threshold: Number(drawdown_threshold) || 30.0,
+              email, status: status || 'ACTIVE', created_at: new Date().toISOString()
+            });
+            self._persist();
+          } else if (/UPDATE watches SET status = \? WHERE id = \?/i.test(cleanSql)) {
+            const [status, id] = args;
+            const w = (self.data.watches || []).find((item) => item.id === id);
+            if (w) {
+              w.status = status;
+              self._persist();
+            }
           }
           return { changes: 1 };
         }

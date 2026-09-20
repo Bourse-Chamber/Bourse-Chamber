@@ -134,6 +134,18 @@ CREATE TABLE IF NOT EXISTS review_triggers (
     display_order INTEGER DEFAULT 1
 );
 
+-- 10. Review Trigger Watches table (F9 Email Watcher)
+CREATE TABLE IF NOT EXISTS watches (
+    id VARCHAR(64) PRIMARY KEY,
+    session_id VARCHAR(32) NOT NULL REFERENCES councils(id) ON DELETE CASCADE,
+    asset VARCHAR(16) NOT NULL,
+    trigger_condition TEXT NOT NULL,
+    drawdown_threshold NUMERIC(5, 2) DEFAULT 30.0,
+    email VARCHAR(255) NOT NULL,
+    status VARCHAR(32) DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'TRIGGERED', 'EXPIRED', 'CANCELLED')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for high-performance Ledger queries & search
 CREATE INDEX IF NOT EXISTS idx_councils_ticker ON councils(ticker);
 CREATE INDEX IF NOT EXISTS idx_councils_status ON councils(status);
@@ -141,3 +153,5 @@ CREATE INDEX IF NOT EXISTS idx_councils_opened_at ON councils(opened_at DESC);
 CREATE INDEX IF NOT EXISTS idx_verdicts_outcome ON verdicts(outcome);
 CREATE INDEX IF NOT EXISTS idx_messages_council_seq ON messages(council_id, sequence_number);
 CREATE INDEX IF NOT EXISTS idx_votes_council ON votes(council_id);
+CREATE INDEX IF NOT EXISTS idx_watches_session ON watches(session_id);
+CREATE INDEX IF NOT EXISTS idx_watches_status ON watches(status);

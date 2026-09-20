@@ -78,12 +78,43 @@ const BourseMockData = (() => {
    * Extensible: replace this function's body with CoinGecko / CoinMarketCap / On-chain fetch in production
    */
   async function getMarketData(query) {
-    // Artificial realistic latency (350ms)
-    await BourseUtils.sleep(350);
-
     const clean = query.trim().toUpperCase();
     const words = clean.split(/[^A-Z0-9]/).filter(w => w.length > 0);
-    const matchedTicker = Object.keys(KNOWN_ASSETS).find(t => words.includes(t) || clean.includes(t));
+    const matchedTicker = Object.keys(KNOWN_ASSETS).find(t => words.includes(t) || clean.includes(t)) || (words[0] && words[0].length <= 8 ? words[0] : 'BTC');
+
+    // Attempt live fetch from /api/market (CoinGecko live integration)
+    try {
+      const res = await fetch(`/api/market?ticker=${encodeURIComponent(matchedTicker)}`);
+      if (res.ok) {
+        const live = await res.json();
+        if (live && live.price) {
+          return {
+            ticker: live.ticker || matchedTicker,
+            name: live.name || matchedTicker,
+            price: live.price,
+            priceFormatted: BourseUtils.formatUSD(live.price),
+            change24h: live.change24h || 0,
+            marketCap: live.marketCap || 0,
+            marketCapFormatted: BourseUtils.formatUSD(live.marketCap || 0),
+            volume24h: live.volume24h || 0,
+            volume24hFormatted: BourseUtils.formatUSD(live.volume24h || 0),
+            networkActivity: live.circulatingSupply ? `Circulating: ${live.circulatingSupply}` : 'On-chain settlement active',
+            supply: live.totalSupply ? `Total: ${live.totalSupply}` : 'Algorithmic supply distribution',
+            macroContext: `Market Source: ${live.source}. Drawdown from ATH: ${live.drawdownFromAthPct || 0}%. Data gaps: ${Array.isArray(live.dataGaps) ? live.dataGaps.join('; ') : 'None documented'}.`,
+            stakingApy: 0,
+            revenuePDR: 0,
+            retrievalDate: live.retrievalDate || BourseUtils.formatDate(new Date()),
+            isDemoData: !live.source.includes('Live Market Feed'),
+            liveSource: live.source
+          };
+        }
+      }
+    } catch (_) {
+      // Fallback to offline simulation
+    }
+
+    // Artificial realistic latency (350ms)
+    await BourseUtils.sleep(350);
 
     if (matchedTicker && KNOWN_ASSETS[matchedTicker]) {
       const base = { ...KNOWN_ASSETS[matchedTicker] };

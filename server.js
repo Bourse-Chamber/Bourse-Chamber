@@ -57,6 +57,22 @@ app.all("/api/session", (req, res) => {
   require("./api/session")(req, res);
 });
 
+app.all("/api/og", (req, res) => {
+  require("./api/og")(req, res);
+});
+
+app.all("/api/watch", (req, res) => {
+  require("./api/watch")(req, res);
+});
+
+app.all("/api/cron-watcher", (req, res) => {
+  require("./api/cron-watcher")(req, res);
+});
+
+app.all("/api/cron/watcher", (req, res) => {
+  require("./api/cron-watcher")(req, res);
+});
+
 // ---------- helpers ----------
 
 function nextSessionId() {

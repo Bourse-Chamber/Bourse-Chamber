@@ -26,6 +26,7 @@ const BourseVerdict = (() => {
 
     loadSession(id);
     setupShareButton();
+    setupWatcherForm();
   }
 
   function loadSession(id) {
@@ -46,6 +47,15 @@ const BourseVerdict = (() => {
       renderNotFound();
       return;
     }
+
+    // Dynamic Open Graph preview URL update
+    try {
+      const ogImg = document.getElementById('og-image-meta');
+      const twImg = document.getElementById('twitter-image-meta');
+      const ogUrl = `${window.location.origin}/api/og?id=${encodeURIComponent(session.id)}`;
+      if (ogImg) ogImg.setAttribute('content', ogUrl);
+      if (twImg) twImg.setAttribute('content', ogUrl);
+    } catch (_) {}
 
     renderCaseDetails();
     renderVerdictStamp();
@@ -349,6 +359,64 @@ const BourseVerdict = (() => {
             Share Verdict Record
           `;
         }, 2500);
+      }
+    };
+  }
+
+  function setupWatcherForm() {
+    const form = document.getElementById('watcher-form');
+    const emailInput = document.getElementById('watcher-email');
+    const feedbackEl = document.getElementById('watcher-feedback');
+    const submitBtn = document.getElementById('watcher-submit-btn');
+
+    if (!form || !emailInput) return;
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const email = emailInput.value.trim();
+      if (!email || !session) return;
+
+      if (submitBtn) submitBtn.disabled = true;
+      if (feedbackEl) {
+        feedbackEl.style.display = 'block';
+        feedbackEl.style.color = '#9A9A9A';
+        feedbackEl.textContent = 'Registering alert with daily cron watcher...';
+      }
+
+      try {
+        const res = await fetch('/api/watch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: session.id,
+            asset: session.ticker || session.asset || 'ASSET',
+            email,
+            triggerCondition: 'Asset price suffers a cumulative drawdown exceeding 30–35%',
+            drawdownThreshold: 30.0
+          })
+        });
+
+        const json = await res.json();
+        if (res.ok && json.success) {
+          if (feedbackEl) {
+            feedbackEl.style.color = '#FFFFFF';
+            feedbackEl.textContent = `✓ Watcher active for ${email}. Daily cron will evaluate 30% drawdown triggers.`;
+          }
+          emailInput.value = '';
+          BourseUtils.showToast('Review trigger watcher activated!');
+        } else {
+          if (feedbackEl) {
+            feedbackEl.style.color = '#FFFFFF';
+            feedbackEl.textContent = json.error || 'Failed to activate watcher.';
+          }
+        }
+      } catch (err) {
+        if (feedbackEl) {
+          feedbackEl.style.color = '#FFFFFF';
+          feedbackEl.textContent = 'Network error contacting watcher service.';
+        }
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
       }
     };
   }

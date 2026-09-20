@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verdict Record — Bourse Chamber</title>
   <meta name="description" content="Permanent decision record of the Bourse Chamber council vote, individual member ballots, and review triggers.">
+  <!-- F8: Dynamic Open Graph Image -->
+  <meta property="og:title" content="Verdict Record — Bourse Chamber">
+  <meta property="og:description" content="Nine economists. One market that refuses to behave. Permanent unalterable verdict ledger.">
+  <meta property="og:image" id="og-image-meta" content="/api/og?id=BC-0411">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" id="twitter-image-meta" content="/api/og?id=BC-0411">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -123,7 +129,7 @@
       </div>
     </section>
 
-    <!-- Section: Review Triggers -->
+    <!-- Section: Review Triggers & Email Watcher (F9) -->
     <section class="verdict-section">
       <h2 class="section-heading">Permanent Review Triggers</h2>
       <p class="section-subtext">The specific evidentiary conditions that would trigger an automatic reconvening of the chamber.</p>
@@ -131,6 +137,23 @@
         <ul class="dossier-questions" id="review-triggers-list">
           <!-- Populated by js/verdict.js -->
         </ul>
+      </div>
+
+      <!-- F9 Interactive Watcher Registration Card -->
+      <div class="watcher-card" style="margin-top:16px;background:var(--bg-card);border:1px solid var(--border-main);padding:18px 22px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
+          <div>
+            <div style="font-family:var(--font-mono);font-size:0.8rem;color:#FFFFFF;font-weight:600;letter-spacing:0.04em;">ACTIVATE EMAIL WATCHER (30–35% DRAWDOWN TRIGGER)</div>
+            <p style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px;max-width:600px;">
+              Daily cron monitors live CoinGecko prices. If this asset experiences a cumulative drawdown exceeding 30–35% or network activity contracts by >35%, an automated reconvening alert will dispatch to your email.
+            </p>
+          </div>
+          <form id="watcher-form" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px;">
+            <input type="email" id="watcher-email" placeholder="Enter your email..." required style="background:#080808;border:1px solid var(--border-main);color:#FFFFFF;padding:8px 14px;font-family:var(--font-mono);font-size:0.78rem;width:240px;outline:none;">
+            <button type="submit" class="btn btn-primary" id="watcher-submit-btn" style="padding:8px 18px;font-size:0.78rem;">Watch Trigger</button>
+          </form>
+        </div>
+        <div id="watcher-feedback" style="display:none;margin-top:10px;font-family:var(--font-mono);font-size:0.75rem;"></div>
       </div>
     </section>
 

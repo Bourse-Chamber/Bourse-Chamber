@@ -313,5 +313,17 @@
       "type": "verdict",
       "body": "REDUCE — carried 5 to 4. Size band 0.5–1.0% of book. Two seats filed dissent against the sizing rather than the direction."
     }
+  ],
+  "watches": [
+    {
+      "id": "WATCH-1789945489606-179",
+      "session_id": "BC-0411",
+      "asset": "SOL",
+      "trigger_condition": "Cumulative drawdown exceeding 30–35%",
+      "drawdown_threshold": 30,
+      "email": "analyst@bourse-chamber.internal",
+      "status": "ACTIVE",
+      "created_at": "2026-09-20T23:04:49.607Z"
+    }
   ]
 }

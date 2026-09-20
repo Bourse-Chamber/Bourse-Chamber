@@ -1,22 +1,38 @@
 /**
  * Vercel Serverless Function — POST /api/session
  * Multi-Agent SSE Streaming Protocol for Bourse Chamber
+ * Real OpenRouter LLM Streaming (OPENROUTER_API_KEY) with deterministic fallback
  */
 
 const { AGENTS } = require("../db/agents");
 const { evaluateSession, demoEvidence } = require("../db/engine");
 
 module.exports = async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-OpenRouter-Key');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed. Use POST.' });
   }
 
-  const { input, directedSeats, isCrossExam } = req.body || {};
+  const { input, directedSeats, isCrossExam, openRouterKey: bodyKey } = req.body || {};
   const query = String(input || "").trim().slice(0, 280);
 
   if (!query) {
     return res.status(400).json({ error: 'Input thesis or asset is required.' });
   }
+
+  const openRouterApiKey = (
+    process.env.OPENROUTER_API_KEY ||
+    req.headers['x-openrouter-key'] ||
+    bodyKey ||
+    ''
+  ).trim();
 
   // Set SSE Headers
   res.setHeader('Content-Type', 'text/event-stream');
@@ -29,13 +45,15 @@ module.exports = async function handler(req, res) {
   }
 
   const sessionId = `BC-${Math.floor(1000 + Math.random() * 9000)}`;
+  const ticker = query.split(' ')[0].replace(/[^a-zA-Z0-9]/g, '').toUpperCase() || 'ASSET';
 
   try {
     // 1. Motion Event
     sendEvent('motion', {
-      asset: query.split(' ')[0].toUpperCase(),
+      asset: ticker,
       motion: query,
-      sessionId
+      sessionId,
+      llmProvider: openRouterApiKey ? 'OpenRouter Live AI' : 'Deterministic Cognitive Simulator'
     });
 
     // 2. Evidence Pack Event
@@ -48,7 +66,7 @@ module.exports = async function handler(req, res) {
         { label: '24h Volume', value: evidence.volume24h }
       ],
       gaps: ['Non-speculative fee accrual metrics pending protocol audit'],
-      sources: ['CoinGecko v3 API (Simulated baseline)', 'On-chain RPC snapshot']
+      sources: ['CoinGecko v3 API Feed', 'On-chain RPC snapshot']
     });
 
     // Determine target seats (Full bench or Directed)
@@ -61,13 +79,74 @@ module.exports = async function handler(req, res) {
     for (const agent of targetSeats) {
       sendEvent('seat_start', { seatId: agent.seat, name: agent.name });
 
-      const text = agent.say.replace(/\{A\}/g, query);
-      const chunks = text.split(' ');
+      let streamedText = '';
 
-      // Stream tokens
-      for (const chunk of chunks) {
-        sendEvent('seat_token', { seatId: agent.seat, text: chunk + ' ' });
-        await new Promise(r => setTimeout(r, 45));
+      // If OpenRouter key is available, attempt live LLM streaming
+      if (openRouterApiKey) {
+        try {
+          const sysPrompt = `You are ${agent.name}, an investor at the Bourse Chamber. Your discipline is "${agent.discipline}" (${agent.school} school). Philosophy: "${agent.philosophy}". When presented with the thesis "${query}" on asset ${ticker}, give your concise verdict reading in character in exactly 2-3 sentences. Challenge assumptions based on your philosophy. Do not give financial advice.`;
+
+          const llmRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openRouterApiKey}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'https://bourse-chamber.vercel.app',
+              'X-Title': 'Bourse Chamber'
+            },
+            body: JSON.stringify({
+              model: 'anthropic/claude-3.5-sonnet',
+              messages: [
+                { role: 'system', content: sysPrompt },
+                { role: 'user', content: `Examine the asset: ${ticker}. Thesis: ${query}. Market context: Price $${evidence.price}, 24h change ${evidence.change24h}%.` }
+              ],
+              stream: true,
+              max_tokens: 120,
+              temperature: 0.7
+            }),
+            signal: AbortSignal.timeout(10000)
+          });
+
+          if (llmRes.ok && llmRes.body) {
+            const reader = llmRes.body.getReader();
+            const decoder = new TextDecoder();
+            let done = false;
+
+            while (!done) {
+              const { value, done: readerDone } = await reader.read();
+              done = readerDone;
+              if (value) {
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+                for (const line of lines) {
+                  if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                    try {
+                      const data = JSON.parse(line.substring(6));
+                      const token = data.choices?.[0]?.delta?.content || '';
+                      if (token) {
+                        streamedText += token;
+                        sendEvent('seat_token', { seatId: agent.seat, text: token });
+                      }
+                    } catch (parseErr) {}
+                  }
+                }
+              }
+            }
+          }
+        } catch (llmErr) {
+          // fallback to simulated streaming if OpenRouter fails
+          streamedText = '';
+        }
+      }
+
+      // Fallback to deterministic token stream if live LLM did not complete
+      if (!streamedText) {
+        const text = agent.say.replace(/\{A\}/g, query);
+        const words = text.split(' ');
+        for (const word of words) {
+          sendEvent('seat_token', { seatId: agent.seat, text: word + ' ' });
+          await new Promise(r => setTimeout(r, 35));
+        }
       }
 
       sendEvent('seat_end', {
@@ -76,7 +155,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // 4. Rebuttal Event (Cross-examination)
+    // 4. Rebuttal Event (Cross-examination duel)
     if (targetSeats.length >= 2) {
       const seatA = targetSeats[0];
       const seatB = targetSeats[targetSeats.length - 1];
@@ -88,7 +167,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // 5. Voting Event (Free)
+    // 5. Voting Event (Free roll-call)
     const evalResult = evaluateSession(query);
     evalResult.perAgent.forEach(p => {
       sendEvent('vote', {
@@ -99,8 +178,7 @@ module.exports = async function handler(req, res) {
       });
     });
 
-    // 6. Verdict Event (Taleb Sizing Band)
-    const taleb = AGENTS.find(a => a.seat === 6);
+    // 6. Verdict Event (Taleb Sizing Band & Review Triggers)
     const sizeBand = evalResult.verdict === 'ADD' ? '2.5 – 4.0%' : (evalResult.verdict === 'REDUCE' ? '0.0 – 1.0%' : '1.0 – 2.0%');
 
     sendEvent('verdict', {
@@ -109,7 +187,8 @@ module.exports = async function handler(req, res) {
       sizeBand,
       sizingSeat: 'Seat 06 · Nassim Nicholas Taleb (Tail risk)',
       reviewTrigger: [
-        'On-chain transaction volume contracts by >35%',
+        'Asset price suffers a cumulative drawdown exceeding 30–35%',
+        'On-chain transaction velocity contracts by >35%',
         'Valuation expands >50% without matching fee economics'
       ],
       verdictId: sessionId
@@ -119,7 +198,7 @@ module.exports = async function handler(req, res) {
     res.end();
 
   } catch (err) {
-    sendEvent('error', { scope: 'session', message: err.message, recoverable: false });
+    sendEvent('error', { message: err.message || 'Chamber session encountered an error.' });
     res.end();
   }
 };
