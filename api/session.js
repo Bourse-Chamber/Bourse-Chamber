@@ -27,12 +27,7 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Input thesis or asset is required.' });
   }
 
-  const openRouterApiKey = (
-    process.env.OPENROUTER_API_KEY ||
-    req.headers['x-openrouter-key'] ||
-    bodyKey ||
-    ''
-  ).trim();
+  const openRouterApiKey = (process.env.OPENROUTER_API_KEY || '').trim();
 
   // Set SSE Headers
   res.setHeader('Content-Type', 'text/event-stream');
@@ -143,9 +138,10 @@ module.exports = async function handler(req, res) {
       if (!streamedText) {
         const text = agent.say.replace(/\{A\}/g, query);
         const words = text.split(' ');
+        const delay = process.env.NODE_ENV === 'test' ? 0 : 35;
         for (const word of words) {
           sendEvent('seat_token', { seatId: agent.seat, text: word + ' ' });
-          await new Promise(r => setTimeout(r, 35));
+          if (delay > 0) await new Promise(r => setTimeout(r, delay));
         }
       }
 

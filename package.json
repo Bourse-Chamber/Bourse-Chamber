@@ -1,20 +1,33 @@
 {
   "name": "bourse-chamber",
   "version": "1.0.0",
-  "description": "Bourse Chamber — nine investing-persona AI agents debate a thesis, vote, and record a verdict. Full-stack build with a real Express API and a SQLite database.",
+  "description": "Bourse Chamber — nine investing-persona AI agents debate a thesis, vote, and record a verdict.",
   "main": "server.js",
   "scripts": {
-    "build": "node scripts/sync-public.js",
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "next dev",
+    "build": "next build && node scripts/sync-public.js",
+    "start": "next start",
+    "server": "node server.js",
+    "test": "tsx --test tests/",
+    "lint": "tsc --noEmit"
   },
   "engines": {
     "node": ">=18.0.0"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "express": "^5.2.1"
+    "@upstash/redis": "^1.34.4",
+    "express": "^5.2.1",
+    "next": "^16.0.0",
+    "pg": "^8.13.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.18.0",
+    "@types/pg": "^8.11.11",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.7.3"
   }
 }

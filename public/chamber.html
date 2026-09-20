@@ -67,7 +67,6 @@
         </div>
         <span>Session: <b id="session-id-display">—</b></span>
         <span>Seats present: <b>9 / 9</b></span>
-        <button type="button" id="openrouter-config-btn" class="btn btn-outline" style="font-size:0.68rem;padding:3px 8px;border-color:var(--border-main);color:var(--text-secondary);cursor:pointer;" title="Configure OpenRouter API Key for Live AI">AI: Auto</button>
       </div>
     </div>
 
@@ -245,25 +244,6 @@
       </div>
     </div>
   </footer>
-
-  <!-- OpenRouter AI Settings Modal -->
-  <div id="ai-modal-scrim" class="dossier-scrim" style="display:none;z-index:9999;"></div>
-  <div id="ai-settings-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%, -50%);background:#0A0A0A;border:1px solid #242424;padding:24px;width:90%;max-width:480px;z-index:10000;box-shadow:0 12px 40px rgba(0,0,0,0.8);">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <h3 style="font-family:var(--font-mono);font-size:0.85rem;margin:0;letter-spacing:0.04em;color:#FFF;">OPENROUTER AI CONFIGURATION</h3>
-      <button id="ai-modal-close" type="button" style="background:none;border:none;color:#fff;font-size:1.1rem;cursor:pointer;">✕</button>
-    </div>
-    <p style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:14px;line-height:1.4;">
-      Supply your own <code>OPENROUTER_API_KEY</code> to enable real-time multi-agent LLM streaming. If left blank, Bourse Chamber uses server environment keys or runs on the deterministic cognitive simulation engine.
-    </p>
-    <div style="margin-bottom:14px;">
-      <input type="password" id="openrouter-key-input" placeholder="sk-or-v1-..." style="width:100%;background:#050505;border:1px solid #242424;color:#fff;padding:8px 12px;font-family:var(--font-mono);font-size:0.78rem;box-sizing:border-box;outline:none;">
-    </div>
-    <div style="display:flex;justify-content:flex-end;gap:8px;">
-      <button type="button" id="ai-clear-key-btn" class="btn btn-outline" style="font-size:0.75rem;padding:6px 14px;">Clear Key</button>
-      <button type="button" id="ai-save-key-btn" class="btn btn-primary" style="font-size:0.75rem;padding:6px 14px;">Save Key</button>
-    </div>
-  </div>
 
   <script src="js/utils.js"></script>
   <script src="js/agents.js"></script>

@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 import { db } from '../../../lib/db';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 export const alt = 'Bourse Chamber Verdict Record';
 export const size = {
   width: 1200,

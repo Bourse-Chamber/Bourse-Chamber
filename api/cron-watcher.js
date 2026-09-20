@@ -19,6 +19,20 @@ module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store, max-age=0');
 
   const executionTime = new Date().toISOString();
+
+  // CRON_SECRET Authorization Verification
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ')
+      ? authHeader.slice(7).trim()
+      : (req.headers['x-cron-secret'] || (req.query && req.query.secret) || '');
+
+    if (token !== cronSecret) {
+      return res.status(401).json({ error: 'Unauthorized: Invalid or missing CRON_SECRET authorization.' });
+    }
+  }
+
   const report = {
     executedAt: executionTime,
     watchesEvaluated: 0,
@@ -100,24 +114,27 @@ module.exports = async function handler(req, res) {
           triggeredAt: executionTime
         };
 
-        // If Resend API key is configured in production, send real email
-        if (process.env.RESEND_API_KEY) {
+        // If real transactional email key is configured, send email safely
+        const emailApiKey = process.env.EMAIL_API_KEY || process.env.RESEND_API_KEY;
+        const emailFrom = process.env.EMAIL_FROM || 'Bourse Chamber <alerts@bourse-chamber.vercel.app>';
+        if (emailApiKey) {
           try {
             await fetch('https://api.resend.com/emails', {
               method: 'POST',
               headers: {
-                'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+                'Authorization': `Bearer ${emailApiKey}`,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({
-                from: 'Bourse Chamber <alerts@bourse-chamber.vercel.app>',
+                from: emailFrom,
                 to: [watch.email],
                 subject: alertPayload.subject,
                 text: alertPayload.body
-              })
+              }),
+              signal: AbortSignal.timeout(5000)
             });
           } catch (emailErr) {
-            console.error('Failed to dispatch alert via Resend:', emailErr.message);
+            console.error('Failed to dispatch email safely:', emailErr.message);
           }
         }
 

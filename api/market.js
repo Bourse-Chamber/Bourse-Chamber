@@ -3,7 +3,8 @@
  * Crypto Evidence Pack Generator (Live CoinGecko API integration with 60s cache & explicit data gaps)
  */
 
-const CACHE = new Map();
+const { redis } = require('../db/redis');
+
 const CACHE_TTL_MS = 60 * 1000;
 
 const COIN_MAP = {
@@ -34,10 +35,13 @@ module.exports = async function handler(req, res) {
 
   const ticker = String(req.query.ticker || req.query.asset || 'BTC').trim().toUpperCase();
 
-  const cached = CACHE.get(ticker);
-  if (cached && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
-    return res.json({ ...cached.data, cached: true });
-  }
+  const cacheKey = `bourse:market:${ticker}`;
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return res.json({ ...cached, cached: true });
+    }
+  } catch (_) {}
 
   let liveData = null;
   let coinId = COIN_MAP[ticker];
@@ -65,8 +69,8 @@ module.exports = async function handler(req, res) {
     try {
       const apiKey = process.env.COINGECKO_API_KEY || '';
       const baseUrl = apiKey.startsWith('CG-')
-        ? `https://api.coingecko.com/api/v3/coins/${coinId}?x_cg_demo_api_key=${apiKey}`
-        : `https://api.coingecko.com/api/v3/coins/${coinId}`;
+        ? `https://api.coingecko.com/api/v3/coins/${coinId}?sparkline=true&x_cg_demo_api_key=${apiKey}`
+        : `https://api.coingecko.com/api/v3/coins/${coinId}?sparkline=true`;
 
       const cgRes = await fetch(baseUrl, {
         headers: { 'Accept': 'application/json' },
@@ -79,6 +83,9 @@ module.exports = async function handler(req, res) {
         const curPrice = market.current_price?.usd || 0;
         const ath = market.ath?.usd || curPrice;
         const drawdownPct = ath > 0 ? (((ath - curPrice) / ath) * 100).toFixed(1) : '0.0';
+        const sparkline = Array.isArray(market.sparkline_7d?.price)
+          ? market.sparkline_7d.price.slice(-24)
+          : [];
 
         liveData = {
           ticker,
@@ -89,6 +96,7 @@ module.exports = async function handler(req, res) {
           volume24h: market.total_volume?.usd || 0,
           ath: ath,
           drawdownFromAthPct: drawdownPct,
+          sparkline,
           circulatingSupply: market.circulating_supply ? `${Math.round(market.circulating_supply).toLocaleString()} ${ticker}` : 'N/A',
           totalSupply: market.total_supply ? `${Math.round(market.total_supply).toLocaleString()} ${ticker}` : 'N/A',
           source: 'CoinGecko API v3 (Live Market Feed)',
@@ -100,7 +108,7 @@ module.exports = async function handler(req, res) {
         };
       }
     } catch (liveErr) {
-      // Graceful fallback to institutional baseline snapshot
+      // Graceful fallback
     }
   }
 
@@ -145,7 +153,10 @@ module.exports = async function handler(req, res) {
     };
   }
 
-  CACHE.set(ticker, { timestamp: Date.now(), data: liveData });
+  try {
+    await redis.set(cacheKey, liveData, 60);
+  } catch (_) {}
+
   res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=120');
   return res.json({ ...liveData, cached: false });
 };

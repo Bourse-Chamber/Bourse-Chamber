@@ -1,16 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '../../../../lib/db';
 import { fetchCryptoEvidence } from '../../../../lib/coingecko';
+import { sendReviewAlertEmail } from '../../../../lib/email';
 
 export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest) {
+  // CRON_SECRET Authorization Verification
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    const authHeader = req.headers.get('authorization') || '';
+    const token = authHeader.startsWith('Bearer ')
+      ? authHeader.slice(7).trim()
+      : (req.headers.get('x-cron-secret') || req.nextUrl.searchParams.get('secret') || '');
+
+    if (token !== cronSecret) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Invalid or missing CRON_SECRET authorization.' },
+        { status: 401 }
+      );
+    }
+  }
+
   const executionTime = new Date().toISOString();
   const report = {
     executedAt: executionTime,
     watchesEvaluated: 0,
     triggersFired: 0,
-    alertsDispatched: [] as string[],
+    alertsDispatched: [] as Array<{
+      watchId: string;
+      recipient: string;
+      asset: string;
+      drawdown: string;
+    }>,
     details: [] as Array<{
       watchId: string;
       asset: string;
@@ -21,6 +43,7 @@ export async function GET(req: NextRequest) {
   };
 
   try {
+    // Only load ACTIVE watches to prevent duplicate notifications
     const activeWatches = await db.getActiveWatches();
     report.watchesEvaluated = activeWatches.length;
 
@@ -44,7 +67,7 @@ export async function GET(req: NextRequest) {
     }
 
     for (const watch of activeWatches) {
-      const drawdown = prices[watch.asset] || 33.3;
+      const drawdown = prices[watch.asset] !== undefined ? prices[watch.asset] : 33.3;
       const threshold = watch.drawdownThreshold || 30.0;
       const isTriggered = drawdown >= threshold;
 
@@ -58,8 +81,26 @@ export async function GET(req: NextRequest) {
 
       if (isTriggered) {
         report.triggersFired++;
-        report.alertsDispatched.push(watch.email);
-        await db.updateWatchStatus(watch.id, 'TRIGGERED');
+
+        // Mark watch as TRIGGERED with timestamp to prevent duplicate notifications
+        await db.updateWatchTriggered(watch.id);
+
+        // Dispatch email safely
+        await sendReviewAlertEmail({
+          to: watch.email,
+          asset: watch.asset,
+          sessionId: watch.sessionId,
+          observedDrawdown: drawdown,
+          threshold,
+          triggerCondition: watch.triggerCondition,
+        });
+
+        report.alertsDispatched.push({
+          watchId: watch.id,
+          recipient: watch.email.replace(/(.{2})(.*)(@.*)/, '$1***$3'),
+          asset: watch.asset,
+          drawdown: `${drawdown}%`,
+        });
       }
     }
 

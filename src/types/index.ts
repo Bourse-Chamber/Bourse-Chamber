@@ -46,6 +46,7 @@ export interface MarketEvidence {
   retrievalDate: string;
   isDemoData: boolean;
   liveSource?: string;
+  sparkline?: number[];
   dataGaps?: string[];
 }
 
@@ -113,6 +114,7 @@ export interface WatchRecord {
   status: 'ACTIVE' | 'TRIGGERED' | 'DISMISSED';
   createdAt: string;
   lastCheckedAt?: string;
+  lastTriggeredAt?: string;
 }
 
 export interface BudgetHudState {

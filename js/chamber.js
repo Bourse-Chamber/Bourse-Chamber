@@ -73,9 +73,6 @@ const BourseChamber = (() => {
     // Setup transcript controls
     setupTranscriptControls();
 
-    // Setup OpenRouter AI Modal
-    setupAiModal();
-
     // Initial budget calculation
     updateComposerMode();
 
@@ -1041,77 +1038,6 @@ const BourseChamber = (() => {
         if (sessionIdEl) sessionIdEl.textContent = '—';
         updateComposerMode();
       });
-    }
-  }
-
-  function setupAiModal() {
-    const configBtn = document.getElementById('openrouter-config-btn');
-    const scrimEl = document.getElementById('ai-modal-scrim');
-    const modalEl = document.getElementById('ai-settings-modal');
-    const closeBtn = document.getElementById('ai-modal-close');
-    const inputEl = document.getElementById('openrouter-key-input');
-    const saveBtn = document.getElementById('ai-save-key-btn');
-    const clearBtn = document.getElementById('ai-clear-key-btn');
-
-    function refreshStatus() {
-      const key = localStorage.getItem('bourse_openrouter_key');
-      if (configBtn) {
-        if (key && key.trim().length > 5) {
-          configBtn.textContent = 'AI: Live LLM (Key Set)';
-          configBtn.style.color = '#FFFFFF';
-          configBtn.style.borderColor = '#FFFFFF';
-        } else {
-          configBtn.textContent = 'AI: Auto';
-          configBtn.style.color = '';
-          configBtn.style.borderColor = '';
-        }
-      }
-      if (inputEl) {
-        inputEl.value = key || '';
-      }
-    }
-
-    refreshStatus();
-
-    if (configBtn && modalEl && scrimEl) {
-      configBtn.addEventListener('click', () => {
-        refreshStatus();
-        scrimEl.style.display = 'block';
-        modalEl.style.display = 'block';
-      });
-
-      const hideModal = () => {
-        scrimEl.style.display = 'none';
-        modalEl.style.display = 'none';
-      };
-
-      if (closeBtn) closeBtn.addEventListener('click', hideModal);
-      scrimEl.addEventListener('click', hideModal);
-
-      if (saveBtn) {
-        saveBtn.addEventListener('click', () => {
-          const val = inputEl ? inputEl.value.trim() : '';
-          if (val) {
-            localStorage.setItem('bourse_openrouter_key', val);
-            BourseUtils.showToast('OpenRouter API key saved to browser session.');
-          } else {
-            localStorage.removeItem('bourse_openrouter_key');
-            BourseUtils.showToast('OpenRouter API key cleared.');
-          }
-          refreshStatus();
-          hideModal();
-        });
-      }
-
-      if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
-          localStorage.removeItem('bourse_openrouter_key');
-          if (inputEl) inputEl.value = '';
-          refreshStatus();
-          BourseUtils.showToast('OpenRouter key removed.');
-          hideModal();
-        });
-      }
     }
   }
 
