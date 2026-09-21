@@ -88,7 +88,7 @@ module.exports = async function handler(req, res) {
     <!-- Asset Label & Ticker -->
     <text x="0" y="0" fill="#888888" font-size="14" letter-spacing="1.5" class="mono">EVALUATED ASSET</text>
     <text x="0" y="58" fill="#FFFFFF" font-size="62" font-weight="700" letter-spacing="-1" class="sans">${asset}</text>
-    <text x="0" y="98" fill="#9A9A9A" font-size="18" class="mono">Nine economists. One market that refuses to behave.</text>
+    <text x="0" y="98" fill="#9A9A9A" font-size="18" class="mono">Nine crypto architects. One market that refuses to behave.</text>
 
     <!-- Details Box -->
     <g transform="translate(0, 145)">
@@ -99,7 +99,7 @@ module.exports = async function handler(req, res) {
       
       <line x1="300" y1="20" x2="300" y2="110" stroke="#1F1F1F" stroke-width="1" />
 
-      <text x="324" y="36" fill="#6E6E6E" font-size="12" letter-spacing="1" class="mono">TALEB SIZING BAND</text>
+      <text x="324" y="36" fill="#6E6E6E" font-size="12" letter-spacing="1" class="mono">HAYES SIZING BAND</text>
       <text x="324" y="64" fill="#FFFFFF" font-size="22" font-weight="600" class="mono">${sizeBand}</text>
 
       <text x="24" y="105" fill="#888888" font-size="12" class="mono">Automatic review trigger active on 30% drawdown barrier.</text>

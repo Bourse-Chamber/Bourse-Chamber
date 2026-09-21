@@ -2,12 +2,12 @@ import type { Metadata } from 'next';
 import React from 'react';
 
 export const metadata: Metadata = {
-  title: 'Bourse Chamber — Nine Economists. One Market That Refuses to Behave.',
-  description: 'AI-powered crypto investment courtroom where nine distinct personas debate theses, cast recorded ballots, and generate permanent unalterable verdicts.',
+  title: 'Bourse Chamber — Nine Crypto Architects. One Market That Refuses to Behave.',
+  description: 'AI-powered crypto investment courtroom where nine canonical crypto architects debate theses, cast recorded ballots, and generate permanent unalterable verdicts.',
   metadataBase: new URL('https://bourse-chamber.vercel.app'),
   openGraph: {
-    title: 'Bourse Chamber — Nine Economists. One Market That Refuses to Behave.',
-    description: 'AI-powered crypto investment courtroom. Nine personas. One verdict.',
+    title: 'Bourse Chamber — Nine Crypto Architects. One Market That Refuses to Behave.',
+    description: 'AI-powered crypto investment courtroom. Nine crypto architects. One verdict.',
     url: 'https://bourse-chamber.vercel.app',
     siteName: 'Bourse Chamber',
     locale: 'en_US',
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Bourse Chamber',
-    description: 'Nine economists. One market that refuses to behave.',
+    description: 'Nine crypto architects. One market that refuses to behave.',
   },
 };
 

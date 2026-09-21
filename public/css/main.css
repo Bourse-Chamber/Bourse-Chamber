@@ -180,9 +180,10 @@ header.site-header {
 .nav-link {
   display: flex;
   align-items: center;
-  padding: 0 20px;
+  padding: 0 18px;
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
   color: var(--text-secondary);
   background: transparent;
   border: none;
@@ -192,6 +193,7 @@ header.site-header {
   transition: all 0.18s ease;
   position: relative;
   height: 100%;
+  white-space: nowrap;
 }
 
 .nav-link:hover {
@@ -1294,46 +1296,63 @@ footer.site-footer {
 .nav-cta-cell {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 12px;
+  gap: 10px;
+  padding: 0 16px;
   border-left: 1px solid var(--border-main);
+  height: 100%;
 }
 
 .nav-cta-btn {
   background: #FFFFFF;
   color: #000000;
-  font-family: var(--font-sans);
-  font-size: 0.76rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
   font-weight: 600;
-  padding: 8px 18px;
-  border-radius: 4px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0 14px;
+  height: 32px;
+  border-radius: 2px;
   border: 1px solid #FFFFFF;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+  transition: all 0.15s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  line-height: 1.2;
+  white-space: nowrap;
+  line-height: 1;
+  box-shadow: none;
 }
 
 .nav-cta-btn:hover {
   background: #000000;
   color: #FFFFFF;
   border-color: #FFFFFF;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.45);
-  transform: translateY(-1px);
 }
 
 .nav-cta-btn.nav-cta-x {
-  padding: 8px 12px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-main);
+  padding: 0;
+  width: 32px;
+  height: 32px;
   min-width: 32px;
-  height: 31px;
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+.nav-cta-btn.nav-cta-x:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+  border-color: #555555;
 }
 
 .nav-cta-btn.nav-cta-x svg {
   display: block;
+  width: 14px;
+  height: 14px;
 }
 
 /* ==========================================================================

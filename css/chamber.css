@@ -11,13 +11,13 @@
 }
 
 .chamber-page {
-  padding-top: 40px;
-  padding-bottom: 60px;
+  padding-top: 0;
+  padding-bottom: 40px;
 }
 
 /* Floor Header Bar */
 .floor-header {
-  padding: 12px 0 10px;
+  padding: 14px 0 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
