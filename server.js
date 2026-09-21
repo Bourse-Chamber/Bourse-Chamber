@@ -24,6 +24,14 @@ app.get("/bench", (req, res) => {
   res.sendFile(path.join(__dirname, "bench.html"));
 });
 
+app.get("/crypto-bench", (req, res) => {
+  res.sendFile(path.join(__dirname, "crypto-bench.html"));
+});
+
+app.get("/crypto", (req, res) => {
+  res.sendFile(path.join(__dirname, "crypto-bench.html"));
+});
+
 app.get("/ledger", (req, res) => {
   res.sendFile(path.join(__dirname, "ledger.html"));
 });

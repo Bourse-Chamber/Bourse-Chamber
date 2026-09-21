@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
         { source: "/overview", destination: "/index.html" },
         { source: "/chamber", destination: "/chamber.html" },
         { source: "/bench", destination: "/bench.html" },
+        { source: "/crypto-bench", destination: "/crypto-bench.html" },
+        { source: "/crypto", destination: "/crypto-bench.html" },
         { source: "/ledger", destination: "/ledger.html" },
         { source: "/verdict", destination: "/verdict.html" },
         { source: "/verdict/:id", destination: "/verdict.html?id=:id" },

@@ -96,6 +96,9 @@ export default function RootLayout({
             <a href="/bench" style={{ color: '#9A9A9A', textDecoration: 'none', fontSize: '0.85rem' }}>
               The Bench
             </a>
+            <a href="/crypto-bench" style={{ color: '#9A9A9A', textDecoration: 'none', fontSize: '0.85rem' }}>
+              Crypto Bench
+            </a>
             <a href="/ledger" style={{ color: '#9A9A9A', textDecoration: 'none', fontSize: '0.85rem' }}>
               Ledger
             </a>

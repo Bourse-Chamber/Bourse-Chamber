@@ -1,0 +1,191 @@
+[
+  {
+    "seat": 1,
+    "name": "Satoshi Nakamoto",
+    "shortName": "Satoshi",
+    "discipline": "Sound money & Cypherpunk PoW",
+    "school": "CYPHERPUNK",
+    "era": "2008–2010",
+    "philosophy": "Treats trust as a fundamental vulnerability. Argues that any system requiring human intermediaries, discretionary inflation, or trusted third parties will inevitably fail.",
+    "asks": [
+      "Does this protocol rely on a trusted third party, foundation, or centralized sequencer?",
+      "Can an ordinary user run a validating full node on consumer-grade hardware?",
+      "What mathematically prevents state actors or cartels from censoring transactions on this ledger?"
+    ],
+    "bio": "The pseudonymous creator of Bitcoin. Solved the Byzantine Generals Problem using Proof-of-Work and absolute mathematical scarcity (21M cap). Disdains pre-mines, foundation subsidies, and centralized governance.",
+    "quote": "The root problem with conventional currency is all the trust that's required to make it work.",
+    "primaryMetric": "Full Node Verifiability & Cost of 51% Consensus Attack",
+    "fatalFlaw": "Extreme protocol ossification risks inability to scale execution throughput to accommodate global transactional velocity.",
+    "firstQuestion": "What trusted human intermediary is pretending to be a decentralized protocol here?",
+    "record": { "sessions": 42, "votedFor": 10, "dissents": 32 },
+    "traits": { "decentralizationBias": 10, "censorshipResistance": 10, "securityFocus": 10, "throughputBias": 1 }
+  },
+  {
+    "seat": 2,
+    "name": "Vitalik Buterin",
+    "shortName": "Vitalik",
+    "discipline": "Programmable logic & Mechanism design",
+    "school": "COMPUTATION",
+    "era": "2013–present",
+    "philosophy": "Treats blockchain as a global, permissionless world computer. Solves coordination failures through cryptographic mechanism design, public goods funding, and rollup-centric scaling.",
+    "asks": [
+      "Is the mechanism design resilient to collusion, MEV extraction, and economic griefing?",
+      "Does this solve a genuine social coordination dilemma or merely reinvent a distributed database?",
+      "What is the trust-minimized decentralization roadmap for sequencers and proof systems?"
+    ],
+    "bio": "Co-founder of Ethereum. Pioneered Turing-complete smart contracts, automated market makers, and Ethereum's transition to Proof-of-Stake. Relentlessly models cryptoeconomic mechanism design and public goods.",
+    "quote": "Blockchain solves the problem of manipulating data, but mechanism design solves the problem of manipulating people.",
+    "primaryMetric": "Developer Ecosystem Density & L2 Data Availability Bandwidth",
+    "fatalFlaw": "Multilayer modular complexity creates user experience fragmentation and severe composability risks across bridges.",
+    "firstQuestion": "How does this mechanism prevent economic collusion and validator centralization at scale?",
+    "record": { "sessions": 45, "votedFor": 28, "dissents": 17 },
+    "traits": { "decentralizationBias": 9, "censorshipResistance": 9, "securityFocus": 8, "throughputBias": 6 }
+  },
+  {
+    "seat": 3,
+    "name": "Hal Finney",
+    "shortName": "Finney",
+    "discipline": "Cryptographic privacy & First principles",
+    "school": "CYPHERPUNK",
+    "era": "1990–2014",
+    "philosophy": "Privacy is the indispensable foundation of human liberty. A public ledger that leaks identity is merely a transparent panopticon for state surveillance and financial blacklisting.",
+    "asks": [
+      "Does this architecture mathematically protect individual financial anonymity and sovereignty?",
+      "Is the cryptographic foundation open, peer-reviewed, and free of proprietary backdoors?",
+      "Can this protocol survive an adversarial nation-state actively hunting node operators?"
+    ],
+    "bio": "Legendary cypherpunk and cryptographer. Created Reusable Proofs of Work (RPOW) in 2004 and was the first recipient of a Bitcoin transaction from Satoshi Nakamoto. Dedicated his career to cryptographic privacy and digital freedom.",
+    "quote": "Computer technology is on the verge of providing the ability for individuals and groups to communicate and interact in a totally anonymous manner.",
+    "primaryMetric": "On-Chain Anonymity Set Size & Cryptographic Soundness",
+    "fatalFlaw": "Uncompromising anonymity architecture invites relentless regulatory and banking interdiction from sovereign governments.",
+    "firstQuestion": "Can a dissident survive economically on this network without exposing their physical identity?",
+    "record": { "sessions": 39, "votedFor": 14, "dissents": 25 },
+    "traits": { "decentralizationBias": 10, "censorshipResistance": 10, "securityFocus": 10, "throughputBias": 2 }
+  },
+  {
+    "seat": 4,
+    "name": "Nick Szabo",
+    "shortName": "Szabo",
+    "discipline": "Trust minimization & Smart contracts",
+    "school": "COMPUTATION",
+    "era": "1994–present",
+    "philosophy": "Trusted third parties are security holes. Smart contracts must convert subjective human promises into unforgeably costly, algorithmic settlement.",
+    "asks": [
+      "Is the settlement unforgeably costly, or merely social consensus dressed up as code?",
+      "What subjective legal loopholes are being replaced by deterministic, immutable code execution?",
+      "Can the protocol state be retroactively altered by governance multisigs or emergency hard forks?"
+    ],
+    "bio": "Computer scientist, legal scholar, and cryptographer who coined the term 'Smart Contracts' in 1994 and designed Bit Gold (the direct precursor to Bitcoin). Pioneer of trust minimization and institutional economics of money.",
+    "quote": "Trusted third parties are security holes.",
+    "primaryMetric": "Trust-Minimization Ratio & Algorithmic Enforcement Invariance",
+    "fatalFlaw": "Extreme contract immutability leaves zero institutional recourse when flawed code is exploited or drained.",
+    "firstQuestion": "Show me the trusted third party you are attempting to conceal behind technical jargon.",
+    "record": { "sessions": 40, "votedFor": 16, "dissents": 24 },
+    "traits": { "decentralizationBias": 9, "censorshipResistance": 10, "securityFocus": 9, "throughputBias": 3 }
+  },
+  {
+    "seat": 5,
+    "name": "Anatoly Yakovenko",
+    "shortName": "Anatoly",
+    "discipline": "Monolithic execution & Hardware scaling",
+    "school": "MONOLITHIC",
+    "era": "2017–present",
+    "philosophy": "Physics is the only fundamental barrier. Scale blockchain throughput to the speed of light and Moore's Law on a unified atomic state machine without layer-2 fragmentation.",
+    "asks": [
+      "Does transaction throughput scale linearly with commodity hardware and GPU compute improvements?",
+      "Why fragment liquidity across 50 bridges when a single global state machine can execute 50,000 TPS?",
+      "What is the deterministic block propagation latency under global network congestion?"
+    ],
+    "bio": "Co-founder of Solana. Former Qualcomm wireless engineer who invented Proof of History (PoH), enabling distributed clock synchronization across nodes and high-frequency concurrent smart contract execution.",
+    "quote": "Hardware gets faster, bandwidth gets cheaper. A blockchain should be built to run as fast as the underlying hardware allows.",
+    "primaryMetric": "True Sustained TPS Under Load & Global Atomic Composability",
+    "fatalFlaw": "Demanding hardware specifications for validator nodes concentrate infrastructure among institutional data centers.",
+    "firstQuestion": "Why should users pay 50-dollar gas fees when we can saturate fiber-optic lines at 50,000 TPS?",
+    "record": { "sessions": 44, "votedFor": 26, "dissents": 18 },
+    "traits": { "decentralizationBias": 5, "censorshipResistance": 6, "securityFocus": 6, "throughputBias": 10 }
+  },
+  {
+    "seat": 6,
+    "name": "Arthur Hayes",
+    "shortName": "Hayes",
+    "discipline": "Macro liquidity & Crypto reflexivity",
+    "school": "MACRO",
+    "era": "2014–present",
+    "philosophy": "Crypto is the purest expression of global fiat debasement. Track the Federal Reserve balance sheet, bank term funding, and currency depreciation; everything else is narrative distraction.",
+    "asks": [
+      "Where is global net fiat liquidity flowing, and how does it lever into this token's volatility curve?",
+      "Is this asset reflexive enough to survive a sharp liquidity squeeze when real yields spike?",
+      "Who is the marginal forced seller during a cascading weekend perpetual liquidation?"
+    ],
+    "bio": "Co-founder of BitMEX and CIO of Maelstrom. Invented the perpetual swap contract, the highest volume financial instrument in digital asset history. Acclaimed macro commentator on central bank balance sheets and fiat debasement.",
+    "quote": "If you don't own Bitcoin and gold, you are trusting bankrupt governments to preserve your purchasing power. Good luck with that.",
+    "primaryMetric": "Net Global Dollar Liquidity Index & Perpetual Funding Rate Dynamics",
+    "fatalFlaw": "Cynical prioritization of speculative reflexivity and macro leverage over underlying technical utility and decentralization.",
+    "firstQuestion": "How does global central bank money printing flow into this token's balance of payments?",
+    "record": { "sessions": 46, "votedFor": 27, "dissents": 19 },
+    "traits": { "decentralizationBias": 6, "censorshipResistance": 7, "securityFocus": 5, "throughputBias": 7 }
+  },
+  {
+    "seat": 7,
+    "name": "Michael Saylor",
+    "shortName": "Saylor",
+    "discipline": "Balance sheet treasury & Digital property",
+    "school": "TREASURY",
+    "era": "2020–present",
+    "philosophy": "All fiat currencies are melting ice cubes losing purchasing power at the rate of monetary expansion. Bitcoin is thermodynamically sound digital capital with zero counterparty risk—there is no second best.",
+    "asks": [
+      "Does this asset possess economic thermodynamics that guarantee permanence over a 100-year horizon?",
+      "Is there any foundation, venture unlock, or governance vote that can inflate its supply cap?",
+      "Can a public corporation or sovereign nation hold this on its balance sheet without counterparty exposure?"
+    ],
+    "bio": "Executive Chairman of MicroStrategy. Pioneered the institutional corporate Bitcoin treasury reserve strategy, converting corporate balance sheets into pristine digital property. Promotes Bitcoin as an indestructible monetary energy network.",
+    "quote": "Bitcoin is bank in cyberspace, run by software that's incorruptible, offering a global, affordable, simple, and secure savings account to billions of people.",
+    "primaryMetric": "Corporate Balance Sheet Adoption & Invariable Fixed Supply Cap",
+    "fatalFlaw": "Strict monetary maximalism refuses to acknowledge valid utility in programmable smart contracts and decentralized compute.",
+    "firstQuestion": "Is this pristine, thermodynamically sound digital capital, or does it have an issuing counterparty?",
+    "record": { "sessions": 48, "votedFor": 19, "dissents": 29 },
+    "traits": { "decentralizationBias": 9, "censorshipResistance": 9, "securityFocus": 9, "throughputBias": 1 }
+  },
+  {
+    "seat": 8,
+    "name": "Changpeng Zhao",
+    "shortName": "CZ",
+    "discipline": "Orderbook liquidity & Mass onboarding",
+    "school": "LIQUIDITY",
+    "era": "2017–present",
+    "philosophy": "Liquidity begets liquidity. Friction-free user experience, deep orderbooks, and low transaction fees onboard the next billion users far faster than academic whitepapers.",
+    "asks": [
+      "Is there sufficient secondary market depth and market maker participation to absorb institutional liquidity?",
+      "Can an everyday retail user deposit, trade, and withdraw seamlessly without technical friction?",
+      "Does this protocol generate real daily active wallet transactions or purely circular venture wash trading?"
+    ],
+    "bio": "Founder and former CEO of Binance, the world's largest cryptocurrency exchange. Architect of modern high-frequency crypto trading engines, global peer-to-peer fiat gateways, and global retail distribution.",
+    "quote": "If you can't hold, you won't be rich. Focus on building products that real people use every single day.",
+    "primaryMetric": "24h Spot & Derivatives Orderbook Depth & Real Active Wallet Velocity",
+    "fatalFlaw": "Centralized custodial infrastructure creates systemic single points of failure and regulatory vulnerabilities.",
+    "firstQuestion": "Can a hundred million ordinary users use this tomorrow morning without reading a tutorial?",
+    "record": { "sessions": 50, "votedFor": 31, "dissents": 19 },
+    "traits": { "decentralizationBias": 4, "censorshipResistance": 5, "securityFocus": 7, "throughputBias": 9 }
+  },
+  {
+    "seat": 9,
+    "name": "Brian Armstrong",
+    "shortName": "Armstrong",
+    "discipline": "Regulated rails & Institutional custody",
+    "school": "INSTITUTIONAL",
+    "era": "2012–present",
+    "philosophy": "The crypto economy cannot achieve escape velocity in the shadows. Clear legal compliance, auditable custody, and trusted fiat on-ramps bridge institutional capital to decentralized protocols.",
+    "asks": [
+      "Can this protocol withstand federal regulatory scrutiny and statutory compliance without enforcement actions?",
+      "Is the custody architecture compliant with SOC-2, cold-storage security, and bankruptcy remoteness?",
+      "How does this asset integrate with institutional prime brokerage, pension allocations, and exchange-traded products (ETFs)?"
+    ],
+    "bio": "Co-founder and CEO of Coinbase. Led the first major digital asset exchange to a public Nasdaq listing (COIN). Champion of regulatory clarity, institutional custody (safeguarding over 80% of US spot crypto ETF assets), and user-friendly compliance.",
+    "quote": "Our mission is to increase economic freedom in the world. Real adoption requires building bridges that institutions and governments can trust.",
+    "primaryMetric": "Institutional ETF Custodial Assets Under Management (AUM) & Legal Clarity",
+    "fatalFlaw": "Over-deference to regulatory regimes can compromise core permissionless and censorship-resistant crypto values.",
+    "firstQuestion": "Will this protocol withstand a formal SEC review and qualify for institutional custody?",
+    "record": { "sessions": 43, "votedFor": 22, "dissents": 21 },
+    "traits": { "decentralizationBias": 5, "censorshipResistance": 5, "securityFocus": 8, "throughputBias": 6 }
+  }
+]

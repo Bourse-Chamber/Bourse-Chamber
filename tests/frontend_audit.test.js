@@ -10,6 +10,7 @@ test('Frontend Audit — All HTML Pages Structure & Clean Links', (t) => {
     'index.html',
     'chamber.html',
     'bench.html',
+    'crypto-bench.html',
     'ledger.html',
     'verdict.html',
     'method.html',
@@ -28,10 +29,12 @@ test('Frontend Audit — All HTML Pages Structure & Clean Links', (t) => {
       assert.strictEqual(h.includes('.html'), false, `${page} should not contain .html in href: ${h}`);
     });
 
-    // 2. Overview navigation link check
+    // 2. Navigation links check
     if (page !== 'method.html' && page !== 'disclaimer.html') {
       assert.strictEqual(html.includes('href="/overview"'), true, `${page} must have link to /overview`);
       assert.strictEqual(html.includes('Overview</a>'), true, `${page} must have Overview link label`);
+      assert.strictEqual(html.includes('href="/crypto-bench"'), true, `${page} must have link to /crypto-bench`);
+      assert.strictEqual(html.includes('Crypto Bench</a>'), true, `${page} must have Crypto Bench link label`);
     }
 
     // 3. No duplicate IDs on the page
@@ -153,4 +156,64 @@ test('Frontend Audit — Storage Layer Integrity & Bench/Ledger Rendering', (t) 
   assert.ok(elements['ledger-table-rows'].children.length >= 5, 'Ledger table must render at least 5 session rows');
   assert.strictEqual(elements['metric-total-sessions'].textContent, sessions.length, 'Metric tile must update with total session count');
 });
+
+test('Frontend Audit — 9 Canonical Crypto Personas Data Integrity & Crypto Bench Rendering', (t) => {
+  const cryptoAgentsPath = path.join(rootDir, 'data', 'crypto-agents.json');
+  assert.strictEqual(fs.existsSync(cryptoAgentsPath), true, 'data/crypto-agents.json must exist');
+  
+  const agents = JSON.parse(fs.readFileSync(cryptoAgentsPath, 'utf8'));
+  assert.strictEqual(agents.length, 9, 'Must have exactly 9 canonical crypto seats');
+
+  const expectedSeats = [
+    { seat: 1, name: 'Satoshi Nakamoto' },
+    { seat: 2, name: 'Vitalik Buterin' },
+    { seat: 3, name: 'Hal Finney' },
+    { seat: 4, name: 'Nick Szabo' },
+    { seat: 5, name: 'Anatoly Yakovenko' },
+    { seat: 6, name: 'Arthur Hayes' },
+    { seat: 7, name: 'Michael Saylor' },
+    { seat: 8, name: 'Changpeng Zhao' },
+    { seat: 9, name: 'Brian Armstrong' }
+  ];
+
+  expectedSeats.forEach(expected => {
+    const found = agents.find(a => a.seat === expected.seat);
+    assert.ok(found, `Seat ${expected.seat} must exist`);
+    assert.strictEqual(found.name, expected.name, `Seat ${expected.seat} must be ${expected.name}`);
+    assert.ok(found.discipline, `Seat ${expected.seat} must have discipline`);
+    assert.ok(found.school, `Seat ${expected.seat} must have school`);
+    assert.ok(found.asks && found.asks.length >= 3, `Seat ${expected.seat} must have at least 3 questions`);
+    assert.ok(found.bio, `Seat ${expected.seat} must have bio`);
+    assert.ok(found.primaryMetric, `Seat ${expected.seat} must have primaryMetric`);
+    assert.ok(found.fatalFlaw, `Seat ${expected.seat} must have fatalFlaw`);
+  });
+
+  // Test DOM rendering for Crypto Bench
+  const elements = {};
+  global.document = {
+    getElementById: (id) => {
+      if (!elements[id]) {
+        elements[id] = { id, innerHTML: '', textContent: '', className: '', style: {}, children: [], appendChild: function(c) { this.children.push(c); }, querySelectorAll: () => [], addEventListener: () => {} };
+      }
+      return elements[id];
+    },
+    createElement: (tag) => {
+      return { tag, innerHTML: '', textContent: '', className: '', style: {}, children: [], dataset: {}, setAttribute: () => {}, appendChild: function(c) { this.children.push(c); }, addEventListener: () => {} };
+    },
+    addEventListener: (ev, fn) => fn()
+  };
+  global.window = {
+    document: global.document
+  };
+
+  global.BourseUtils = require('../js/utils');
+  global.BourseCryptoAgents = require('../js/crypto-agents');
+  assert.ok(global.BourseCryptoAgents, 'BourseCryptoAgents must load');
+  assert.strictEqual(global.BourseCryptoAgents.getAgents().length, 9, 'Must return 9 agents');
+
+  require('../js/crypto-bench');
+  assert.strictEqual(elements['crypto-bench-grid'].children.length, 9, 'All 9 crypto persona cards must render into crypto-bench-grid');
+  assert.strictEqual(elements['crypto-bench-filters'].children.length, 8, 'All 8 filter buttons must render into crypto-bench-filters');
+});
+
 
