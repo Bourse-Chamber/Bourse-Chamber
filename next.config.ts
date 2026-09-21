@@ -6,10 +6,22 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
-  experimental: {
-    serverActions: {
-      bodySizeLimit: "2mb",
-    },
+  async rewrites() {
+    return {
+      beforeFiles: [
+        { source: "/", destination: "/index.html" },
+        { source: "/chamber", destination: "/chamber.html" },
+        { source: "/bench", destination: "/bench.html" },
+        { source: "/ledger", destination: "/ledger.html" },
+        { source: "/verdict", destination: "/verdict.html" },
+        { source: "/verdict/:id", destination: "/verdict.html?id=:id" },
+        { source: "/method", destination: "/method.html" },
+        { source: "/disclaimer", destination: "/disclaimer.html" },
+        { source: "/legal/disclaimer", destination: "/disclaimer.html" },
+      ],
+      afterFiles: [],
+      fallback: [],
+    };
   },
 };
 

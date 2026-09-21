@@ -15,6 +15,13 @@ const BourseVerdict = (() => {
     let id = urlParams.get('id');
 
     if (!id) {
+      const match = window.location.pathname.match(/\/verdict\/([^/?#]+)/);
+      if (match && match[1] && !match[1].endsWith('.html')) {
+        id = decodeURIComponent(match[1]);
+      }
+    }
+
+    if (!id) {
       // Default to most recent session if available, else BC-0411
       const all = (typeof BourseStorage !== 'undefined') ? BourseStorage.getSessions() : [];
       if (all && all.length > 0) {
