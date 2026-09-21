@@ -446,12 +446,22 @@ const BourseCryptoAgents = (() => {
     return AGENTS.filter(a => a.school.toUpperCase() === school.toUpperCase());
   }
 
+  function getAgentByName(name) {
+    if (!name) return null;
+    const n = name.toLowerCase().trim();
+    return AGENTS.find(a => 
+      a.name.toLowerCase().includes(n) || 
+      (a.shortName && a.shortName.toLowerCase() === n)
+    ) || null;
+  }
+
   return {
     SCHOOLS,
     AGENTS,
     getAgents,
     getAgentBySeat,
-    getAgentsBySchool
+    getAgentsBySchool,
+    getAgentByName
   };
 })();
 

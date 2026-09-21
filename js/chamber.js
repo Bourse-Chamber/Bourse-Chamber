@@ -374,7 +374,7 @@ const BourseChamber = (() => {
   }
 
   function resetAllSeatStates(statusText = 'WAITING') {
-    BourseAgents.AGENTS.forEach(a => {
+    getChamberCouncil().AGENTS.forEach(a => {
       setSeatState(a.seat, '', statusText);
     });
   }
@@ -817,7 +817,7 @@ const BourseChamber = (() => {
           text: `Casts: [${voteResult.vote}] — ${voteResult.rationale}`
         });
 
-        setSeatState(agent.seat, `voted voted-${voteResult.vote.toLowerCase()}`, voteResult.vote);
+        setSeatState(agent.seat, 'voted', voteResult.vote);
         await chamberWait(200);
       }
 
@@ -1002,14 +1002,17 @@ const BourseChamber = (() => {
         }
       });
 
-      // F14: Support @mention in composer input (e.g. typing @graham selects Graham)
+      // F14: Support @mention in composer input (e.g. typing @satoshi selects Satoshi)
       composerInput.addEventListener('input', (e) => {
         const val = e.target.value;
         const matches = val.match(/@([a-zA-Z]+)/g);
         if (matches) {
           matches.forEach(m => {
             const name = m.substring(1).toLowerCase();
-            const found = BourseAgents.getAgentByName(name);
+            const council = getChamberCouncil();
+            const found = (council && typeof council.getAgentByName === 'function')
+              ? council.getAgentByName(name)
+              : BourseAgents.getAgentByName(name);
             if (found && !selectedSeats.has(found.seat)) {
               selectedSeats.add(found.seat);
               updateChamberSeatVisuals();
@@ -1073,6 +1076,33 @@ const BourseChamber = (() => {
         updateChamberState(STATES.IDLE);
         if (sessionIdEl) sessionIdEl.textContent = '—';
         updateComposerMode();
+      });
+    }
+
+    if (viewVerdictBtn) {
+      viewVerdictBtn.addEventListener('click', () => {
+        if (currentSession && currentSession.id) {
+          window.location.href = `/verdict?id=${encodeURIComponent(currentSession.id)}`;
+        }
+      });
+    }
+
+    if (shareVerdictBtn) {
+      shareVerdictBtn.addEventListener('click', async () => {
+        if (currentSession && currentSession.id) {
+          const url = `${window.location.origin}/verdict?id=${encodeURIComponent(currentSession.id)}`;
+          const success = (typeof BourseUtils !== 'undefined' && BourseUtils.copyToClipboard)
+            ? await BourseUtils.copyToClipboard(url)
+            : false;
+          if (success) {
+            BourseUtils.showToast('Verdict link copied to clipboard!');
+            const prevText = shareVerdictBtn.textContent;
+            shareVerdictBtn.textContent = 'Link Copied!';
+            setTimeout(() => {
+              shareVerdictBtn.textContent = prevText;
+            }, 2000);
+          }
+        }
       });
     }
   }

@@ -51,6 +51,7 @@ const htmlFiles = [
   'index.html',
   'chamber.html',
   'bench.html',
+  'crypto-bench.html',
   'ledger.html',
   'verdict.html',
   'method.html',

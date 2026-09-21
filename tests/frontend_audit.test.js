@@ -263,6 +263,21 @@ test('Frontend Audit — 9 Canonical Crypto Personas Data Integrity & Crypto Ben
   const seat7Node = elements['council-seats'].children.find(c => c.id === 'seat-node-7');
   assert.ok(seat7Node, 'Seat 7 node must exist');
   assert.ok(seat7Node.innerHTML.includes('Saylor'), 'Seat 7 must be Michael Saylor');
+
+  // Verify getAgentByName on BourseCryptoAgents
+  assert.strictEqual(typeof global.BourseCryptoAgents.getAgentByName, 'function', 'getAgentByName must exist');
+  const satoshi = global.BourseCryptoAgents.getAgentByName('satoshi');
+  assert.ok(satoshi, 'Must find satoshi');
+  assert.strictEqual(satoshi.seat, 1);
+  const vitalik = global.BourseCryptoAgents.getAgentByName('vitalik');
+  assert.ok(vitalik, 'Must find vitalik');
+  assert.strictEqual(vitalik.seat, 2);
+  const hayes = global.BourseCryptoAgents.getAgentByName('hayes');
+  assert.ok(hayes, 'Must find hayes');
+  assert.strictEqual(hayes.seat, 6);
+  const saylor = global.BourseCryptoAgents.getAgentByName('saylor');
+  assert.ok(saylor, 'Must find saylor');
+  assert.strictEqual(saylor.seat, 7);
 });
 
 
