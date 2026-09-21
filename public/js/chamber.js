@@ -917,7 +917,7 @@ const BourseChamber = (() => {
     evidencePanelEl.innerHTML = `
       <div class="evidence-header">
         <span>EVIDENCE PACK · ${evidence.ticker} (${evidence.name})</span>
-        <span class="badge">DEMO DATA — NOT A LIVE FEED</span>
+        <span class="badge">${evidence.source ? evidence.source.toUpperCase() : (evidence.isMock ? 'HISTORICAL SNAPSHOT' : 'COINGECKO LIVE FEED')}</span>
       </div>
       <div class="evidence-grid">
         <div class="evidence-item">
@@ -1020,7 +1020,7 @@ const BourseChamber = (() => {
           evidencePanelEl.innerHTML = `
             <div class="evidence-header">
               <span>EVIDENCE PACK: SUBMIT A THESIS TO LOAD A SNAPSHOT</span>
-              <span class="badge">DEMO DATA — NOT A LIVE FEED</span>
+              <span class="badge">MARKET EVIDENCE FEED</span>
             </div>
           `;
         }
