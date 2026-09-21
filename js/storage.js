@@ -233,6 +233,18 @@ const BourseStorage = (() => {
     };
   }
 
+  /**
+   * Reset to default initial seed data
+   */
+  function resetDemoData() {
+    if (typeof BourseMockData !== 'undefined' && BourseMockData.SEED_SESSIONS) {
+      if (isLocalStorageAvailable()) {
+        window.localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(BourseMockData.SEED_SESSIONS));
+      }
+      memorySessions = JSON.parse(JSON.stringify(BourseMockData.SEED_SESSIONS));
+    }
+  }
+
   return {
     init,
     getSessions,
@@ -244,7 +256,13 @@ const BourseStorage = (() => {
   };
 })();
 
-// Export for Node/CommonJS if applicable
+// Export for window or Node/CommonJS
+if (typeof window !== 'undefined') {
+  window.BourseStorage = BourseStorage;
+}
+if (typeof global !== 'undefined') {
+  global.BourseStorage = BourseStorage;
+}
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = BourseStorage;
 }

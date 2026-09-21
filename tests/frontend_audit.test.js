@@ -105,3 +105,52 @@ test('Frontend Audit — Budget Controller Auto-Replenish & Reset', (t) => {
   BourseBudget.reset();
   assert.strictEqual(BourseBudget.getRemaining(), 13, 'Reset must restore 13 credits');
 });
+
+test('Frontend Audit — Storage Layer Integrity & Bench/Ledger Rendering', (t) => {
+  const elements = {};
+  global.document = {
+    getElementById: (id) => {
+      if (!elements[id]) {
+        elements[id] = { id, innerHTML: '', textContent: '', className: '', style: {}, children: [], appendChild: function(c) { this.children.push(c); }, querySelectorAll: () => [], addEventListener: () => {} };
+      }
+      return elements[id];
+    },
+    createElement: (tag) => {
+      return { tag, innerHTML: '', textContent: '', className: '', style: {}, children: [], dataset: {}, setAttribute: () => {}, appendChild: function(c) { this.children.push(c); }, addEventListener: () => {} };
+    },
+    addEventListener: (ev, fn) => fn()
+  };
+  global.window = {
+    document: global.document,
+    localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} }
+  };
+
+  global.BourseUtils = require('../js/utils');
+  global.BourseAgents = require('../js/agents');
+  global.BourseMockData = require('../js/mock-data');
+  const BourseStorage = require('../js/storage');
+  global.BourseStorage = BourseStorage;
+  assert.ok(BourseStorage, 'BourseStorage must load without ReferenceError');
+  assert.strictEqual(typeof BourseStorage.resetDemoData, 'function', 'resetDemoData must be a function');
+  assert.strictEqual(typeof BourseStorage.getAgentVotingRecord, 'function', 'getAgentVotingRecord must be a function');
+
+  // Verify sessions and metrics
+  const sessions = BourseStorage.getSessions();
+  assert.ok(Array.isArray(sessions), 'getSessions must return an array');
+  assert.ok(sessions.length >= 5, 'Must have at least 5 seeded sessions');
+
+  const metrics = BourseStorage.getLedgerMetrics();
+  assert.ok(metrics, 'getLedgerMetrics must return an object');
+  assert.strictEqual(metrics.totalSessions, sessions.length, 'Metrics totalSessions must match session count');
+
+  // Test Bench rendering
+  require('../js/bench');
+  assert.strictEqual(elements['bench-grid'].children.length, 9, 'All 9 persona cards must render into bench-grid');
+  assert.strictEqual(elements['bench-filters'].children.length, 7, 'All 7 filter buttons must render into bench-filters');
+
+  // Test Ledger rendering
+  require('../js/ledger');
+  assert.ok(elements['ledger-table-rows'].children.length >= 5, 'Ledger table must render at least 5 session rows');
+  assert.strictEqual(elements['metric-total-sessions'].textContent, sessions.length, 'Metric tile must update with total session count');
+});
+
