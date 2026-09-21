@@ -534,7 +534,19 @@ const BourseChamber = (() => {
   async function conveneSession(userInput) {
     const query = (userInput || (composerInput ? composerInput.value : '')).trim();
     if (!query) {
-      BourseUtils.showToast('Please enter an asset or thesis to examine.');
+      if (composerInput) {
+        composerInput.focus();
+        composerInput.style.borderColor = '#FFFFFF';
+        composerInput.style.boxShadow = '0 0 12px rgba(255, 255, 255, 0.6)';
+        composerInput.setAttribute('placeholder', 'Ketik aset/tesis (contoh: SOL, BTC, ETH) atau klik contoh di bawah...');
+        setTimeout(() => {
+          if (composerInput) {
+            composerInput.style.borderColor = '';
+            composerInput.style.boxShadow = '';
+          }
+        }, 1500);
+      }
+      BourseUtils.showToast('Ketik aset/tesis (contoh: SOL atau BTC) atau klik salah satu tombol contoh di bawah!');
       return;
     }
 
