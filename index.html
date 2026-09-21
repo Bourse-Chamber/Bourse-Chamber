@@ -405,12 +405,6 @@
             <a class="btn btn-secondary" href="#how-it-works" style="padding:12px 28px;font-size:0.88rem;background:rgba(22,22,22,0.85);border:1px solid #383838;color:#FFFFFF;text-decoration:none;">See How It Works</a>
           </div>
 
-          <!-- Hero Instant Debate Launcher -->
-          <div class="hero-quick-bar" style="margin-top:28px;">
-            <input class="hero-quick-input" id="hero-quick-input" type="text" placeholder="Enter ticker or thesis (e.g. SOL, BTC, ETH)..." autocomplete="off">
-            <button class="hero-quick-btn" id="hero-quick-btn" type="button">Debate on Floor →</button>
-          </div>
-
           <!-- Quick Jump Tiles -->
           <div class="hero-jump-grid">
             <a class="jump-tile" href="/chamber">
@@ -772,28 +766,6 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Quick debate input: redirect to chamber with thesis
-      const quickInput = document.getElementById('hero-quick-input');
-      const quickBtn = document.getElementById('hero-quick-btn');
-      function submitQuick() {
-        if (!quickInput) return;
-        const val = quickInput.value.trim();
-        if (val) {
-          window.location.href = 'chamber.html?q=' + encodeURIComponent(val);
-        } else {
-          window.location.href = 'chamber.html';
-        }
-      }
-      if (quickBtn) quickBtn.addEventListener('click', submitQuick);
-      if (quickInput) {
-        quickInput.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            submitQuick();
-          }
-        });
-      }
-
       // Populate landing bench preview cards on overview
       const previewGrid = document.getElementById('landing-bench-preview');
       if (previewGrid && typeof BourseAgents !== 'undefined') {
