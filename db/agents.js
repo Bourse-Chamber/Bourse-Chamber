@@ -53,7 +53,7 @@ const AGENTS = [
   {
     seat: 4,
     name: "Cathie Wood",
-    discipline: "Growth dan disruption",
+    discipline: "Growth and disruption",
     school: "GROWTH",
     bio: "Maps exponential adoption S-curves and convergence technologies over a 5-to-10-year horizon. Volatility is the toll paid for transformative upside.",
     asks: [

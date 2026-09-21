@@ -370,6 +370,30 @@ class PostgresDatabase implements DatabaseAdapter {
         LIMIT $1;
       `, [limit]);
 
+      const sessionIds = res.rows.map((r: any) => r.id);
+      const votesMap: Record<string, SeatVote[]> = {};
+      if (sessionIds.length > 0) {
+        try {
+          const votesRes = await pool.query(
+            'SELECT * FROM votes WHERE session_id = ANY($1::text[]) ORDER BY seat ASC',
+            [sessionIds]
+          );
+          votesRes.rows.forEach((row: any) => {
+            if (!votesMap[row.session_id]) votesMap[row.session_id] = [];
+            votesMap[row.session_id].push({
+              seat: row.seat,
+              persona: row.persona,
+              shortName: row.short_name,
+              vote: row.vote,
+              weight: Number(row.weight),
+              rationale: row.rationale
+            });
+          });
+        } catch (vErr) {
+          console.warn('Failed to load votes for listSessions:', vErr);
+        }
+      }
+
       return res.rows.map((r: any) => ({
         id: r.id,
         question: r.thesis,
@@ -382,7 +406,7 @@ class PostgresDatabase implements DatabaseAdapter {
         directedMode: 'full_bench',
         directedSeats: [],
         evidence: null,
-        votes: [],
+        votes: votesMap[r.id] || [],
         verdict: r.outcome ? {
           id: `VR-${r.id}`,
           sessionId: r.id,
@@ -540,6 +564,262 @@ class MemoryDatabase implements DatabaseAdapter {
         ],
         votes: [],
         timestamp: '2026-09-05T09:47:00Z'
+      },
+      transcript: []
+    });
+
+    this.sessions.set('BC-0101', {
+      id: 'BC-0101',
+      question: 'Is BTC still a reasonable core holding at current market levels?',
+      ticker: 'BTC',
+      assetName: 'Bitcoin',
+      createdAt: '2026-09-12T14:20:00Z',
+      closedAt: '14:52',
+      evidence: {
+        ticker: 'BTC',
+        name: 'Bitcoin',
+        price: 64280,
+        priceFormatted: '$64,280',
+        change24h: 2.35,
+        marketCap: 1268000000000,
+        marketCapFormatted: '$1.27T',
+        volume24h: 28400000000,
+        volume24hFormatted: '$28.40B',
+        ath: 73750,
+        drawdownFromAthPct: '12.8',
+        networkActivity: '840,000 active settlement addresses / 24h',
+        supply: '19.75M circulating / 21.0M hard cap',
+        macroContext: 'Global liquidity expansion; institutional ETF inflows; sovereign treasury diversification.',
+        retrievalDate: '2026-09-12',
+        isDemoData: true
+      },
+      speakingTurns: 16,
+      seatsPresent: '9 / 9',
+      directedMode: 'full_bench',
+      directedSeats: [],
+      votes: [
+        { seat: 1, persona: 'Benjamin Graham', shortName: 'Graham', vote: 'PASS', weight: 1, rationale: 'Monetary brand acknowledged, but absence of cash flow floor warrants caution.' },
+        { seat: 2, persona: 'Charlie Munger', shortName: 'Munger', vote: 'REDUCE', weight: 1, rationale: 'Remains an artificial speculative token with non-productive economics.' },
+        { seat: 3, persona: 'Peter Lynch', shortName: 'Lynch', vote: 'ADD', weight: 1, rationale: 'Global brand awareness is total; institutional adoption has crossed the chasm.' },
+        { seat: 4, persona: 'Cathie Wood', shortName: 'Wood', vote: 'ADD', weight: 1, rationale: 'Global monetary protocol on track for multi-trillion market capture; supreme conviction.' },
+        { seat: 5, persona: 'Aswath Damodaran', shortName: 'Damodaran', vote: 'REDUCE', weight: 1, rationale: 'Without contractual cash flows, valuation is driven entirely by market moods.' },
+        { seat: 6, persona: 'Nassim Nicholas Taleb', shortName: 'Taleb', vote: 'ADD', weight: 1, rationale: 'Proven survival through multiple 80% drawdowns gives it antifragile convexity.' },
+        { seat: 7, persona: 'Mohnish Pabrai', shortName: 'Pabrai', vote: 'ADD', weight: 1, rationale: 'Sovereign game theory makes terminal downside remote while liquidity upside remains convex.' },
+        { seat: 8, persona: 'Bill Ackman', shortName: 'Ackman', vote: 'ADD', weight: 1, rationale: 'Digital store-of-value monopoly with massive structural network moats.' },
+        { seat: 9, persona: 'Michael Burry', shortName: 'Burry', vote: 'REDUCE', weight: 1, rationale: 'Derivative leverage concentration creates severe risk of flash liquidation spirals.' }
+      ],
+      verdict: {
+        id: 'VR-0101',
+        sessionId: 'BC-0101',
+        ticker: 'BTC',
+        assetName: 'Bitcoin',
+        question: 'Is BTC still a reasonable core holding at current market levels?',
+        outcome: 'ADD',
+        majorityRatio: '5 / 9',
+        dissentBreakdown: '3 REDUCE, 1 PASS',
+        positionSizeBand: '3.0 – 5.0%',
+        keyAgreement: 'BTC retains unmatched monetary liquidity, institutional custody adoption, and unforgeable scarcity.',
+        keyDisagreement: 'Whether absent cash flows, Bitcoin can sustain a trillion-dollar valuation across sovereign liquidity drawdowns.',
+        unresolvedQuestion: 'Will long-term transaction fee revenue adequately incentivize hashpower security after subsequent halvings?',
+        reviewTriggers: [
+          'Material deterioration in global on-chain settlement volume.',
+          'Significant synchronous tightening in G10 central bank balance sheets.',
+          'Structural shift in US/global regulatory clarity for regulated custody.'
+        ],
+        votes: [],
+        timestamp: '2026-09-12T14:52:00Z'
+      },
+      transcript: []
+    });
+
+    this.sessions.set('BC-0202', {
+      id: 'BC-0202',
+      question: 'Does Layer-2 fragmentation permanently impair Ethereum fee accrual moat?',
+      ticker: 'ETH',
+      assetName: 'Ethereum',
+      createdAt: '2026-09-15T11:00:00Z',
+      closedAt: '11:35',
+      evidence: {
+        ticker: 'ETH',
+        name: 'Ethereum',
+        price: 2640,
+        priceFormatted: '$2,640',
+        change24h: -0.85,
+        marketCap: 317800000000,
+        marketCapFormatted: '$317.80B',
+        volume24h: 14200000000,
+        volume24hFormatted: '$14.20B',
+        ath: 4890,
+        drawdownFromAthPct: '46.0',
+        networkActivity: '1.24M L1 txs; 8.2M L2 rollups txs daily',
+        supply: '120.2M circulating / dynamic burn',
+        macroContext: 'Staking yield 3.25%; blob transaction fees compressing L1 fee burn.',
+        retrievalDate: '2026-09-15',
+        isDemoData: true
+      },
+      speakingTurns: 13,
+      seatsPresent: '9 / 9',
+      directedMode: 'full_bench',
+      directedSeats: [],
+      votes: [
+        { seat: 1, persona: 'Benjamin Graham', shortName: 'Graham', vote: 'PASS', weight: 1, rationale: '3.2% staking yield offers cash flow, but compressed L1 burn clouds earnings visibility.' },
+        { seat: 2, persona: 'Charlie Munger', shortName: 'Munger', vote: 'REDUCE', weight: 1, rationale: 'Unnecessary complexity and agency dilemmas between L1 and competing L2 teams.' },
+        { seat: 3, persona: 'Peter Lynch', shortName: 'Lynch', vote: 'ADD', weight: 1, rationale: 'Massive developer ecosystem and genuine financial applications running continuously.' },
+        { seat: 4, persona: 'Cathie Wood', shortName: 'Wood', vote: 'ADD', weight: 1, rationale: 'The foundational settlement layer for global financial market tokenization.' },
+        { seat: 5, persona: 'Aswath Damodaran', shortName: 'Damodaran', vote: 'PASS', weight: 1, rationale: 'Fee generation is real, but terminal discount rate must reflect constant protocol shifts.' },
+        { seat: 6, persona: 'Nassim Nicholas Taleb', shortName: 'Taleb', vote: 'ADD', weight: 1, rationale: 'Longest unbroken track record of smart contract execution and battle-tested consensus.' },
+        { seat: 7, persona: 'Mohnish Pabrai', shortName: 'Pabrai', vote: 'PASS', weight: 1, rationale: 'Unclear whether value accrues to the base asset or to competing Layer-2 execution tokens.' },
+        { seat: 8, persona: 'Bill Ackman', shortName: 'Ackman', vote: 'ADD', weight: 1, rationale: 'Monopoly on institutional DeFi liquidity and deeply established validator decentralization.' },
+        { seat: 9, persona: 'Michael Burry', shortName: 'Burry', vote: 'REDUCE', weight: 1, rationale: 'L2 cannibalization strips L1 economic rent, exposing stakers to real negative carry.' }
+      ],
+      verdict: {
+        id: 'VR-0202',
+        sessionId: 'BC-0202',
+        ticker: 'ETH',
+        assetName: 'Ethereum',
+        question: 'Does Layer-2 fragmentation permanently impair Ethereum fee accrual moat?',
+        outcome: 'PASS',
+        majorityRatio: '5 / 9',
+        dissentBreakdown: '4 ADD, 2 REDUCE',
+        positionSizeBand: '2.0 – 3.0%',
+        keyAgreement: 'Ethereum remains the undisputed settlement layer for institutional tokenized assets and DeFi TVL.',
+        keyDisagreement: 'Whether value capture accrues to the ETH token or is captured by external sequencing and application rollups.',
+        unresolvedQuestion: 'Can synchronous composability between fragmented Layer-2 chains be resolved without compromising base layer security?',
+        reviewTriggers: [
+          'Layer-1 burn rate drops below net issuance for more than two consecutive quarters.',
+          'Alternative execution layers capture more than 50% of total stablecoin settlement.',
+          'Major enterprise tokenization moves natively to non-EVM architecture.'
+        ],
+        votes: [],
+        timestamp: '2026-09-15T11:35:00Z'
+      },
+      transcript: []
+    });
+
+    this.sessions.set('BC-0305', {
+      id: 'BC-0305',
+      question: 'Subnet architecture vs monolithic scaling in a liquidity-constrained cycle',
+      ticker: 'AVAX',
+      assetName: 'Avalanche',
+      createdAt: '2026-09-17T16:15:00Z',
+      closedAt: '16:48',
+      evidence: {
+        ticker: 'AVAX',
+        name: 'Avalanche',
+        price: 28.40,
+        priceFormatted: '$28.40',
+        change24h: -1.40,
+        marketCap: 11200000000,
+        marketCapFormatted: '$11.20B',
+        volume24h: 420000000,
+        volume24hFormatted: '$420.00M',
+        ath: 146,
+        drawdownFromAthPct: '80.5',
+        networkActivity: '180,000 active daily C-chain addresses',
+        supply: '394M circulating / 720M maximum cap',
+        macroContext: 'Institutional subnet trials; unlock schedules moderating.',
+        retrievalDate: '2026-09-17',
+        isDemoData: true
+      },
+      speakingTurns: 12,
+      seatsPresent: '9 / 9',
+      directedMode: 'full_bench',
+      directedSeats: [],
+      votes: [
+        { seat: 1, persona: 'Benjamin Graham', shortName: 'Graham', vote: 'REDUCE', weight: 1, rationale: 'Token emissions outpace organic burn, diluting underlying holder equity.' },
+        { seat: 2, persona: 'Charlie Munger', shortName: 'Munger', vote: 'REDUCE', weight: 1, rationale: 'Institutions using subnets have no economic reason to enrich AVAX spot holders.' },
+        { seat: 3, persona: 'Peter Lynch', shortName: 'Lynch', vote: 'PASS', weight: 1, rationale: 'Solid gaming and enterprise trials, but end-user retail traction is lagging.' },
+        { seat: 4, persona: 'Cathie Wood', shortName: 'Wood', vote: 'ADD', weight: 1, rationale: 'Subnet architecture represents a breakthrough in customizable sovereign application chains.' },
+        { seat: 5, persona: 'Aswath Damodaran', shortName: 'Damodaran', vote: 'REDUCE', weight: 1, rationale: 'Cost of capital exceeds protocol fee capture; net negative cash margins.' },
+        { seat: 6, persona: 'Nassim Nicholas Taleb', shortName: 'Taleb', vote: 'REDUCE', weight: 1, rationale: 'Ecosystem relies heavily on subsidized incentive programs that shatter when treasury dries up.' },
+        { seat: 7, persona: 'Mohnish Pabrai', shortName: 'Pabrai', vote: 'PASS', weight: 1, rationale: 'Uncertainty is too high without clear downside protection.' },
+        { seat: 8, persona: 'Bill Ackman', shortName: 'Ackman', vote: 'REDUCE', weight: 1, rationale: 'Subnet dilution prevents concentrated value capture at the root governance token.' },
+        { seat: 9, persona: 'Michael Burry', shortName: 'Burry', vote: 'REDUCE', weight: 1, rationale: 'Scheduled unlocks and validator emissions represent continuous sell-side overhang.' }
+      ],
+      verdict: {
+        id: 'VR-0305',
+        sessionId: 'BC-0305',
+        ticker: 'AVAX',
+        assetName: 'Avalanche',
+        question: 'Subnet architecture vs monolithic scaling in a liquidity-constrained cycle',
+        outcome: 'REDUCE',
+        majorityRatio: '6 / 9',
+        dissentBreakdown: '2 PASS, 1 ADD',
+        positionSizeBand: '0.5 – 1.5%',
+        keyAgreement: 'Avalanche provides robust subnet isolation for regulated institutions.',
+        keyDisagreement: 'Whether capital fragmentation across subnets diminishes core token value capture.',
+        unresolvedQuestion: 'Will private institutional subnets require AVAX staking in sufficient volume?',
+        reviewTriggers: [
+          'Net validator count drops below 1,000 active nodes.',
+          'Subnet gas fee burn fails to exceed validator reward emissions.',
+          'Rival enterprise platforms capture major institutional asset pilots.'
+        ],
+        votes: [],
+        timestamp: '2026-09-17T16:48:00Z'
+      },
+      transcript: []
+    });
+
+    this.sessions.set('BC-0189', {
+      id: 'BC-0189',
+      question: 'Is Cross-Chain Interoperability Protocol (CCIP) the definitive plumbing of tokenized RWAs?',
+      ticker: 'LINK',
+      assetName: 'Chainlink',
+      createdAt: '2026-09-18T10:10:00Z',
+      closedAt: '10:45',
+      evidence: {
+        ticker: 'LINK',
+        name: 'Chainlink',
+        price: 13.80,
+        priceFormatted: '$13.80',
+        change24h: 3.45,
+        marketCap: 8200000000,
+        marketCapFormatted: '$8.20B',
+        volume24h: 380000000,
+        volume24hFormatted: '$380.00M',
+        ath: 52.88,
+        drawdownFromAthPct: '73.9',
+        networkActivity: 'Oracle services securing >$24B TVL across 14 networks',
+        supply: '608M circulating / 1.0B total supply',
+        macroContext: 'SWIFT and DTCC integration partnerships; staking participation growing.',
+        retrievalDate: '2026-09-18',
+        isDemoData: true
+      },
+      speakingTurns: 15,
+      seatsPresent: '9 / 9',
+      directedMode: 'full_bench',
+      directedSeats: [],
+      votes: [
+        { seat: 1, persona: 'Benjamin Graham', shortName: 'Graham', vote: 'PASS', weight: 1, rationale: 'Monopolistic market share provides defensive comfort, but fee capture model remains young.' },
+        { seat: 2, persona: 'Charlie Munger', shortName: 'Munger', vote: 'ADD', weight: 1, rationale: 'Like the plumbing in a major city: you cannot easily replace the pipes without breaking the buildings.' },
+        { seat: 3, persona: 'Peter Lynch', shortName: 'Lynch', vote: 'ADD', weight: 1, rationale: 'Standard of the industry. When everyone needs your data feed, you have pricing power.' },
+        { seat: 4, persona: 'Cathie Wood', shortName: 'Wood', vote: 'ADD', weight: 1, rationale: 'The universal interoperability protocol connecting legacy finance to decentralized blockchains.' },
+        { seat: 5, persona: 'Aswath Damodaran', shortName: 'Damodaran', vote: 'PASS', weight: 1, rationale: 'Essential infrastructure, but valuation trades at speculative multiple to current fee capture.' },
+        { seat: 6, persona: 'Nassim Nicholas Taleb', shortName: 'Taleb', vote: 'ADD', weight: 1, rationale: 'Battle-tested during historic market flash crashes without critical oracle failure.' },
+        { seat: 7, persona: 'Mohnish Pabrai', shortName: 'Pabrai', vote: 'ADD', weight: 1, rationale: 'Toll bridge on all institutional smart contracts; asymmetric risk profile.' },
+        { seat: 8, persona: 'Bill Ackman', shortName: 'Ackman', vote: 'ADD', weight: 1, rationale: 'Defensible competitive moat; near-zero customer churn and SWIFT/DTCC relationships.' },
+        { seat: 9, persona: 'Michael Burry', shortName: 'Burry', vote: 'REDUCE', weight: 1, rationale: 'Foundation token distribution history warrants caution; enterprise pilots take years to monetize.' }
+      ],
+      verdict: {
+        id: 'VR-0189',
+        sessionId: 'BC-0189',
+        ticker: 'LINK',
+        assetName: 'Chainlink',
+        question: 'Is Cross-Chain Interoperability Protocol (CCIP) the definitive plumbing of tokenized RWAs?',
+        outcome: 'ADD',
+        majorityRatio: '6 / 9',
+        dissentBreakdown: '1 REDUCE, 2 PASS',
+        positionSizeBand: '2.5 – 4.0%',
+        keyAgreement: 'Chainlink maintains a nearly unbreachable monopoly as the critical standard for blockchain data connectivity.',
+        keyDisagreement: 'The extent to which commercial enterprise oracle volume translates directly to token staking cash flows.',
+        unresolvedQuestion: 'Will traditional financial consortia launch closed proprietary oracle consortiums to bypass public tokens?',
+        reviewTriggers: [
+          'Secured TVL drops below $15B.',
+          'Direct enterprise revenue accrual to staking pools falls short of projected roadmaps.',
+          'Major SWIFT or DTCC pilot shifts away from public CCIP deployment.'
+        ],
+        votes: [],
+        timestamp: '2026-09-18T10:45:00Z'
       },
       transcript: []
     });

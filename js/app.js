@@ -86,17 +86,56 @@ document.addEventListener('DOMContentLoaded', () => {
       dQuestions.innerHTML = agent.asks.map(q => `<li>${q}</li>`).join('');
     }
 
-    if (agent.record) {
-      if (dSessions) dSessions.textContent = agent.record.sessions || 45;
-      if (dVotedFor) dVotedFor.textContent = agent.record.votedFor || 15;
-      if (dDissents) dDissents.textContent = agent.record.dissents || 30;
+    const rec = agent.computedRecord || (typeof BourseStorage !== 'undefined' && BourseStorage.getAgentVotingRecord ? BourseStorage.getAgentVotingRecord(agent.seat) : null) || agent.record;
+    if (rec) {
+      if (dSessions) dSessions.textContent = rec.sessions;
+      if (dVotedFor) dVotedFor.textContent = rec.votedFor;
+      if (dDissents) dDissents.textContent = rec.dissents;
+    }
+
+    let dVotesHistory = document.getElementById('dossier-votes-history');
+    if (!dVotesHistory && drawer) {
+      dVotesHistory = document.createElement('div');
+      dVotesHistory.id = 'dossier-votes-history';
+      const liveSection = document.getElementById('dossier-live-section');
+      if (liveSection) {
+        drawer.insertBefore(dVotesHistory, liveSection);
+      } else {
+        drawer.appendChild(dVotesHistory);
+      }
+    }
+
+    if (dVotesHistory) {
+      const votes = (rec && rec.votes) ? rec.votes : [];
+      if (votes.length > 0) {
+        dVotesHistory.innerHTML = `
+          <div class="dossier-section-title" style="margin-top:20px;">RECORDED FLOOR VOTES (${votes.length})</div>
+          <div class="dossier-votes-list" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+            ${votes.map(v => `
+              <div class="dossier-vote-card" style="border:1px solid var(--border-subtle, #242424);padding:8px 10px;background:rgba(255,255,255,0.02);">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <a href="/verdict?id=${v.sessionId}" style="font-family:var(--font-mono);font-size:0.75rem;font-weight:700;color:var(--text-primary);text-decoration:underline;">${v.sessionId} · ${v.ticker}</a>
+                  <span class="badge ${v.vote.toLowerCase()}" style="font-size:0.65rem;padding:2px 6px;">${v.vote}</span>
+                </div>
+                <p style="font-size:0.74rem;line-height:1.4;color:var(--text-muted);margin:6px 0 0 0;font-style:italic;">"${v.rationale}"</p>
+                <div style="margin-top:6px;display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.65rem;color:var(--text-dim, #666);">
+                  <span>Verdict: ${v.outcome || 'CLOSED'}</span>
+                  <span>${v.date || ''}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else {
+        dVotesHistory.innerHTML = '';
+      }
     }
 
     if (dLiveSection) {
       if (liveState) {
         dLiveSection.style.display = 'block';
         dLiveSection.innerHTML = `
-          <div class="dossier-section-title">CURRENT SESSION STANCE</div>
+          <div class="dossier-section-title" style="margin-top:20px;">CURRENT SESSION STANCE</div>
           <div class="dossier-live-box">
             <b>${liveState.position || 'Under Review'} (Confidence: ${liveState.confidence || '--'}%)</b>
             <p>${liveState.argument || 'Analysis in progress...'}</p>

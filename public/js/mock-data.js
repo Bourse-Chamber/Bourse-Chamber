@@ -196,15 +196,15 @@ const BourseMockData = (() => {
       speakingTurns: 14,
       seatsPresent: "9 / 9",
       votes: [
-        { seat: 1, name: "Benjamin Graham", school: "VALUE", discipline: "Margin of safety", vote: "REDUCE", reason: "Current valuation assumes indefinite speculative volume. Lacks a tangible cash margin of safety." },
-        { seat: 2, name: "Charlie Munger", school: "VALUE", discipline: "Mental models", vote: "REDUCE", reason: "Invert: validator economics and state bloat represent unmodeled operational fragilities." },
-        { seat: 3, name: "Warren Buffett", school: "VALUE", discipline: "Quality / economics", vote: "REDUCE", reason: "Raw throughput is an engineering specification, not a durable monopoly toll moat." },
-        { seat: 4, name: "Peter Lynch", school: "GROWTH", discipline: "Growth at reasonable price", vote: "ADD", reason: "Organic retail user volume is observable in real life; consumer apps are choosing Solana." },
-        { seat: 5, name: "Howard Marks", school: "RISK", discipline: "Risk / cycles", vote: "PASS", reason: "Pendulum has swung from existential post-FTX distress to excessive euphoria; wait for equilibrium." },
-        { seat: 6, name: "Ray Dalio", school: "MACRO", discipline: "Macro / regime", vote: "PASS", reason: "High-beta technology asset rather than a neutral macro reserve; maintain neutral benchmark weight." },
-        { seat: 7, name: "Cathie Wood", school: "GROWTH", discipline: "Innovation / disruption", vote: "ADD", reason: "Frictionless execution and monolithic composability represent the future of decentralized finance." },
-        { seat: 8, name: "Michael Burry", school: "CONTRARIAN", discipline: "Contrarian / asymmetric risk", vote: "REDUCE", reason: "Concentrated venture backing and reflexive liquidity loops create an asymmetric downside trap." },
-        { seat: 9, name: "Nassim Nicholas Taleb", school: "RISK", discipline: "Tail risk / antifragility", vote: "ADD", reason: "Demonstrated antifragility by surviving catastrophic external collapse and regaining network velocity." }
+        { seat: 1, name: "Benjamin Graham", shortName: "Graham", school: "VALUE", discipline: "Margin of safety", vote: "REDUCE", reason: "Current valuation assumes indefinite speculative volume. Lacks a tangible cash margin of safety." },
+        { seat: 2, name: "Charlie Munger", shortName: "Munger", school: "VALUE", discipline: "Mental models", vote: "REDUCE", reason: "Invert: validator economics and state bloat represent unmodeled operational fragilities." },
+        { seat: 3, name: "Peter Lynch", shortName: "Lynch", school: "GROWTH", discipline: "Know what you own", vote: "ADD", reason: "Organic retail user volume is observable in real life; consumer apps are choosing Solana." },
+        { seat: 4, name: "Cathie Wood", shortName: "Wood", school: "GROWTH", discipline: "Growth and disruption", vote: "ADD", reason: "Frictionless execution and monolithic composability represent the future of decentralized finance." },
+        { seat: 5, name: "Aswath Damodaran", shortName: "Damodaran", school: "VALUATION", discipline: "Story into numbers", vote: "REDUCE", reason: "Token fee capture sits well below the protocol's required cost of capital." },
+        { seat: 6, name: "Nassim Nicholas Taleb", shortName: "Taleb", school: "RISK", discipline: "Tail risk", vote: "REDUCE", reason: "Hardware centralization and single-client dependencies create severe absorbing tail risk." },
+        { seat: 7, name: "Mohnish Pabrai", shortName: "Pabrai", school: "VALUE", discipline: "Low risk, high uncertainty", vote: "ADD", reason: "Heads I win, tails I don't lose much: developer gravity provides asymmetric upside." },
+        { seat: 8, name: "Bill Ackman", shortName: "Ackman", school: "CONCENTRATION", discipline: "Concentrated conviction", vote: "REDUCE", reason: "Lacks durable institutional governance protections and predictable long-term cash generation." },
+        { seat: 9, name: "Michael Burry", shortName: "Burry", school: "CONTRARIAN", discipline: "Contrarian audit", vote: "REDUCE", reason: "Concentrated venture backing and reflexive liquidity loops create an asymmetric downside trap." }
       ],
       transcript: [
         { type: "chair", who: "CHAIR", time: "09:12:00", text: "Floor is open. Thesis filed for Solana (SOL): 'Is throughput a moat, or a commodity waiting to be priced?' Evidence pack distributed to all nine seats." },
@@ -212,14 +212,13 @@ const BourseMockData = (() => {
         { type: "analysis", who: "Peter Lynch", time: "09:15:30", text: "Walk into any developer hackathon. Builders aren't modeling multi-layered rollup abstractions; they are deploying on Solana because it works in sub-seconds. That is organic adoption you can touch." },
         { type: "analysis", who: "Nassim Nicholas Taleb", time: "09:17:15", text: "Solana survived the FTX collapse—an absorbing barrier that shatters fragile systems. What does not kill you makes you antifragile. That convex resilience has mathematical value." },
         { type: "analysis", who: "Charlie Munger", time: "09:18:40", text: "Invert the thesis. If high throughput is commoditized by hardware advances and rival chains, the fee moat collapses to zero while state storage costs compound. That is a terrible business model." },
-        { type: "chair", who: "CHAIR", time: "09:22:10", text: "Divergence detected on Moat Durability between Graham (Seat 01) and Wood (Seat 07). Cross-examination floor opened." },
+        { type: "chair", who: "CHAIR", time: "09:22:10", text: "Divergence detected on Moat Durability between Graham (Seat 01) and Wood (Seat 04). Cross-examination floor opened." },
         { type: "challenge", who: "Benjamin Graham", time: "09:23:00", text: "Graham challenges Wood: 'Your exponential S-curve model assumes users will permanently pay fees on an asset that can be cloned with 50 lines of configuration. What protects your capital if fees race to zero?'" },
         { type: "response", who: "Cathie Wood", time: "09:24:18", text: "Wood responds: 'Graham is evaluating a decentralized internet protocol like a 1930s railroad company. Metcalfe's law of network liquidity creates an unassailable ecosystem moat that far outpaces simple code forks.'" },
         { type: "chair", who: "CHAIR", time: "09:30:00", text: "Cross-examination concluded. All nine seats will now cast formal ballots: ADD, REDUCE, or PASS." },
-        { type: "vote", who: "Graham, Munger, Buffett, Burry", time: "09:35:10", text: "Seats 01, 02, 03, 08 cast REDUCE ballots citing moat commoditization and valuation risk." },
-        { type: "vote", who: "Lynch, Wood, Taleb", time: "09:36:20", text: "Seats 04, 07, 09 cast ADD ballots citing organic adoption and proven antifragility." },
-        { type: "vote", who: "Marks, Dalio", time: "09:37:45", text: "Seats 05, 06 cast PASS ballots citing cyclical sentiment extension and macro regime neutrality." },
-        { type: "verdict", who: "CHAIR", time: "09:47:00", text: "VERDICT RECORDED: REDUCE (5 / 9 majority). Dissent: 3 ADD, 1 PASS. Sizing band: 1.0 – 2.0%. Session closed and committed to permanent ledger." }
+        { type: "vote", who: "Graham, Munger, Damodaran, Taleb, Ackman, Burry", time: "09:35:10", text: "Seats 01, 02, 05, 06, 08, 09 cast REDUCE ballots citing moat commoditization and tail fragility." },
+        { type: "vote", who: "Lynch, Wood, Pabrai", time: "09:36:20", text: "Seats 03, 04, 07 cast ADD ballots citing organic adoption and asymmetric upside." },
+        { type: "verdict", who: "CHAIR", time: "09:47:00", text: "VERDICT RECORDED: REDUCE (6 / 9 majority). Dissent: 3 ADD. Sizing band: 1.0 – 2.0%. Session closed and committed to permanent ledger." }
       ]
     },
     {
@@ -244,8 +243,8 @@ const BourseMockData = (() => {
       },
       verdict: {
         outcome: "ADD",
-        majorityRatio: "6 / 9",
-        dissentBreakdown: "2 REDUCE, 1 PASS",
+        majorityRatio: "5 / 9",
+        dissentBreakdown: "3 REDUCE, 1 PASS",
         positionSizeBand: "3.0 – 5.0%",
         keyAgreement: "BTC retains unmatched monetary liquidity, institutional custody adoption, and unforgeable scarcity.",
         keyDisagreement: "Whether absent cash flows, Bitcoin can sustain a trillion-dollar valuation across sovereign liquidity drawdowns.",
@@ -259,26 +258,26 @@ const BourseMockData = (() => {
       speakingTurns: 16,
       seatsPresent: "9 / 9",
       votes: [
-        { seat: 1, name: "Benjamin Graham", school: "VALUE", discipline: "Margin of safety", vote: "PASS", reason: "Monetary brand acknowledged, but absence of cash flow floor warrants caution over accumulation." },
-        { seat: 2, name: "Charlie Munger", school: "VALUE", discipline: "Mental models", vote: "REDUCE", reason: "Remains an artificial speculative token with excessive social friction and non-productive economics." },
-        { seat: 3, name: "Warren Buffett", school: "VALUE", discipline: "Quality / economics", vote: "PASS", reason: "Non-productive asset: does not produce food, oil, or dividends. Neutral stance." },
-        { seat: 4, name: "Peter Lynch", school: "GROWTH", discipline: "Growth at reasonable price", vote: "ADD", reason: "Global brand awareness is total; institutional adoption has crossed the chasm." },
-        { seat: 5, name: "Howard Marks", school: "RISK", discipline: "Risk / cycles", vote: "ADD", reason: "Cycle placement shows steady accumulation rather than late-stage blow-off mania." },
-        { seat: 6, name: "Ray Dalio", school: "MACRO", discipline: "Macro / regime", vote: "ADD", reason: "Essential non-debt reserve alternative in an era of aggressive sovereign debt monetization." },
-        { seat: 7, name: "Cathie Wood", school: "GROWTH", discipline: "Innovation / disruption", vote: "ADD", reason: "Global monetary protocol on track for multi-trillion market capture; supreme conviction." },
-        { seat: 8, name: "Michael Burry", school: "CONTRARIAN", discipline: "Contrarian / asymmetric risk", vote: "REDUCE", reason: "Derivative leverage concentration creates severe risk of flash liquidations." },
-        { seat: 9, name: "Nassim Nicholas Taleb", school: "RISK", discipline: "Tail risk / antifragility", vote: "ADD", reason: "Proven survival through multiple 80% drawdowns without bankruptcy gives it convexity." }
+        { seat: 1, name: "Benjamin Graham", shortName: "Graham", school: "VALUE", discipline: "Margin of safety", vote: "PASS", reason: "Monetary brand acknowledged, but absence of cash flow floor warrants caution over accumulation." },
+        { seat: 2, name: "Charlie Munger", shortName: "Munger", school: "VALUE", discipline: "Mental models", vote: "REDUCE", reason: "Remains an artificial speculative token with excessive social friction and non-productive economics." },
+        { seat: 3, name: "Peter Lynch", shortName: "Lynch", school: "GROWTH", discipline: "Know what you own", vote: "ADD", reason: "Global brand awareness is total; institutional adoption has crossed the chasm." },
+        { seat: 4, name: "Cathie Wood", shortName: "Wood", school: "GROWTH", discipline: "Growth and disruption", vote: "ADD", reason: "Global monetary protocol on track for multi-trillion market capture; supreme conviction." },
+        { seat: 5, name: "Aswath Damodaran", shortName: "Damodaran", school: "VALUATION", discipline: "Story into numbers", vote: "REDUCE", reason: "Without contractual cash flows or dividend yields, valuation is driven entirely by changing market pricing moods." },
+        { seat: 6, name: "Nassim Nicholas Taleb", shortName: "Taleb", school: "RISK", discipline: "Tail risk", vote: "ADD", reason: "Proven survival through multiple 80% drawdowns without bankruptcy gives it antifragile convexity." },
+        { seat: 7, name: "Mohnish Pabrai", shortName: "Pabrai", school: "VALUE", discipline: "Low risk, high uncertainty", vote: "ADD", reason: "Sovereign game theory makes terminal downside remote while global liquidity upside remains convex." },
+        { seat: 8, name: "Bill Ackman", shortName: "Ackman", school: "CONCENTRATION", discipline: "Concentrated conviction", vote: "ADD", reason: "Digital store-of-value monopoly with massive structural network moats and regulated spot ETF custody." },
+        { seat: 9, name: "Michael Burry", shortName: "Burry", school: "CONTRARIAN", discipline: "Contrarian audit", vote: "REDUCE", reason: "Derivative leverage concentration and custodial central counterparty risks create flash liquidation spirals." }
       ],
       transcript: [
         { type: "chair", who: "CHAIR", time: "14:20:00", text: "Floor convenes. Examination of Bitcoin (BTC): 'Is BTC still a reasonable core holding at current market levels?'" },
-        { type: "analysis", who: "Ray Dalio", time: "14:22:15", text: "When global debt-to-GDP hits historical extremes, central banks are forced to devalue fiat purchasing power. Gold has played the neutral reserve role for millennia; BTC is rapidly assuming that role in digital capital markets." },
+        { type: "analysis", who: "Cathie Wood", time: "14:22:15", text: "When global debt-to-GDP hits historical extremes, fiat currency monetization accelerates. BTC is rapidly assuming the role of the primary digital monetary reserve on institutional balance sheets." },
         { type: "analysis", who: "Charlie Munger", time: "14:24:00", text: "It is an index of human gullibility. Just because you have a ledger that limits supply does not mean you have created an asset that blesses society. Invert it: what happens when governments decide currency issuance is non-negotiable?" },
-        { type: "analysis", who: "Howard Marks", time: "14:26:30", text: "The psychological pendulum on BTC is currently at measured optimism, not hysterical euphoria. Sizing appropriately when sentiment is rational is the hallmark of second-level discipline." },
-        { type: "chair", who: "CHAIR", time: "14:32:00", text: "Cross-examination: Dalio (Seat 06) vs Munger (Seat 02) on Macro Reserve Necessity." },
-        { type: "challenge", who: "Ray Dalio", time: "14:33:10", text: "Dalio challenges Munger: 'Charlie, if you hold 100% in sovereign fiat bonds that are mathematically guaranteed to be inflated away to pay entitlements, is that not far riskier than holding a 3% allocation in a hard mathematical supply cap?'" },
-        { type: "response", who: "Charlie Munger", time: "14:34:50", text: "Munger responds: 'I would rather hold productive farms and factories that generate food and energy during inflation than rely on a cryptographic talisman whose only utility is finding another buyer tomorrow.'" },
+        { type: "analysis", who: "Aswath Damodaran", time: "14:26:30", text: "Remember the difference between pricing and valuing. You cannot value Bitcoin with DCF because it produces no cash flows. You can only price it based on liquidity and sentiment." },
+        { type: "chair", who: "CHAIR", time: "14:32:00", text: "Cross-examination: Wood (Seat 04) vs Munger (Seat 02) on Macro Reserve Necessity." },
+        { type: "challenge", who: "Cathie Wood", time: "14:33:10", text: "Wood challenges Munger: 'Charlie, if you hold sovereign fiat bonds mathematically guaranteed to be debased by central banks, is that not far riskier than holding a mathematical hard cap?'" },
+        { type: "response", who: "Charlie Munger", time: "14:34:50", text: "Munger responds: 'I would rather hold productive businesses and farmland that feed and shelter humanity than rely on a cryptographic ledger whose only return depends on selling to someone else tomorrow.'" },
         { type: "chair", who: "CHAIR", time: "14:42:00", text: "Debate concluded. Roll-call voting commencing across all nine seats." },
-        { type: "verdict", who: "CHAIR", time: "14:52:00", text: "VERDICT RECORDED: ADD (6 / 9 majority). Dissent: 2 REDUCE, 1 PASS. Position size band: 3.0 – 5.0%." }
+        { type: "verdict", who: "CHAIR", time: "14:52:00", text: "VERDICT RECORDED: ADD (5 / 9 majority). Dissent: 3 REDUCE, 1 PASS. Position size band: 3.0 – 5.0%." }
       ]
     },
     {
@@ -304,7 +303,7 @@ const BourseMockData = (() => {
       verdict: {
         outcome: "PASS",
         majorityRatio: "5 / 9",
-        dissentBreakdown: "3 ADD, 1 REDUCE",
+        dissentBreakdown: "4 ADD, 2 REDUCE",
         positionSizeBand: "2.0 – 3.0%",
         keyAgreement: "Ethereum remains the undisputed settlement layer for institutional tokenized assets and DeFi TVL.",
         keyDisagreement: "Whether value capture accrues to the ETH token or is captured by external sequencing and application rollups.",
@@ -318,20 +317,20 @@ const BourseMockData = (() => {
       speakingTurns: 13,
       seatsPresent: "9 / 9",
       votes: [
-        { seat: 1, name: "Benjamin Graham", school: "VALUE", discipline: "Margin of safety", vote: "PASS", reason: "3.2% staking yield offers cash flow, but compressed L1 burn clouds earnings visibility." },
-        { seat: 2, name: "Charlie Munger", school: "VALUE", discipline: "Mental models", vote: "REDUCE", reason: "Unnecessary complexity and agency dilemmas between L1 and competing L2 teams." },
-        { seat: 3, name: "Warren Buffett", school: "VALUE", discipline: "Quality / economics", vote: "PASS", reason: "Unclear whether the moat belongs to the rail or the trains running on it." },
-        { seat: 4, name: "Peter Lynch", school: "GROWTH", discipline: "Growth at reasonable price", vote: "ADD", reason: "Massive developer ecosystem and genuine financial applications running continuously." },
-        { seat: 5, name: "Howard Marks", school: "RISK", discipline: "Risk / cycles", vote: "PASS", reason: "Sentiment is deeply divided; neither extreme fear nor greed." },
-        { seat: 6, name: "Ray Dalio", school: "MACRO", discipline: "Macro / regime", vote: "PASS", reason: "Decentralized world computer narrative still competing with simpler monetary metals." },
-        { seat: 7, name: "Cathie Wood", school: "GROWTH", discipline: "Innovation / disruption", vote: "ADD", reason: "The foundational settlement layer for global financial market tokenization." },
-        { seat: 8, name: "Michael Burry", school: "CONTRARIAN", discipline: "Contrarian / asymmetric risk", vote: "PASS", reason: "Underperforming expectations creates potential contrarian value, but liquidity fragmentation is real." },
-        { seat: 9, name: "Nassim Nicholas Taleb", school: "RISK", discipline: "Tail risk / antifragility", vote: "ADD", reason: "Longest unbroken track record of smart contract execution and battle-tested consensus." }
+        { seat: 1, name: "Benjamin Graham", shortName: "Graham", school: "VALUE", discipline: "Margin of safety", vote: "PASS", reason: "3.2% staking yield offers cash flow, but compressed L1 burn clouds earnings visibility." },
+        { seat: 2, name: "Charlie Munger", shortName: "Munger", school: "VALUE", discipline: "Mental models", vote: "REDUCE", reason: "Unnecessary complexity and agency dilemmas between L1 and competing L2 teams." },
+        { seat: 3, name: "Peter Lynch", shortName: "Lynch", school: "GROWTH", discipline: "Know what you own", vote: "ADD", reason: "Massive developer ecosystem and genuine financial applications running continuously." },
+        { seat: 4, name: "Cathie Wood", shortName: "Wood", school: "GROWTH", discipline: "Growth and disruption", vote: "ADD", reason: "The foundational settlement layer for global financial market tokenization." },
+        { seat: 5, name: "Aswath Damodaran", shortName: "Damodaran", school: "VALUATION", discipline: "Story into numbers", vote: "PASS", reason: "Fee generation is real, but terminal discount rate must reflect constant protocol shifts." },
+        { seat: 6, name: "Nassim Nicholas Taleb", shortName: "Taleb", school: "RISK", discipline: "Tail risk", vote: "ADD", reason: "Longest unbroken track record of smart contract execution and battle-tested consensus." },
+        { seat: 7, name: "Mohnish Pabrai", shortName: "Pabrai", school: "VALUE", discipline: "Low risk, high uncertainty", vote: "PASS", reason: "Unclear whether value accrues to the base asset or to competing Layer-2 execution tokens." },
+        { seat: 8, name: "Bill Ackman", shortName: "Ackman", school: "CONCENTRATION", discipline: "Concentrated conviction", vote: "ADD", reason: "Monopoly on institutional DeFi liquidity and deeply established validator decentralization." },
+        { seat: 9, name: "Michael Burry", shortName: "Burry", school: "CONTRARIAN", discipline: "Contrarian audit", vote: "REDUCE", reason: "L2 cannibalization strips L1 economic rent, exposing stakers to real negative carry." }
       ],
       transcript: [
         { type: "chair", who: "CHAIR", time: "11:00:00", text: "Floor opened for Ethereum (ETH): 'Does Layer-2 fragmentation permanently impair Ethereum's fee accrual moat?'" },
         { type: "analysis", who: "Benjamin Graham", time: "11:02:40", text: "Ethereum is unique in generating tangible staking yields. However, if transactions move to L2s paying negligible blob fees, the P/E ratio on L1 revenue explodes upwards. That weakens the margin of safety." },
-        { type: "chair", who: "CHAIR", time: "11:35:00", text: "VERDICT RECORDED: PASS (5 / 9 majority). Dissent: 3 ADD, 1 REDUCE." }
+        { type: "chair", who: "CHAIR", time: "11:35:00", text: "VERDICT RECORDED: PASS (5 / 9 plurality). Dissent: 4 ADD, 2 REDUCE." }
       ]
     },
     {
@@ -371,15 +370,15 @@ const BourseMockData = (() => {
       speakingTurns: 12,
       seatsPresent: "9 / 9",
       votes: [
-        { seat: 1, name: "Benjamin Graham", school: "VALUE", discipline: "Margin of safety", vote: "REDUCE", reason: "Token emissions outpace organic burn, diluting underlying holder equity." },
-        { seat: 2, name: "Charlie Munger", school: "VALUE", discipline: "Mental models", vote: "REDUCE", reason: "Institutions using subnets have no economic reason to enrich AVAX spot holders." },
-        { seat: 3, name: "Warren Buffett", school: "VALUE", discipline: "Quality / economics", vote: "REDUCE", reason: "No enduring moat against other layer-1 architectures." },
-        { seat: 4, name: "Peter Lynch", school: "GROWTH", discipline: "Growth at reasonable price", vote: "PASS", reason: "Solid gaming and enterprise trials, but end-user retail traction is lagging." },
-        { seat: 5, name: "Howard Marks", school: "RISK", discipline: "Risk / cycles", vote: "PASS", reason: "Valuation compressed, but risk premium does not yet compensate for dilution." },
-        { seat: 6, name: "Ray Dalio", school: "MACRO", discipline: "Macro / regime", vote: "REDUCE", reason: "Secondary tier asset vulnerable to global liquidity retrenchment." },
-        { seat: 7, name: "Cathie Wood", school: "GROWTH", discipline: "Innovation / disruption", vote: "ADD", reason: "Subnet architecture represents a breakthrough in customizable sovereign application chains." },
-        { seat: 8, name: "Michael Burry", school: "CONTRARIAN", discipline: "Contrarian / asymmetric risk", vote: "REDUCE", reason: "Scheduled unlocks and validator emissions represent continuous sell-side overhang." },
-        { seat: 9, name: "Nassim Nicholas Taleb", school: "RISK", discipline: "Tail risk / antifragility", vote: "REDUCE", reason: "Ecosystem relies heavily on subsidized incentive programs that shatter when treasury dries up." }
+        { seat: 1, name: "Benjamin Graham", shortName: "Graham", school: "VALUE", discipline: "Margin of safety", vote: "REDUCE", reason: "Token emissions outpace organic burn, diluting underlying holder equity." },
+        { seat: 2, name: "Charlie Munger", shortName: "Munger", school: "VALUE", discipline: "Mental models", vote: "REDUCE", reason: "Institutions using subnets have no economic reason to enrich AVAX spot holders." },
+        { seat: 3, name: "Peter Lynch", shortName: "Lynch", school: "GROWTH", discipline: "Know what you own", vote: "PASS", reason: "Solid gaming and enterprise trials, but end-user retail traction is lagging." },
+        { seat: 4, name: "Cathie Wood", shortName: "Wood", school: "GROWTH", discipline: "Growth and disruption", vote: "ADD", reason: "Subnet architecture represents a breakthrough in customizable sovereign application chains." },
+        { seat: 5, name: "Aswath Damodaran", shortName: "Damodaran", school: "VALUATION", discipline: "Story into numbers", vote: "REDUCE", reason: "Cost of capital exceeds protocol fee capture; net negative cash margins." },
+        { seat: 6, name: "Nassim Nicholas Taleb", shortName: "Taleb", school: "RISK", discipline: "Tail risk", vote: "REDUCE", reason: "Ecosystem relies heavily on subsidized incentive programs that shatter when treasury dries up." },
+        { seat: 7, name: "Mohnish Pabrai", shortName: "Pabrai", school: "VALUE", discipline: "Low risk, high uncertainty", vote: "PASS", reason: "Uncertainty is too high without clear downside protection." },
+        { seat: 8, name: "Bill Ackman", shortName: "Ackman", school: "CONCENTRATION", discipline: "Concentrated conviction", vote: "REDUCE", reason: "Subnet dilution prevents concentrated value capture at the root governance token." },
+        { seat: 9, name: "Michael Burry", shortName: "Burry", school: "CONTRARIAN", discipline: "Contrarian audit", vote: "REDUCE", reason: "Scheduled unlocks and validator emissions represent continuous sell-side overhang." }
       ],
       transcript: [
         { type: "chair", who: "CHAIR", time: "16:15:00", text: "Chamber convened on Avalanche (AVAX)." },
@@ -408,8 +407,8 @@ const BourseMockData = (() => {
       },
       verdict: {
         outcome: "ADD",
-        majorityRatio: "7 / 9",
-        dissentBreakdown: "1 REDUCE, 1 PASS",
+        majorityRatio: "6 / 9",
+        dissentBreakdown: "1 REDUCE, 2 PASS",
         positionSizeBand: "2.5 – 4.0%",
         keyAgreement: "Chainlink maintains a nearly unbreachable monopoly as the critical standard for blockchain data connectivity.",
         keyDisagreement: "The extent to which commercial enterprise oracle volume translates directly to token staking cash flows.",
@@ -423,19 +422,19 @@ const BourseMockData = (() => {
       speakingTurns: 15,
       seatsPresent: "9 / 9",
       votes: [
-        { seat: 1, name: "Benjamin Graham", school: "VALUE", discipline: "Margin of safety", vote: "PASS", reason: "Monopolistic market share provides defensive comfort, but fee capture model remains young." },
-        { seat: 2, name: "Charlie Munger", school: "VALUE", discipline: "Mental models", vote: "ADD", reason: "Like the plumbing in a major city: you cannot easily replace the pipes without breaking the buildings." },
-        { seat: 3, name: "Warren Buffett", school: "VALUE", discipline: "Quality / economics", vote: "ADD", reason: "A genuine toll bridge on digital transactions with massive switching friction." },
-        { seat: 4, name: "Peter Lynch", school: "GROWTH", discipline: "Growth at reasonable price", vote: "ADD", reason: "Standard of the industry. When everyone needs your data feed, you have pricing power." },
-        { seat: 5, name: "Howard Marks", school: "RISK", discipline: "Risk / cycles", vote: "ADD", reason: "Valuation is disciplined relative to historical peaks; asymmetry favors long-term hold." },
-        { seat: 6, name: "Ray Dalio", school: "MACRO", discipline: "Macro / regime", vote: "ADD", reason: "Indispensable infrastructure for institutional real-world asset integration." },
-        { seat: 7, name: "Cathie Wood", school: "GROWTH", discipline: "Innovation / disruption", vote: "ADD", reason: "The universal interoperability protocol connecting legacy finance to decentralized blockchains." },
-        { seat: 8, name: "Michael Burry", school: "CONTRARIAN", discipline: "Contrarian / asymmetric risk", vote: "REDUCE", reason: "Foundation token distribution history warrants caution; enterprise pilots take years to monetize." },
-        { seat: 9, name: "Nassim Nicholas Taleb", school: "RISK", discipline: "Tail risk / antifragility", vote: "ADD", reason: "Battle-tested during historic market flash crashes without critical oracle failure." }
+        { seat: 1, name: "Benjamin Graham", shortName: "Graham", school: "VALUE", discipline: "Margin of safety", vote: "PASS", reason: "Monopolistic market share provides defensive comfort, but fee capture model remains young." },
+        { seat: 2, name: "Charlie Munger", shortName: "Munger", school: "VALUE", discipline: "Mental models", vote: "ADD", reason: "Like the plumbing in a major city: you cannot easily replace the pipes without breaking the buildings." },
+        { seat: 3, name: "Peter Lynch", shortName: "Lynch", school: "GROWTH", discipline: "Know what you own", vote: "ADD", reason: "Standard of the industry. When everyone needs your data feed, you have pricing power." },
+        { seat: 4, name: "Cathie Wood", shortName: "Wood", school: "GROWTH", discipline: "Growth and disruption", vote: "ADD", reason: "The universal interoperability protocol connecting legacy finance to decentralized blockchains." },
+        { seat: 5, name: "Aswath Damodaran", shortName: "Damodaran", school: "VALUATION", discipline: "Story into numbers", vote: "PASS", reason: "Essential infrastructure, but valuation trades at speculative multiple to current fee capture." },
+        { seat: 6, name: "Nassim Nicholas Taleb", shortName: "Taleb", school: "RISK", discipline: "Tail risk", vote: "ADD", reason: "Battle-tested during historic market flash crashes without critical oracle failure." },
+        { seat: 7, name: "Mohnish Pabrai", shortName: "Pabrai", school: "VALUE", discipline: "Low risk, high uncertainty", vote: "ADD", reason: "Toll bridge on all institutional smart contracts; asymmetric risk profile." },
+        { seat: 8, name: "Bill Ackman", shortName: "Ackman", school: "CONCENTRATION", discipline: "Concentrated conviction", vote: "ADD", reason: "Defensible competitive moat; near-zero customer churn and SWIFT/DTCC relationships." },
+        { seat: 9, name: "Michael Burry", shortName: "Burry", school: "CONTRARIAN", discipline: "Contrarian audit", vote: "REDUCE", reason: "Foundation token distribution history warrants caution; enterprise pilots take years to monetize." }
       ],
       transcript: [
         { type: "chair", who: "CHAIR", time: "10:10:00", text: "Chamber convened on Chainlink (LINK)." },
-        { type: "verdict", who: "CHAIR", time: "10:45:00", text: "VERDICT RECORDED: ADD (7 / 9 majority). Dissent: 1 REDUCE, 1 PASS." }
+        { type: "verdict", who: "CHAIR", time: "10:45:00", text: "VERDICT RECORDED: ADD (6 / 9 majority). Dissent: 1 REDUCE, 2 PASS." }
       ]
     }
   ];

@@ -9,15 +9,61 @@ const { evaluateSession, demoEvidence } = require("../db/engine");
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-OpenRouter-Key');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
+  if (req.method === 'GET') {
+    try {
+      const { id, aggregate, limit = 50 } = req.query || {};
+      const { db } = require('../src/lib/db');
+      if (id) {
+        const session = await db.getSession(id);
+        if (!session) return res.status(404).json({ error: `Session '${id}' not found.` });
+        return res.status(200).json(session);
+      }
+      const sessions = await db.listSessions(parseInt(limit, 10));
+      if (aggregate === 'bench' || aggregate === 'agents') {
+        const { AGENTS } = require('../src/lib/agents');
+        const records = AGENTS.map(agent => {
+          let participated = 0;
+          let votedFor = 0;
+          let dissents = 0;
+          const recentVotes = [];
+          for (const s of sessions) {
+            const v = s.votes?.find(vote => vote.seat === agent.seat || vote.shortName?.toLowerCase() === agent.shortName.toLowerCase());
+            if (v) {
+              participated++;
+              const voteUpper = (v.vote || '').toUpperCase();
+              if (voteUpper === 'ADD') votedFor++;
+              else if (voteUpper === 'REDUCE') dissents++;
+              else if (s.verdict && s.verdict.outcome === 'ADD') dissents++;
+              recentVotes.push({ sessionId: s.id, ticker: s.ticker, vote: voteUpper, rationale: v.rationale || v.reason || '' });
+            }
+          }
+          return {
+            seat: agent.seat,
+            name: agent.name,
+            shortName: agent.shortName,
+            discipline: agent.discipline,
+            school: 'VALUE',
+            record: { sessions: participated, votedFor, dissents },
+            recentVotes: recentVotes.slice(0, 5)
+          };
+        });
+        return res.status(200).json({ agents: records, totalSessions: sessions.length });
+      }
+      return res.status(200).json(sessions);
+    } catch (err) {
+      return res.status(500).json({ error: 'Failed to query sessions', details: err.message });
+    }
+  }
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed. Use POST.' });
+    return res.status(405).json({ error: 'Method not allowed. Use GET or POST.' });
   }
 
   const { input, directedSeats, isCrossExam, openRouterKey: bodyKey } = req.body || {};

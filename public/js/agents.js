@@ -124,7 +124,7 @@ const BourseAgents = (() => {
       seat: 4,
       name: "Cathie Wood",
       shortName: "Wood",
-      discipline: "Growth dan disruption",
+      discipline: "Growth and disruption",
       school: "GROWTH",
       philosophy: "Reads adoption curves and network effects over a five-to-ten-year window, accepting volatility as the price of being early.",
       asks: [

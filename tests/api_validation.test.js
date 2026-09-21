@@ -60,3 +60,29 @@ test('Redis Sliding Window Rate Limiting', async () => {
   assert.strictEqual(r3.allowed, true, 'Request 3 must be allowed');
   assert.strictEqual(r4.allowed, false, 'Request 4 exceeding limit must be blocked (allowed: false)');
 });
+
+test('API GET — Session Query & Bench Aggregation', async () => {
+  // Test listing sessions
+  const reqList = { method: 'GET', query: { limit: '10' } };
+  const resList = createMockRes();
+  await sessionHandler(reqList, resList);
+  assert.strictEqual(resList.statusCode, 200, 'GET /api/session must return 200');
+  assert.ok(Array.isArray(resList.body), 'GET /api/session should return array of sessions');
+  assert.ok(resList.body.length > 0, 'Should have seeded sessions available');
+
+  // Test bench aggregation
+  const reqBench = { method: 'GET', query: { aggregate: 'bench' } };
+  const resBench = createMockRes();
+  await sessionHandler(reqBench, resBench);
+  assert.strictEqual(resBench.statusCode, 200, 'GET /api/session?aggregate=bench must return 200');
+  assert.ok(resBench.body.agents, 'Response must include agents aggregate list');
+  assert.strictEqual(resBench.body.agents.length, 9, 'Must aggregate exactly 9 canonical personas');
+  assert.ok(typeof resBench.body.totalSessions === 'number', 'Must include total sessions count');
+
+  // Check that persona records are dynamically calculated
+  const graham = resBench.body.agents.find(a => a.seat === 1);
+  assert.ok(graham, 'Graham must be present in bench aggregation');
+  assert.ok(graham.record.sessions > 0, 'Graham must have participated sessions');
+  assert.ok(typeof graham.record.votedFor === 'number', 'Graham must have votedFor count');
+  assert.ok(typeof graham.record.dissents === 'number', 'Graham must have dissents count');
+});

@@ -213,7 +213,7 @@
       "session_id": "BC-0411",
       "seat": 4,
       "agent_name": "Cathie Wood",
-      "discipline": "Growth dan disruption",
+      "discipline": "Growth and disruption",
       "vote": "AGAINST",
       "reasoning": "Early on the curve. Selling here is selling the thesis.",
       "score": null
@@ -324,6 +324,46 @@
       "email": "analyst@bourse-chamber.internal",
       "status": "ACTIVE",
       "created_at": "2026-09-20T23:04:49.607Z"
+    },
+    {
+      "id": "WATCH-1789965054463-743",
+      "session_id": "BC-0411",
+      "asset": "SOL",
+      "trigger_condition": "Cumulative drawdown exceeding 30–35%",
+      "drawdown_threshold": 30,
+      "email": "analyst@bourse-chamber.internal",
+      "status": "ACTIVE",
+      "created_at": "2026-09-21T04:30:54.464Z"
+    },
+    {
+      "id": "WATCH-1789965279742-677",
+      "session_id": "BC-0411",
+      "asset": "SOL",
+      "trigger_condition": "Cumulative drawdown exceeding 30–35%",
+      "drawdown_threshold": 30,
+      "email": "analyst@bourse-chamber.internal",
+      "status": "ACTIVE",
+      "created_at": "2026-09-21T04:34:39.743Z"
+    },
+    {
+      "id": "WATCH-1789965372996-887",
+      "session_id": "BC-0411",
+      "asset": "SOL",
+      "trigger_condition": "Cumulative drawdown exceeding 30–35%",
+      "drawdown_threshold": 30,
+      "email": "analyst@bourse-chamber.internal",
+      "status": "ACTIVE",
+      "created_at": "2026-09-21T04:36:12.997Z"
+    },
+    {
+      "id": "WATCH-1789965555147-161",
+      "session_id": "BC-0411",
+      "asset": "SOL",
+      "trigger_condition": "Cumulative drawdown exceeding 30–35%",
+      "drawdown_threshold": 30,
+      "email": "analyst@bourse-chamber.internal",
+      "status": "ACTIVE",
+      "created_at": "2026-09-21T04:39:15.147Z"
     }
   ]
 }

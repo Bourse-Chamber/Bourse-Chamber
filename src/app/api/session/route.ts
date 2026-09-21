@@ -165,3 +165,110 @@ export async function POST(req: NextRequest) {
     });
   }
 }
+
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    const aggregate = searchParams.get('aggregate');
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50', 10)));
+
+    if (id) {
+      const session = await db.getSession(id);
+      if (!session) {
+        return new Response(JSON.stringify({ error: `Session '${id}' not found.` }), {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(JSON.stringify(session), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const sessions = await db.listSessions(limit);
+
+    if (aggregate === 'bench' || aggregate === 'agents') {
+      const records = AGENTS.map((agent) => {
+        let participated = 0;
+        let votedFor = 0;
+        let dissents = 0;
+        const recentVotes: Array<{
+          sessionId: string;
+          ticker: string;
+          vote: string;
+          rationale: string;
+          timestamp: string;
+        }> = [];
+
+        for (const s of sessions) {
+          const v = s.votes?.find(
+            (vote) =>
+              vote.seat === agent.seat ||
+              vote.shortName?.toLowerCase() === agent.shortName.toLowerCase() ||
+              vote.persona?.toLowerCase() === agent.name.toLowerCase()
+          );
+
+          if (v) {
+            participated++;
+            const voteUpper = (v.vote || '').toUpperCase();
+            if (voteUpper === 'ADD') {
+              votedFor++;
+            } else if (voteUpper === 'REDUCE') {
+              dissents++;
+            } else {
+              // PASS ballot: counts as dissent if verdict outcome was ADD
+              if (s.verdict && s.verdict.outcome === 'ADD') {
+                dissents++;
+              }
+            }
+
+            recentVotes.push({
+              sessionId: s.id,
+              ticker: s.ticker,
+              vote: voteUpper,
+              rationale: v.rationale || '',
+              timestamp: s.createdAt,
+            });
+          }
+        }
+
+        return {
+          seat: agent.seat,
+          name: agent.name,
+          shortName: agent.shortName,
+          discipline: agent.discipline,
+          school: 'VALUE', // or agent school
+          record: {
+            sessions: participated,
+            votedFor,
+            dissents,
+          },
+          recentVotes: recentVotes.slice(0, 5),
+        };
+      });
+
+      return new Response(
+        JSON.stringify({
+          agents: records,
+          totalSessions: sessions.length,
+        }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    return new Response(JSON.stringify(sessions), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (err: any) {
+    return new Response(
+      JSON.stringify({ error: 'Failed to retrieve sessions.', details: err.message }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
+}

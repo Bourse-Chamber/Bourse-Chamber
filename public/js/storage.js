@@ -44,6 +44,12 @@ const BourseStorage = (() => {
             JSON.stringify(BourseMockData.SEED_SESSIONS)
           );
         }
+      } else if (existing.includes('Warren Buffett') && typeof BourseMockData !== 'undefined' && BourseMockData.SEED_SESSIONS) {
+        // Upgrade legacy cache to canonical 9 personas
+        window.localStorage.setItem(
+          STORAGE_KEYS.SESSIONS,
+          JSON.stringify(BourseMockData.SEED_SESSIONS)
+        );
       }
     } catch (e) {
       console.warn('BourseStorage initialization warning:', e);
@@ -166,15 +172,65 @@ const BourseStorage = (() => {
   }
 
   /**
-   * Reset to default initial seed data
+   * Dynamically calculate real persona voting records across all recorded sessions
    */
-  function resetDemoData() {
-    if (typeof BourseMockData !== 'undefined' && BourseMockData.SEED_SESSIONS) {
-      if (isLocalStorageAvailable()) {
-        window.localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(BourseMockData.SEED_SESSIONS));
+  function getAgentVotingRecord(seatOrShortName) {
+    const sessions = getSessions();
+    const cleanSeat = typeof seatOrShortName === 'number' ? seatOrShortName : parseInt(seatOrShortName, 10);
+    const cleanName = typeof seatOrShortName === 'string' ? seatOrShortName.trim().toLowerCase() : null;
+
+    let participated = 0;
+    let votedFor = 0;
+    let dissents = 0;
+    let passCount = 0;
+    const recordedVotes = [];
+
+    sessions.forEach(s => {
+      if (!s.votes || !Array.isArray(s.votes)) return;
+      const v = s.votes.find(vote => {
+        if (!isNaN(cleanSeat) && vote.seat === cleanSeat) return true;
+        if (cleanName) {
+          const vName = (vote.name || vote.persona || '').toLowerCase();
+          const vShort = (vote.shortName || '').toLowerCase();
+          return vName.includes(cleanName) || vShort === cleanName;
+        }
+        return false;
+      });
+
+      if (v) {
+        participated++;
+        const voteUpper = (v.vote || '').toUpperCase();
+        if (voteUpper === 'ADD') {
+          votedFor++;
+        } else if (voteUpper === 'REDUCE') {
+          dissents++;
+        } else {
+          passCount++;
+          // PASS counts as dissent if the final chamber verdict was ADD
+          if (s.verdict && s.verdict.outcome === 'ADD') {
+            dissents++;
+          }
+        }
+
+        recordedVotes.push({
+          sessionId: s.id,
+          ticker: s.ticker,
+          assetName: s.assetName || s.ticker,
+          vote: voteUpper,
+          rationale: v.rationale || v.reason || '',
+          outcome: s.verdict ? s.verdict.outcome : null,
+          date: s.createdAt ? s.createdAt.slice(0, 10) : ''
+        });
       }
-      memorySessions = JSON.parse(JSON.stringify(BourseMockData.SEED_SESSIONS));
-    }
+    });
+
+    return {
+      sessions: participated,
+      votedFor,
+      dissents,
+      passCount,
+      votes: recordedVotes
+    };
   }
 
   return {
@@ -183,6 +239,7 @@ const BourseStorage = (() => {
     getSessionById,
     saveSession,
     getLedgerMetrics,
+    getAgentVotingRecord,
     resetDemoData
   };
 })();
