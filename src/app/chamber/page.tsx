@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { AGENTS } from '../../lib/agents';
+import { CRYPTO_AGENTS as AGENTS } from '../../lib/crypto-agents';
 
 export default function ChamberPage() {
   return (
@@ -11,7 +11,7 @@ export default function ChamberPage() {
         <div>
           <h1 style={{ fontSize: '1.6rem', fontWeight: 600, margin: '0 0 4px 0' }}>Session floor</h1>
           <p style={{ fontSize: '0.82rem', color: '#9A9A9A', margin: 0 }}>
-            Put a ticker or a thesis on the table. All nine speak in turn, two cross-examine, then the vote is tallied and recorded.
+            Put a ticker or a thesis on the table. All nine crypto architects speak in turn, two cross-examine, then the vote is tallied and recorded.
           </p>
         </div>
 
@@ -61,7 +61,7 @@ export default function ChamberPage() {
         <form style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }} onSubmit={(e) => e.preventDefault()}>
           <input
             type="text"
-            placeholder="Present a ticker or a thesis to the committee (e.g. BTC, or @graham is SOL an enduring moat?)"
+            placeholder="Present a ticker or a thesis to the committee (e.g. BTC, or @satoshi is SOL an enduring moat?)"
             style={{
               flex: 1,
               minWidth: '280px',

@@ -77,7 +77,7 @@ const BourseChamber = (() => {
     updateComposerMode();
 
     // Check query params
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = typeof window !== 'undefined' && window.location && window.location.search ? new URLSearchParams(window.location.search) : new URLSearchParams();
     const initialQuery = urlParams.get('q');
     if (initialQuery && composerInput) {
       composerInput.value = initialQuery;
@@ -89,7 +89,8 @@ const BourseChamber = (() => {
       if (clockEl) clockEl.textContent = BourseUtils.formatTimestamp(new Date());
     }
     tick();
-    setInterval(tick, 1000);
+    const clockInterval = setInterval(tick, 1000);
+    if (clockInterval && typeof clockInterval.unref === 'function') clockInterval.unref();
   }
 
   // Canonical rectangular arena coordinates (1000 x 490)
@@ -120,6 +121,13 @@ const BourseChamber = (() => {
   };
 
   /**
+   * Get active council (9 Crypto Architects)
+   */
+  function getChamberCouncil() {
+    return (typeof BourseCryptoAgents !== 'undefined') ? BourseCryptoAgents : BourseAgents;
+  }
+
+  /**
    * Render rectangular council arena (1 Top, 4 Left, 4 Right, Open Bottom)
    */
   function renderChamberRing() {
@@ -127,14 +135,16 @@ const BourseChamber = (() => {
     seatsContainer.innerHTML = '';
     spokesSvg.innerHTML = '';
 
-    const agents = BourseAgents.AGENTS;
+    const agents = getChamberCouncil().AGENTS;
 
     agents.forEach((agent) => {
       const pos = SEAT_COORDINATES[agent.seat] || { x: 500, y: 50 };
       const spoke = SPOKE_COORDINATES[agent.seat] || { x1: pos.x, y1: pos.y, x2: 500, y2: 230 };
 
       // Spoke Line
-      const spokeLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      const spokeLine = (typeof document.createElementNS === 'function')
+        ? document.createElementNS('http://www.w3.org/2000/svg', 'line')
+        : document.createElement('line');
       spokeLine.setAttribute('x1', spoke.x1);
       spokeLine.setAttribute('y1', spoke.y1);
       spokeLine.setAttribute('x2', spoke.x2);
@@ -219,7 +229,7 @@ const BourseChamber = (() => {
   }
 
   function updateChamberSeatVisuals() {
-    BourseAgents.AGENTS.forEach(agent => {
+    getChamberCouncil().AGENTS.forEach(agent => {
       const seatEl = document.getElementById(`seat-node-${agent.seat}`);
       if (!seatEl) return;
 
@@ -269,7 +279,7 @@ const BourseChamber = (() => {
         directedBarEl.style.display = 'flex';
         selectedChipsGroupEl.innerHTML = '';
         selectedSeats.forEach(seatNum => {
-          const agent = BourseAgents.getAgentBySeat(seatNum);
+          const agent = getChamberCouncil().getAgentBySeat(seatNum);
           if (agent) {
             const chip = document.createElement('span');
             chip.className = 'directed-seat-chip';
@@ -304,11 +314,11 @@ const BourseChamber = (() => {
         label = `Ask the full bench (${required})`;
         if (composerModeLabelEl) composerModeLabelEl.textContent = "What should the bench examine?";
       } else if (isCrossExamMode && count === 2) {
-        const arr = Array.from(selectedSeats).map(s => BourseAgents.getAgentBySeat(s).shortName);
+        const arr = Array.from(selectedSeats).map(s => getChamberCouncil().getAgentBySeat(s).shortName);
         label = `Cross-examine: ${arr.join(' vs ')} (4)`;
         if (composerModeLabelEl) composerModeLabelEl.textContent = `Cross-examination on the floor`;
       } else {
-        const arr = Array.from(selectedSeats).map(s => BourseAgents.getAgentBySeat(s).shortName);
+        const arr = Array.from(selectedSeats).map(s => getChamberCouncil().getAgentBySeat(s).shortName);
         label = `Ask ${arr.join(', ')} (${required})`;
         if (composerModeLabelEl) composerModeLabelEl.textContent = `Directed question to ${arr.join(', ')}`;
       }
@@ -605,8 +615,8 @@ const BourseChamber = (() => {
       updateChamberState(STATES.FILING);
       const isDirected = selectedSeats.size > 0;
       const targetSeats = isDirected 
-        ? Array.from(selectedSeats).map(s => BourseAgents.getAgentBySeat(s)) 
-        : BourseAgents.AGENTS;
+        ? Array.from(selectedSeats).map(s => getChamberCouncil().getAgentBySeat(s)) 
+        : getChamberCouncil().AGENTS;
 
       appendTranscriptMsg({
         type: 'chair',
@@ -639,7 +649,7 @@ const BourseChamber = (() => {
       await chamberWait(500);
 
       // Dim non-selected seats if directed
-      BourseAgents.AGENTS.forEach(a => {
+      getChamberCouncil().AGENTS.forEach(a => {
         const isTarget = targetSeats.some(t => t.seat === a.seat);
         if (isTarget) {
           setSeatState(a.seat, 'analyzing', 'ANALYZING');
@@ -713,13 +723,13 @@ const BourseChamber = (() => {
         // Automatic Stage 2 Clash if Full Bench
         if (!isDirected) {
           updateChamberState(STATES.ROUND_2);
-          const seatA = BourseAgents.getAgentBySeat(1); // Graham (Downside floor)
-          const seatB = BourseAgents.getAgentBySeat(4); // Wood (Growth & Disruption)
+          const seatA = getChamberCouncil().getAgentBySeat(1); // Satoshi Nakamoto
+          const seatB = getChamberCouncil().getAgentBySeat(2); // Vitalik Buterin
 
           appendTranscriptMsg({
             type: 'chair',
             who: 'CHAIR',
-            text: `Round 1 readings complete. The bench has identified fundamental ideological divergence. Opening cross-examination between Seat 01 (${seatA.name}) and Seat 04 (${seatB.name}).`
+            text: `Round 1 readings complete. Fundamental cryptoeconomic fault line identified. Opening cross-examination between Seat 01 (${seatA.name}) and Seat 02 (${seatB.name}).`
           });
           await chamberWait(900);
 
@@ -772,7 +782,7 @@ const BourseChamber = (() => {
       let passTally = 0;
       const recordedVotes = [];
 
-      for (const agent of BourseAgents.AGENTS) {
+      for (const agent of getChamberCouncil().AGENTS) {
         setSeatState(agent.seat, 'speaking', 'VOTING');
         await chamberWait(350);
 
@@ -814,12 +824,13 @@ const BourseChamber = (() => {
       currentSession.votes = recordedVotes;
       await chamberWait(700);
 
-      // 5. SYNTHESIZING VERDICT & TALEB POSITION SIZING BAND
+      // 5. SYNTHESIZING VERDICT & POSITION SIZING BAND
       updateChamberState(STATES.SYNTHESIZING);
+      const sizingSeat = getChamberCouncil().getAgentBySeat(6);
       appendTranscriptMsg({
         type: 'chair',
         who: 'CHAIR',
-        text: `Balloting closed. Calling Seat 06 (Taleb) for position sizing band and synthesizing permanent ledger record.`
+        text: `Balloting closed. Calling Seat 06 (${sizingSeat.shortName}) for macroeconomic position sizing and synthesizing permanent ledger record.`
       });
       await chamberWait(1000);
 
@@ -846,17 +857,18 @@ const BourseChamber = (() => {
       if (outcome !== 'PASS' && passTally > 0) dissentList.push(`${passTally} PASS`);
       const dissentBreakdown = dissentList.length > 0 ? dissentList.join(', ') : 'None (Unanimous)';
 
-      // CRITICAL SPECIFICATION: Nassim Nicholas Taleb is the sole seat that determines the Position Size Band!
-      const taleb = BourseAgents.getAgentBySeat(6);
-      const talebSizing = taleb.calculatePositionSizeBand(
-        { ticker: currentEvidence.ticker, name: currentEvidence.name },
-        currentEvidence,
-        outcome
-      );
-      const sizingBand = talebSizing.band;
+      // Seat 06 calculates sizing band
+      const sizingResult = (sizingSeat && typeof sizingSeat.calculatePositionSizeBand === 'function')
+        ? sizingSeat.calculatePositionSizeBand(
+            { ticker: currentEvidence.ticker, name: currentEvidence.name },
+            currentEvidence,
+            outcome
+          )
+        : { band: "1.0 – 2.5%", rationale: "Default macroeconomic risk sizing." };
+      const sizingBand = sizingResult.band;
 
-      const keyAgreement = `${currentEvidence.name} retains recognizable market liquidity and participation, but carries starkly distinct risks across analytical schools.`;
-      const keyDisagreement = `The core fault line separates Damodaran & Graham's cash-flow valuation rigor from Cathie Wood's exponential S-curve disruption thesis.`;
+      const keyAgreement = `${currentEvidence.name} retains recognizable market liquidity and participation, but carries starkly distinct cryptoeconomic risks across analytical schools.`;
+      const keyDisagreement = `The core fault line separates base-layer sound money and proof-of-work security from high-throughput monolithic execution.`;
       const unresolvedQuestion = `Can long-term network fee accrual sustain validator security if macro liquidity contracts?`;
       const reviewTriggers = [
         `Material deterioration in active on-chain daily settlement volume (>35% drawdown).`,
@@ -869,8 +881,8 @@ const BourseChamber = (() => {
         majorityRatio: `${majorityCount} / 9`,
         dissentBreakdown,
         positionSizeBand: sizingBand,
-        sizingSeat: "Seat 06 · Nassim Nicholas Taleb (Tail risk)",
-        sizingRationale: talebSizing.rationale,
+        sizingSeat: `Seat 06 · ${sizingSeat.name} (${sizingSeat.discipline})`,
+        sizingRationale: sizingResult.rationale,
         keyAgreement,
         keyDisagreement,
         unresolvedQuestion,
@@ -1022,7 +1034,7 @@ const BourseChamber = (() => {
     }
 
     // Hint Chips
-    const hintChips = document.querySelectorAll('.hint-chip');
+    const hintChips = typeof document.querySelectorAll === 'function' ? document.querySelectorAll('.hint-chip') : [];
     hintChips.forEach(chip => {
       chip.addEventListener('click', () => {
         const text = chip.getAttribute('data-thesis') || chip.textContent.trim();

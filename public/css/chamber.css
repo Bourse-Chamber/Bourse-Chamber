@@ -399,6 +399,24 @@
   margin-top: 6px;
 }
 
+.budget-replenish-btn {
+  background: transparent;
+  border: 1px solid var(--border-subtle, #333333);
+  color: var(--text-muted, #888888);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  padding: 1px 6px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.budget-replenish-btn:hover {
+  color: #FFFFFF;
+  border-color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.1);
+}
+
 /* F14 Directed Question Selection Bar */
 .directed-selection-bar {
   display: flex;

@@ -60,7 +60,7 @@
     <div class="floor-header">
       <div>
         <h1>Session floor</h1>
-        <p>Put a ticker or a thesis on the table. All nine speak in turn, two cross-examine, then the vote is tallied and recorded.</p>
+        <p>Put a ticker or a thesis on the table. All nine crypto architects speak in turn, two cross-examine, then the vote is tallied and recorded.</p>
       </div>
       <div class="session-metadata-bar">
         <div class="state-pill" id="chamber-state-pill">
@@ -186,16 +186,15 @@
       </div>
 
       <form class="composer-form" onsubmit="event.preventDefault();">
-        <input class="composer-input" id="composer-input" type="text" placeholder="Present a ticker or a thesis to the committee (e.g. BTC, or @graham is SOL an enduring moat?)" autocomplete="off">
+        <input class="composer-input" id="composer-input" type="text" placeholder="Present a ticker or a thesis to the committee (e.g. BTC, or @satoshi is SOL an enduring moat?)" autocomplete="off">
         <button class="composer-btn" id="convene-btn" type="button">Ask the full bench (9)</button>
       </form>
       <div class="hint-chips-row">
         <span class="hint-chip-label">Examples:</span>
         <button class="hint-chip" data-thesis="Is BTC still a reasonable core holding at current market levels?" type="button">BTC core holding?</button>
         <button class="hint-chip" data-thesis="Is throughput a moat, or a commodity waiting to be priced?" type="button">SOL throughput moat?</button>
-        <button class="hint-chip" data-thesis="Does Layer-2 fragmentation permanently impair Ethereum's fee accrual moat?" type="button">ETH Layer-2 fragmentation</button>
-        <button class="hint-chip" data-thesis="A new L2 protocol offering 40% APY" type="button">New L2 40% APY</button>
-        <button class="hint-chip" data-thesis="LINK as the definitive institutional RWA plumbing" type="button">LINK RWA infrastructure</button>
+        <button class="hint-chip" data-thesis="Does Ethereum Layer-2 fragmentation degrade its monetary premium?" type="button">ETH Layer-2 fragmentation</button>
+        <button class="hint-chip" data-thesis="Can high-yield synthetic liquidity protocols survive extended drawdowns?" type="button">New L2 40% APY</button>
       </div>
     </div>
   </main>
@@ -205,9 +204,9 @@
   <aside class="dossier-drawer" id="dossier-drawer" aria-hidden="true">
     <button class="dossier-close" id="dossier-close" aria-label="Close dossier">✕</button>
     <div class="dossier-avatar-wrap" id="dossier-avatar"></div>
-    <div class="dossier-seat-tag" id="dossier-seat">SEAT 01 · VALUE</div>
-    <h3 class="dossier-name" id="dossier-name">Benjamin Graham</h3>
-    <div class="dossier-discipline" id="dossier-discipline">Margin of safety</div>
+    <div class="dossier-seat-tag" id="dossier-seat">SEAT 01 · CYPHERPUNK</div>
+    <h3 class="dossier-name" id="dossier-name">Satoshi Nakamoto</h3>
+    <div class="dossier-discipline" id="dossier-discipline">Sound money & Cypherpunk PoW</div>
     
     <div class="dossier-section-title">CORE PHILOSOPHY</div>
     <p class="dossier-bio" id="dossier-bio"></p>
@@ -252,6 +251,7 @@
 
   <script src="js/utils.js"></script>
   <script src="js/agents.js"></script>
+  <script src="js/crypto-agents.js"></script>
   <script src="js/mock-data.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/budget.js"></script>

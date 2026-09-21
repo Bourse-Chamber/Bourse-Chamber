@@ -190,20 +190,47 @@ test('Frontend Audit — 9 Canonical Crypto Personas Data Integrity & Crypto Ben
 
   // Test DOM rendering for Crypto Bench
   const elements = {};
+  function createMockElement(id = '', tag = 'div') {
+    return {
+      id,
+      tag,
+      innerHTML: '',
+      textContent: '',
+      className: '',
+      style: {},
+      children: [],
+      dataset: {},
+      classList: {
+        add: () => {},
+        remove: () => {},
+        contains: () => false,
+        toggle: () => {}
+      },
+      setAttribute: () => {},
+      getAttribute: () => '',
+      appendChild: function(c) { this.children.push(c); },
+      querySelectorAll: () => [],
+      querySelector: () => null,
+      addEventListener: () => {}
+    };
+  }
+
   global.document = {
     getElementById: (id) => {
       if (!elements[id]) {
-        elements[id] = { id, innerHTML: '', textContent: '', className: '', style: {}, children: [], appendChild: function(c) { this.children.push(c); }, querySelectorAll: () => [], addEventListener: () => {} };
+        elements[id] = createMockElement(id);
       }
       return elements[id];
     },
-    createElement: (tag) => {
-      return { tag, innerHTML: '', textContent: '', className: '', style: {}, children: [], dataset: {}, setAttribute: () => {}, appendChild: function(c) { this.children.push(c); }, addEventListener: () => {} };
-    },
+    createElement: (tag) => createMockElement('', tag),
+    createElementNS: (ns, tag) => createMockElement('', tag),
+    querySelectorAll: () => [],
+    querySelector: () => null,
     addEventListener: (ev, fn) => fn()
   };
   global.window = {
-    document: global.document
+    document: global.document,
+    location: { search: '' }
   };
 
   global.BourseUtils = require('../js/utils');
@@ -214,6 +241,29 @@ test('Frontend Audit — 9 Canonical Crypto Personas Data Integrity & Crypto Ben
   require('../js/crypto-bench');
   assert.strictEqual(elements['crypto-bench-grid'].children.length, 9, 'All 9 crypto persona cards must render into crypto-bench-grid');
   assert.strictEqual(elements['crypto-bench-filters'].children.length, 8, 'All 8 filter buttons must render into crypto-bench-filters');
+
+  // Test Chamber rendering with 9 Crypto Architects
+  global.BourseBudget = require('../js/budget');
+  require('../js/chamber');
+  assert.strictEqual(elements['council-seats'].children.length, 9, 'All 9 crypto seats must render into council-seats');
+  
+  // Verify seat 1 is Satoshi and seat 2 is Vitalik
+  const seat1Node = elements['council-seats'].children.find(c => c.id === 'seat-node-1');
+  assert.ok(seat1Node, 'Seat 1 node must exist');
+  assert.ok(seat1Node.innerHTML.includes('Satoshi'), 'Seat 1 must be Satoshi');
+
+  const seat2Node = elements['council-seats'].children.find(c => c.id === 'seat-node-2');
+  assert.ok(seat2Node, 'Seat 2 node must exist');
+  assert.ok(seat2Node.innerHTML.includes('Vitalik'), 'Seat 2 must be Vitalik');
+
+  const seat6Node = elements['council-seats'].children.find(c => c.id === 'seat-node-6');
+  assert.ok(seat6Node, 'Seat 6 node must exist');
+  assert.ok(seat6Node.innerHTML.includes('Hayes'), 'Seat 6 must be Arthur Hayes');
+
+  const seat7Node = elements['council-seats'].children.find(c => c.id === 'seat-node-7');
+  assert.ok(seat7Node, 'Seat 7 node must exist');
+  assert.ok(seat7Node.innerHTML.includes('Saylor'), 'Seat 7 must be Michael Saylor');
 });
+
 
 
