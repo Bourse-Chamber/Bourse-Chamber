@@ -44,8 +44,8 @@ const BourseStorage = (() => {
             JSON.stringify(BourseMockData.SEED_SESSIONS)
           );
         }
-      } else if (existing.includes('Warren Buffett') && typeof BourseMockData !== 'undefined' && BourseMockData.SEED_SESSIONS) {
-        // Upgrade legacy cache to canonical 9 personas
+      } else if ((existing.includes('Warren Buffett') || existing.includes('Benjamin Graham') || existing.includes('Charlie Munger')) && typeof BourseMockData !== 'undefined' && BourseMockData.SEED_SESSIONS) {
+        // Upgrade legacy cache to canonical 9 crypto architects
         window.localStorage.setItem(
           STORAGE_KEYS.SESSIONS,
           JSON.stringify(BourseMockData.SEED_SESSIONS)

@@ -183,42 +183,42 @@ const BourseMockData = (() => {
         outcome: "REDUCE",
         majorityRatio: "5 / 9",
         dissentBreakdown: "3 ADD, 1 PASS",
-        positionSizeBand: "1.0 – 2.0%",
-        keyAgreement: "Solana has achieved genuine retail product-market fit in low-latency DEX activity.",
-        keyDisagreement: "Whether transaction execution throughput will remain a defensible competitive moat once rival rollups achieve sub-cent finality.",
-        unresolvedQuestion: "Can high validator hardware requirements and storage state growth survive without structural centralization?",
+        positionSizeBand: "0.0 – 1.0%",
+        keyAgreement: "Solana has achieved genuine retail product-market fit in low-latency DEX activity and high-frequency trading.",
+        keyDisagreement: "Whether monolithic hardware-scaled throughput is a durable moat or an unbacked architecture prone to state bloat and centralized validation.",
+        unresolvedQuestion: "Can high validator hardware requirements survive long term without collapsing into centralized datacenter validator cartels?",
         reviewTriggers: [
           "Network activity declines materially below 1,500 non-vote TPS.",
-          "Valuation expands above $100B without corresponding non-speculative fee economics.",
-          "Foundation or early venture unlock schedule accelerates distribution."
+          "Valuation expands above $100B without corresponding non-speculative fee capture.",
+          "Validator hardware requirements increase to exclude independent node operators."
         ]
       },
       speakingTurns: 14,
       seatsPresent: "9 / 9",
       votes: [
-        { seat: 1, name: "Benjamin Graham", shortName: "Graham", school: "VALUE", discipline: "Margin of safety", vote: "REDUCE", reason: "Current valuation assumes indefinite speculative volume. Lacks a tangible cash margin of safety." },
-        { seat: 2, name: "Charlie Munger", shortName: "Munger", school: "VALUE", discipline: "Mental models", vote: "REDUCE", reason: "Invert: validator economics and state bloat represent unmodeled operational fragilities." },
-        { seat: 3, name: "Peter Lynch", shortName: "Lynch", school: "GROWTH", discipline: "Know what you own", vote: "ADD", reason: "Organic retail user volume is observable in real life; consumer apps are choosing Solana." },
-        { seat: 4, name: "Cathie Wood", shortName: "Wood", school: "GROWTH", discipline: "Growth and disruption", vote: "ADD", reason: "Frictionless execution and monolithic composability represent the future of decentralized finance." },
-        { seat: 5, name: "Aswath Damodaran", shortName: "Damodaran", school: "VALUATION", discipline: "Story into numbers", vote: "REDUCE", reason: "Token fee capture sits well below the protocol's required cost of capital." },
-        { seat: 6, name: "Nassim Nicholas Taleb", shortName: "Taleb", school: "RISK", discipline: "Tail risk", vote: "REDUCE", reason: "Hardware centralization and single-client dependencies create severe absorbing tail risk." },
-        { seat: 7, name: "Mohnish Pabrai", shortName: "Pabrai", school: "VALUE", discipline: "Low risk, high uncertainty", vote: "ADD", reason: "Heads I win, tails I don't lose much: developer gravity provides asymmetric upside." },
-        { seat: 8, name: "Bill Ackman", shortName: "Ackman", school: "CONCENTRATION", discipline: "Concentrated conviction", vote: "REDUCE", reason: "Lacks durable institutional governance protections and predictable long-term cash generation." },
-        { seat: 9, name: "Michael Burry", shortName: "Burry", school: "CONTRARIAN", discipline: "Contrarian audit", vote: "REDUCE", reason: "Concentrated venture backing and reflexive liquidity loops create an asymmetric downside trap." }
+        { seat: 1, name: "Satoshi Nakamoto", shortName: "Satoshi", school: "CYPHERPUNK", discipline: "Sound money & Cypherpunk PoW", vote: "REDUCE", reason: "Demanding validator hardware bars ordinary users from verifying the state, creating centralized trust." },
+        { seat: 2, name: "Vitalik Buterin", shortName: "Vitalik", school: "COMPUTATION", discipline: "Programmable logic & Mechanism design", vote: "ADD", reason: "Demonstrates high single-state execution velocity; valuable empirical benchmark for decentralized state machines." },
+        { seat: 3, name: "Hal Finney", shortName: "Finney", school: "CYPHERPUNK", discipline: "Cryptographic privacy & First principles", vote: "REDUCE", reason: "Zero privacy guarantees and high throughput transparent data streams enable trivial surveillance correlation." },
+        { seat: 4, name: "Nick Szabo", shortName: "Szabo", school: "COMPUTATION", discipline: "Trust minimization & Smart contracts", vote: "REDUCE", reason: "Pruning history and relying on centralized archival clusters violates algorithmic unforgeable costliness." },
+        { seat: 5, name: "Anatoly Yakovenko", shortName: "Anatoly", school: "MONOLITHIC", discipline: "Monolithic execution & Hardware scaling", vote: "ADD", reason: "Physics is the ceiling. 2,850 sustained non-vote TPS on an atomic global state renders modular rollups obsolete." },
+        { seat: 6, name: "Arthur Hayes", shortName: "Hayes", school: "MACRO", discipline: "Macro liquidity & Crypto reflexivity", vote: "PASS", reason: "Potent speculative beta in bull liquidity regimes, but perpetual liquidation spirals pose severe downside tail risk." },
+        { seat: 7, name: "Michael Saylor", shortName: "Saylor", school: "TREASURY", discipline: "Balance sheet treasury & Digital property", vote: "REDUCE", reason: "Software venture subject to continuous emissions; cannot function as pristine thermodynamic treasury capital." },
+        { seat: 8, name: "Changpeng Zhao", shortName: "CZ", school: "LIQUIDITY", discipline: "Orderbook liquidity & Mass onboarding", vote: "ADD", reason: "Dominant retail DEX and spot volumes; fast execution and cheap fees onboard millions regardless of ideology." },
+        { seat: 9, name: "Brian Armstrong", shortName: "Armstrong", school: "INSTITUTIONAL", discipline: "Regulated rails & Institutional custody", vote: "REDUCE", reason: "Validator decentralization metrics and historical network halts prevent tier-1 institutional fiduciary endorsement." }
       ],
       transcript: [
         { type: "chair", who: "CHAIR", time: "09:12:00", text: "Floor is open. Thesis filed for Solana (SOL): 'Is throughput a moat, or a commodity waiting to be priced?' Evidence pack distributed to all nine seats." },
-        { type: "analysis", who: "Benjamin Graham", time: "09:14:02", text: "The margin of safety depends on whether the current $66.8B valuation is supported by cash-generating economics. At 2,850 TPS with nominal fees, the protocol burns capital to subsidize hardware validators. Without a floor, price is tethered only to sentiment." },
-        { type: "analysis", who: "Peter Lynch", time: "09:15:30", text: "Walk into any developer hackathon. Builders aren't modeling multi-layered rollup abstractions; they are deploying on Solana because it works in sub-seconds. That is organic adoption you can touch." },
-        { type: "analysis", who: "Nassim Nicholas Taleb", time: "09:17:15", text: "Solana survived the FTX collapse—an absorbing barrier that shatters fragile systems. What does not kill you makes you antifragile. That convex resilience has mathematical value." },
-        { type: "analysis", who: "Charlie Munger", time: "09:18:40", text: "Invert the thesis. If high throughput is commoditized by hardware advances and rival chains, the fee moat collapses to zero while state storage costs compound. That is a terrible business model." },
-        { type: "chair", who: "CHAIR", time: "09:22:10", text: "Divergence detected on Moat Durability between Graham (Seat 01) and Wood (Seat 04). Cross-examination floor opened." },
-        { type: "challenge", who: "Benjamin Graham", time: "09:23:00", text: "Graham challenges Wood: 'Your exponential S-curve model assumes users will permanently pay fees on an asset that can be cloned with 50 lines of configuration. What protects your capital if fees race to zero?'" },
-        { type: "response", who: "Cathie Wood", time: "09:24:18", text: "Wood responds: 'Graham is evaluating a decentralized internet protocol like a 1930s railroad company. Metcalfe's law of network liquidity creates an unassailable ecosystem moat that far outpaces simple code forks.'" },
+        { type: "analysis", who: "Satoshi Nakamoto", time: "09:14:02", text: "The fundamental innovation of digital currency is eliminating trusted third parties. If validating the ledger requires datacenter hardware beyond the reach of normal citizens, you have reconstructed an administrative banking cartel." },
+        { type: "analysis", who: "Anatoly Yakovenko", time: "09:15:30", text: "Hardware improves with Moore's Law and fiber bandwidth expands exponentially. Restricting blockchains to 10 TPS is optimizing for dial-up modems. Monolithic composability beats 50 fractured bridges." },
+        { type: "analysis", who: "Nick Szabo", time: "09:17:15", text: "Throughput without unforgeable costliness is merely high-frequency web2 database replication. Who preserves state when historical data becomes too heavy for independent nodes?" },
+        { type: "analysis", who: "Arthur Hayes", time: "09:18:40", text: "Debating node hardware is missing the macro picture. When global central banks expand credit, SOL acts as a high-beta liquidity sponge. But when real yields spike, watch out for forced margin liquidations." },
+        { type: "chair", who: "CHAIR", time: "09:22:10", text: "Divergence detected on Moat Durability between Satoshi (Seat 01) and Anatoly (Seat 05). Cross-examination floor opened." },
+        { type: "challenge", who: "Satoshi Nakamoto", time: "09:23:00", text: "Satoshi challenges Anatoly: 'If state history requires enterprise datacenter clusters that ordinary individuals cannot audit, what mathematically prevents validator collusion or state censorship?'" },
+        { type: "response", who: "Anatoly Yakovenko", time: "09:24:18", text: "Anatoly responds: 'Satoshi, Proof of History solves cryptographic clock synchronization without centralized coordinators. Forcing users into asynchronous multi-hop rollups causes cross-chain bridge exploits that have cost billions.'" },
         { type: "chair", who: "CHAIR", time: "09:30:00", text: "Cross-examination concluded. All nine seats will now cast formal ballots: ADD, REDUCE, or PASS." },
-        { type: "vote", who: "Graham, Munger, Damodaran, Taleb, Ackman, Burry", time: "09:35:10", text: "Seats 01, 02, 05, 06, 08, 09 cast REDUCE ballots citing moat commoditization and tail fragility." },
-        { type: "vote", who: "Lynch, Wood, Pabrai", time: "09:36:20", text: "Seats 03, 04, 07 cast ADD ballots citing organic adoption and asymmetric upside." },
-        { type: "verdict", who: "CHAIR", time: "09:47:00", text: "VERDICT RECORDED: REDUCE (6 / 9 majority). Dissent: 3 ADD. Sizing band: 1.0 – 2.0%. Session closed and committed to permanent ledger." }
+        { type: "vote", who: "Satoshi, Finney, Szabo, Saylor, Armstrong", time: "09:35:10", text: "Seats 01, 03, 04, 07, 09 cast REDUCE ballots citing hardware barriers, privacy deficits, and institutional hesitation." },
+        { type: "vote", who: "Vitalik, Anatoly, CZ", time: "09:36:20", text: "Seats 02, 05, 08 cast ADD ballots citing execution throughput, developer adoption, and retail liquidity." },
+        { type: "verdict", who: "CHAIR", time: "09:47:00", text: "VERDICT RECORDED: REDUCE (5 / 9 majority). Dissent: 3 ADD, 1 PASS. Sizing band: 0.0 – 1.0%. Session closed and committed to permanent ledger." }
       ]
     },
     {
@@ -243,41 +243,41 @@ const BourseMockData = (() => {
       },
       verdict: {
         outcome: "ADD",
-        majorityRatio: "5 / 9",
-        dissentBreakdown: "3 REDUCE, 1 PASS",
+        majorityRatio: "7 / 9",
+        dissentBreakdown: "2 PASS",
         positionSizeBand: "3.0 – 5.0%",
-        keyAgreement: "BTC retains unmatched monetary liquidity, institutional custody adoption, and unforgeable scarcity.",
-        keyDisagreement: "Whether absent cash flows, Bitcoin can sustain a trillion-dollar valuation across sovereign liquidity drawdowns.",
+        keyAgreement: "Bitcoin retains unmatched monetary liquidity, institutional custody adoption, and unforgeable mathematical scarcity.",
+        keyDisagreement: "Whether absent programmable smart contracts, Bitcoin can expand beyond digital store-of-value into active economic compute.",
         unresolvedQuestion: "Will long-term transaction fee revenue adequately incentivize hashpower security after subsequent halvings?",
         reviewTriggers: [
           "Material deterioration in global on-chain settlement volume.",
           "Significant synchronous tightening in G10 central bank balance sheets.",
-          "Structural shift in US/global regulatory clarity for regulated custody."
+          "Structural shift in global regulatory clarity for regulated custody."
         ]
       },
       speakingTurns: 16,
       seatsPresent: "9 / 9",
       votes: [
-        { seat: 1, name: "Benjamin Graham", shortName: "Graham", school: "VALUE", discipline: "Margin of safety", vote: "PASS", reason: "Monetary brand acknowledged, but absence of cash flow floor warrants caution over accumulation." },
-        { seat: 2, name: "Charlie Munger", shortName: "Munger", school: "VALUE", discipline: "Mental models", vote: "REDUCE", reason: "Remains an artificial speculative token with excessive social friction and non-productive economics." },
-        { seat: 3, name: "Peter Lynch", shortName: "Lynch", school: "GROWTH", discipline: "Know what you own", vote: "ADD", reason: "Global brand awareness is total; institutional adoption has crossed the chasm." },
-        { seat: 4, name: "Cathie Wood", shortName: "Wood", school: "GROWTH", discipline: "Growth and disruption", vote: "ADD", reason: "Global monetary protocol on track for multi-trillion market capture; supreme conviction." },
-        { seat: 5, name: "Aswath Damodaran", shortName: "Damodaran", school: "VALUATION", discipline: "Story into numbers", vote: "REDUCE", reason: "Without contractual cash flows or dividend yields, valuation is driven entirely by changing market pricing moods." },
-        { seat: 6, name: "Nassim Nicholas Taleb", shortName: "Taleb", school: "RISK", discipline: "Tail risk", vote: "ADD", reason: "Proven survival through multiple 80% drawdowns without bankruptcy gives it antifragile convexity." },
-        { seat: 7, name: "Mohnish Pabrai", shortName: "Pabrai", school: "VALUE", discipline: "Low risk, high uncertainty", vote: "ADD", reason: "Sovereign game theory makes terminal downside remote while global liquidity upside remains convex." },
-        { seat: 8, name: "Bill Ackman", shortName: "Ackman", school: "CONCENTRATION", discipline: "Concentrated conviction", vote: "ADD", reason: "Digital store-of-value monopoly with massive structural network moats and regulated spot ETF custody." },
-        { seat: 9, name: "Michael Burry", shortName: "Burry", school: "CONTRARIAN", discipline: "Contrarian audit", vote: "REDUCE", reason: "Derivative leverage concentration and custodial central counterparty risks create flash liquidation spirals." }
+        { seat: 1, name: "Satoshi Nakamoto", shortName: "Satoshi", school: "CYPHERPUNK", discipline: "Sound money & Cypherpunk PoW", vote: "ADD", reason: "Pristine Byzantine agreement and immutable 21M supply cap with zero counterparty risk." },
+        { seat: 2, name: "Vitalik Buterin", shortName: "Vitalik", school: "COMPUTATION", discipline: "Programmable logic & Mechanism design", vote: "PASS", reason: "The premier monetary Schelling point, but lack of native programmability restricts dynamic cryptoeconomic coordination." },
+        { seat: 3, name: "Hal Finney", shortName: "Finney", school: "CYPHERPUNK", discipline: "Cryptographic privacy & First principles", vote: "ADD", reason: "Unbroken cryptographic proof-of-work security and peer-to-peer sovereign verification." },
+        { seat: 4, name: "Nick Szabo", shortName: "Szabo", school: "COMPUTATION", discipline: "Trust minimization & Smart contracts", vote: "ADD", reason: "Unforgeable costliness in proof-of-work consensus with absolute immutability and institutional permanence." },
+        { seat: 5, name: "Anatoly Yakovenko", shortName: "Anatoly", school: "MONOLITHIC", discipline: "Monolithic execution & Hardware scaling", vote: "PASS", reason: "Unmatched store-of-value consensus, though baseline transaction throughput requires scaling layers for global velocity." },
+        { seat: 6, name: "Arthur Hayes", shortName: "Hayes", school: "MACRO", discipline: "Macro liquidity & Crypto reflexivity", vote: "ADD", reason: "Prime speculative liquidity sponge poised to capture global central bank fiat dilution and debt debasement." },
+        { seat: 7, name: "Michael Saylor", shortName: "Saylor", school: "TREASURY", discipline: "Balance sheet treasury & Digital property", vote: "ADD", reason: "Pristine digital energy and incorruptible treasury reserve asset. There is no second best." },
+        { seat: 8, name: "Changpeng Zhao", shortName: "CZ", school: "LIQUIDITY", discipline: "Orderbook liquidity & Mass onboarding", vote: "ADD", reason: "Vibrant global trading volume, deepest orderbook liquidity, and unquestioned worldwide brand trust." },
+        { seat: 9, name: "Brian Armstrong", shortName: "Armstrong", school: "INSTITUTIONAL", discipline: "Regulated rails & Institutional custody", vote: "ADD", reason: "Gold standard for spot ETF products, regulated prime custody, and institutional asset management." }
       ],
       transcript: [
         { type: "chair", who: "CHAIR", time: "14:20:00", text: "Floor convenes. Examination of Bitcoin (BTC): 'Is BTC still a reasonable core holding at current market levels?'" },
-        { type: "analysis", who: "Cathie Wood", time: "14:22:15", text: "When global debt-to-GDP hits historical extremes, fiat currency monetization accelerates. BTC is rapidly assuming the role of the primary digital monetary reserve on institutional balance sheets." },
-        { type: "analysis", who: "Charlie Munger", time: "14:24:00", text: "It is an index of human gullibility. Just because you have a ledger that limits supply does not mean you have created an asset that blesses society. Invert it: what happens when governments decide currency issuance is non-negotiable?" },
-        { type: "analysis", who: "Aswath Damodaran", time: "14:26:30", text: "Remember the difference between pricing and valuing. You cannot value Bitcoin with DCF because it produces no cash flows. You can only price it based on liquidity and sentiment." },
-        { type: "chair", who: "CHAIR", time: "14:32:00", text: "Cross-examination: Wood (Seat 04) vs Munger (Seat 02) on Macro Reserve Necessity." },
-        { type: "challenge", who: "Cathie Wood", time: "14:33:10", text: "Wood challenges Munger: 'Charlie, if you hold sovereign fiat bonds mathematically guaranteed to be debased by central banks, is that not far riskier than holding a mathematical hard cap?'" },
-        { type: "response", who: "Charlie Munger", time: "14:34:50", text: "Munger responds: 'I would rather hold productive businesses and farmland that feed and shelter humanity than rely on a cryptographic ledger whose only return depends on selling to someone else tomorrow.'" },
+        { type: "analysis", who: "Michael Saylor", time: "14:22:15", text: "Cash is a melting ice cube losing 10-15% purchasing power annually. Bitcoin is pure monetary thermodynamics—capital stored across time and space with zero entropy and no counterparty risk." },
+        { type: "analysis", who: "Arthur Hayes", time: "14:24:00", text: "Global debt-to-GDP has passed the mathematical point of return. Sovereign treasuries must print fiat. BTC is the apex asset capturing this structural debasement." },
+        { type: "analysis", who: "Vitalik Buterin", time: "14:26:30", text: "Bitcoin remains our industry's foundational reserve. However, as block rewards diminish, fee security models and the emergence of L2 settlement architectures will dictate long-term network stability." },
+        { type: "chair", who: "CHAIR", time: "14:32:00", text: "Cross-examination: Saylor (Seat 07) vs Vitalik (Seat 02) on Monetary Purity vs Programmability." },
+        { type: "challenge", who: "Michael Saylor", time: "14:33:10", text: "Saylor challenges Vitalik: 'Vitalik, why risk monetary capital on complex Turing-complete execution that introduces bugs and hard forks, when immaculate mathematical scarcity is already achieved?'" },
+        { type: "response", who: "Vitalik Buterin", time: "14:34:50", text: "Vitalik responds: 'Saylor, money is a coordination tool. Without cryptographic programmability, a network cannot automate decentralized finance, privacy protections, or dynamic collective decision-making.'" },
         { type: "chair", who: "CHAIR", time: "14:42:00", text: "Debate concluded. Roll-call voting commencing across all nine seats." },
-        { type: "verdict", who: "CHAIR", time: "14:52:00", text: "VERDICT RECORDED: ADD (5 / 9 majority). Dissent: 3 REDUCE, 1 PASS. Position size band: 3.0 – 5.0%." }
+        { type: "verdict", who: "CHAIR", time: "14:52:00", text: "VERDICT RECORDED: ADD (7 / 9 majority). Dissent: 2 PASS. Position size band: 3.0 – 5.0%." }
       ]
     },
     {
@@ -302,9 +302,9 @@ const BourseMockData = (() => {
       },
       verdict: {
         outcome: "PASS",
-        majorityRatio: "5 / 9",
-        dissentBreakdown: "4 ADD, 2 REDUCE",
-        positionSizeBand: "2.0 – 3.0%",
+        majorityRatio: "4 / 9",
+        dissentBreakdown: "3 ADD, 2 REDUCE",
+        positionSizeBand: "1.0 – 2.0%",
         keyAgreement: "Ethereum remains the undisputed settlement layer for institutional tokenized assets and DeFi TVL.",
         keyDisagreement: "Whether value capture accrues to the ETH token or is captured by external sequencing and application rollups.",
         unresolvedQuestion: "Can synchronous composability between fragmented Layer-2 chains be resolved without compromising base layer security?",
@@ -317,20 +317,21 @@ const BourseMockData = (() => {
       speakingTurns: 13,
       seatsPresent: "9 / 9",
       votes: [
-        { seat: 1, name: "Benjamin Graham", shortName: "Graham", school: "VALUE", discipline: "Margin of safety", vote: "PASS", reason: "3.2% staking yield offers cash flow, but compressed L1 burn clouds earnings visibility." },
-        { seat: 2, name: "Charlie Munger", shortName: "Munger", school: "VALUE", discipline: "Mental models", vote: "REDUCE", reason: "Unnecessary complexity and agency dilemmas between L1 and competing L2 teams." },
-        { seat: 3, name: "Peter Lynch", shortName: "Lynch", school: "GROWTH", discipline: "Know what you own", vote: "ADD", reason: "Massive developer ecosystem and genuine financial applications running continuously." },
-        { seat: 4, name: "Cathie Wood", shortName: "Wood", school: "GROWTH", discipline: "Growth and disruption", vote: "ADD", reason: "The foundational settlement layer for global financial market tokenization." },
-        { seat: 5, name: "Aswath Damodaran", shortName: "Damodaran", school: "VALUATION", discipline: "Story into numbers", vote: "PASS", reason: "Fee generation is real, but terminal discount rate must reflect constant protocol shifts." },
-        { seat: 6, name: "Nassim Nicholas Taleb", shortName: "Taleb", school: "RISK", discipline: "Tail risk", vote: "ADD", reason: "Longest unbroken track record of smart contract execution and battle-tested consensus." },
-        { seat: 7, name: "Mohnish Pabrai", shortName: "Pabrai", school: "VALUE", discipline: "Low risk, high uncertainty", vote: "PASS", reason: "Unclear whether value accrues to the base asset or to competing Layer-2 execution tokens." },
-        { seat: 8, name: "Bill Ackman", shortName: "Ackman", school: "CONCENTRATION", discipline: "Concentrated conviction", vote: "ADD", reason: "Monopoly on institutional DeFi liquidity and deeply established validator decentralization." },
-        { seat: 9, name: "Michael Burry", shortName: "Burry", school: "CONTRARIAN", discipline: "Contrarian audit", vote: "REDUCE", reason: "L2 cannibalization strips L1 economic rent, exposing stakers to real negative carry." }
+        { seat: 1, name: "Satoshi Nakamoto", shortName: "Satoshi", school: "CYPHERPUNK", discipline: "Sound money & Cypherpunk PoW", vote: "PASS", reason: "Awaiting decentralized sequencing verification; complex modular state creates new administrative attack vectors." },
+        { seat: 2, name: "Vitalik Buterin", shortName: "Vitalik", school: "COMPUTATION", discipline: "Programmable logic & Mechanism design", vote: "ADD", reason: "Durable developer network effects, cryptographic validity proofs, and active public goods mechanism design." },
+        { seat: 3, name: "Hal Finney", shortName: "Finney", school: "CYPHERPUNK", discipline: "Cryptographic privacy & First principles", vote: "PASS", reason: "Remarkable smart contract progress, though native base-layer financial privacy remains incomplete." },
+        { seat: 4, name: "Nick Szabo", shortName: "Szabo", school: "COMPUTATION", discipline: "Trust minimization & Smart contracts", vote: "PASS", reason: "Turing-complete attack surface and governance mutability warrant caution over long-term base fee accrual." },
+        { seat: 5, name: "Anatoly Yakovenko", shortName: "Anatoly", school: "MONOLITHIC", discipline: "Monolithic execution & Hardware scaling", vote: "REDUCE", reason: "Asynchronous Layer-2 fragmentation breaks atomic composability and degrades overall user and developer UX." },
+        { seat: 6, name: "Arthur Hayes", shortName: "Hayes", school: "MACRO", discipline: "Macro liquidity & Crypto reflexivity", vote: "ADD", reason: "Staking carry yield combined with high beta exposure to global digital liquidity makes ETH an attractive asset." },
+        { seat: 7, name: "Michael Saylor", shortName: "Saylor", school: "TREASURY", discipline: "Balance sheet treasury & Digital property", vote: "REDUCE", reason: "Dynamic token supply schedules and software governance risk prevent classification as pristine digital property." },
+        { seat: 8, name: "Changpeng Zhao", shortName: "CZ", school: "LIQUIDITY", discipline: "Orderbook liquidity & Mass onboarding", vote: "PASS", reason: "Massive DeFi liquidity and developer base, but L2 bridging complexity creates friction for retail users." },
+        { seat: 9, name: "Brian Armstrong", shortName: "Armstrong", school: "INSTITUTIONAL", discipline: "Regulated rails & Institutional custody", vote: "ADD", reason: "Anchor for institutional stablecoins, spot ETF vehicle approvals, and premier compliant L2 infrastructure." }
       ],
       transcript: [
         { type: "chair", who: "CHAIR", time: "11:00:00", text: "Floor opened for Ethereum (ETH): 'Does Layer-2 fragmentation permanently impair Ethereum's fee accrual moat?'" },
-        { type: "analysis", who: "Benjamin Graham", time: "11:02:40", text: "Ethereum is unique in generating tangible staking yields. However, if transactions move to L2s paying negligible blob fees, the P/E ratio on L1 revenue explodes upwards. That weakens the margin of safety." },
-        { type: "chair", who: "CHAIR", time: "11:35:00", text: "VERDICT RECORDED: PASS (5 / 9 plurality). Dissent: 4 ADD, 2 REDUCE." }
+        { type: "analysis", who: "Vitalik Buterin", time: "11:02:40", text: "Layer-2 rollups preserve Ethereum's L1 decentralization while providing scalable blockspace. Cryptographic validity proofs and unified data availability will bind the ecosystem together." },
+        { type: "analysis", who: "Anatoly Yakovenko", time: "11:05:10", text: "Fragmenting users and liquidity across 50 separate rollups with centralized sequencers breaks synchronous composability. Developers are forced into bridging nightmares." },
+        { type: "chair", who: "CHAIR", time: "11:35:00", text: "VERDICT RECORDED: PASS (4 / 9 plurality). Dissent: 3 ADD, 2 REDUCE. Sizing band: 1.0 – 2.0%." }
       ]
     },
     {
@@ -357,7 +358,7 @@ const BourseMockData = (() => {
         outcome: "REDUCE",
         majorityRatio: "6 / 9",
         dissentBreakdown: "2 PASS, 1 ADD",
-        positionSizeBand: "0.5 – 1.5%",
+        positionSizeBand: "0.0 – 1.0%",
         keyAgreement: "Avalanche provides robust subnet isolation for regulated institutions.",
         keyDisagreement: "Whether capital fragmentation across subnets diminishes core token value capture.",
         unresolvedQuestion: "Will private institutional subnets require AVAX staking in sufficient volume?",
@@ -370,19 +371,19 @@ const BourseMockData = (() => {
       speakingTurns: 12,
       seatsPresent: "9 / 9",
       votes: [
-        { seat: 1, name: "Benjamin Graham", shortName: "Graham", school: "VALUE", discipline: "Margin of safety", vote: "REDUCE", reason: "Token emissions outpace organic burn, diluting underlying holder equity." },
-        { seat: 2, name: "Charlie Munger", shortName: "Munger", school: "VALUE", discipline: "Mental models", vote: "REDUCE", reason: "Institutions using subnets have no economic reason to enrich AVAX spot holders." },
-        { seat: 3, name: "Peter Lynch", shortName: "Lynch", school: "GROWTH", discipline: "Know what you own", vote: "PASS", reason: "Solid gaming and enterprise trials, but end-user retail traction is lagging." },
-        { seat: 4, name: "Cathie Wood", shortName: "Wood", school: "GROWTH", discipline: "Growth and disruption", vote: "ADD", reason: "Subnet architecture represents a breakthrough in customizable sovereign application chains." },
-        { seat: 5, name: "Aswath Damodaran", shortName: "Damodaran", school: "VALUATION", discipline: "Story into numbers", vote: "REDUCE", reason: "Cost of capital exceeds protocol fee capture; net negative cash margins." },
-        { seat: 6, name: "Nassim Nicholas Taleb", shortName: "Taleb", school: "RISK", discipline: "Tail risk", vote: "REDUCE", reason: "Ecosystem relies heavily on subsidized incentive programs that shatter when treasury dries up." },
-        { seat: 7, name: "Mohnish Pabrai", shortName: "Pabrai", school: "VALUE", discipline: "Low risk, high uncertainty", vote: "PASS", reason: "Uncertainty is too high without clear downside protection." },
-        { seat: 8, name: "Bill Ackman", shortName: "Ackman", school: "CONCENTRATION", discipline: "Concentrated conviction", vote: "REDUCE", reason: "Subnet dilution prevents concentrated value capture at the root governance token." },
-        { seat: 9, name: "Michael Burry", shortName: "Burry", school: "CONTRARIAN", discipline: "Contrarian audit", vote: "REDUCE", reason: "Scheduled unlocks and validator emissions represent continuous sell-side overhang." }
+        { seat: 1, name: "Satoshi Nakamoto", shortName: "Satoshi", school: "CYPHERPUNK", discipline: "Sound money & Cypherpunk PoW", vote: "REDUCE", reason: "Subnet consensus and foundation coordination introduce unnecessary human trust assumptions." },
+        { seat: 2, name: "Vitalik Buterin", shortName: "Vitalik", school: "COMPUTATION", discipline: "Programmable logic & Mechanism design", vote: "PASS", reason: "Snow consensus is elegant, but EVM subnet fragmentation creates isolated capital silos." },
+        { seat: 3, name: "Hal Finney", shortName: "Finney", school: "CYPHERPUNK", discipline: "Cryptographic privacy & First principles", vote: "REDUCE", reason: "Lacks base privacy and relies heavily on institutional validator consortiums." },
+        { seat: 4, name: "Nick Szabo", shortName: "Szabo", school: "COMPUTATION", discipline: "Trust minimization & Smart contracts", vote: "REDUCE", reason: "Subnet isolation dilutes base network security and fragments algorithmic trust minimization." },
+        { seat: 5, name: "Anatoly Yakovenko", shortName: "Anatoly", school: "MONOLITHIC", discipline: "Monolithic execution & Hardware scaling", vote: "REDUCE", reason: "Isolated app chains cannot compete with high-frequency monolithic atomic composability." },
+        { seat: 6, name: "Arthur Hayes", shortName: "Hayes", school: "MACRO", discipline: "Macro liquidity & Crypto reflexivity", vote: "REDUCE", reason: "Thin secondary market depth and vulnerable to severe drawdown during global macro tightening." },
+        { seat: 7, name: "Michael Saylor", shortName: "Saylor", school: "TREASURY", discipline: "Balance sheet treasury & Digital property", vote: "REDUCE", reason: "Software venture token with continuous validator emissions; lacks immutable thermodynamic scarcity." },
+        { seat: 8, name: "Changpeng Zhao", shortName: "CZ", school: "LIQUIDITY", discipline: "Orderbook liquidity & Mass onboarding", vote: "PASS", reason: "Respectable trading volume, but institutional subnet trials have not generated mass retail adoption." },
+        { seat: 9, name: "Brian Armstrong", shortName: "Armstrong", school: "INSTITUTIONAL", discipline: "Regulated rails & Institutional custody", vote: "ADD", reason: "Compliant custom subnet architecture provides regulatory pathways for enterprise pilots." }
       ],
       transcript: [
         { type: "chair", who: "CHAIR", time: "16:15:00", text: "Chamber convened on Avalanche (AVAX)." },
-        { type: "verdict", who: "CHAIR", time: "16:48:00", text: "VERDICT RECORDED: REDUCE (6 / 9 majority). Dissent: 2 PASS, 1 ADD." }
+        { type: "verdict", who: "CHAIR", time: "16:48:00", text: "VERDICT RECORDED: REDUCE (6 / 9 majority). Dissent: 2 PASS, 1 ADD. Sizing band: 0.0 – 1.0%." }
       ]
     },
     {
@@ -409,8 +410,8 @@ const BourseMockData = (() => {
         outcome: "ADD",
         majorityRatio: "6 / 9",
         dissentBreakdown: "1 REDUCE, 2 PASS",
-        positionSizeBand: "2.5 – 4.0%",
-        keyAgreement: "Chainlink maintains a nearly unbreachable monopoly as the critical standard for blockchain data connectivity.",
+        positionSizeBand: "2.0 – 3.5%",
+        keyAgreement: "Chainlink maintains an unassailable monopoly as the critical standard for blockchain data connectivity.",
         keyDisagreement: "The extent to which commercial enterprise oracle volume translates directly to token staking cash flows.",
         unresolvedQuestion: "Will traditional financial consortia launch closed proprietary oracle consortiums to bypass public tokens?",
         reviewTriggers: [
@@ -422,19 +423,19 @@ const BourseMockData = (() => {
       speakingTurns: 15,
       seatsPresent: "9 / 9",
       votes: [
-        { seat: 1, name: "Benjamin Graham", shortName: "Graham", school: "VALUE", discipline: "Margin of safety", vote: "PASS", reason: "Monopolistic market share provides defensive comfort, but fee capture model remains young." },
-        { seat: 2, name: "Charlie Munger", shortName: "Munger", school: "VALUE", discipline: "Mental models", vote: "ADD", reason: "Like the plumbing in a major city: you cannot easily replace the pipes without breaking the buildings." },
-        { seat: 3, name: "Peter Lynch", shortName: "Lynch", school: "GROWTH", discipline: "Know what you own", vote: "ADD", reason: "Standard of the industry. When everyone needs your data feed, you have pricing power." },
-        { seat: 4, name: "Cathie Wood", shortName: "Wood", school: "GROWTH", discipline: "Growth and disruption", vote: "ADD", reason: "The universal interoperability protocol connecting legacy finance to decentralized blockchains." },
-        { seat: 5, name: "Aswath Damodaran", shortName: "Damodaran", school: "VALUATION", discipline: "Story into numbers", vote: "PASS", reason: "Essential infrastructure, but valuation trades at speculative multiple to current fee capture." },
-        { seat: 6, name: "Nassim Nicholas Taleb", shortName: "Taleb", school: "RISK", discipline: "Tail risk", vote: "ADD", reason: "Battle-tested during historic market flash crashes without critical oracle failure." },
-        { seat: 7, name: "Mohnish Pabrai", shortName: "Pabrai", school: "VALUE", discipline: "Low risk, high uncertainty", vote: "ADD", reason: "Toll bridge on all institutional smart contracts; asymmetric risk profile." },
-        { seat: 8, name: "Bill Ackman", shortName: "Ackman", school: "CONCENTRATION", discipline: "Concentrated conviction", vote: "ADD", reason: "Defensible competitive moat; near-zero customer churn and SWIFT/DTCC relationships." },
-        { seat: 9, name: "Michael Burry", shortName: "Burry", school: "CONTRARIAN", discipline: "Contrarian audit", vote: "REDUCE", reason: "Foundation token distribution history warrants caution; enterprise pilots take years to monetize." }
+        { seat: 1, name: "Satoshi Nakamoto", shortName: "Satoshi", school: "CYPHERPUNK", discipline: "Sound money & Cypherpunk PoW", vote: "PASS", reason: "Off-chain oracle data introduces external dependencies, though cryptographic aggregation limits failure points." },
+        { seat: 2, name: "Vitalik Buterin", shortName: "Vitalik", school: "COMPUTATION", discipline: "Programmable logic & Mechanism design", vote: "ADD", reason: "Essential decentralized middleware enabling trust-minimized cryptographic truth for multi-chain contracts." },
+        { seat: 3, name: "Hal Finney", shortName: "Finney", school: "CYPHERPUNK", discipline: "Cryptographic privacy & First principles", vote: "PASS", reason: "Verifiable oracle proofs are mathematically sound, but dependent on external data feeds." },
+        { seat: 4, name: "Nick Szabo", shortName: "Szabo", school: "COMPUTATION", discipline: "Trust minimization & Smart contracts", vote: "ADD", reason: "Bridges the crucial gap between deterministic smart contracts and subjective real-world information." },
+        { seat: 5, name: "Anatoly Yakovenko", shortName: "Anatoly", school: "MONOLITHIC", discipline: "Monolithic execution & Hardware scaling", vote: "PASS", reason: "Critical for DeFi pricing feeds, but oracle latency must continue improving for high-frequency trading." },
+        { seat: 6, name: "Arthur Hayes", shortName: "Hayes", school: "MACRO", discipline: "Macro liquidity & Crypto reflexivity", vote: "ADD", reason: "Inescapable tollbooth on all institutional capital and stablecoin movements entering digital assets." },
+        { seat: 7, name: "Michael Saylor", shortName: "Saylor", school: "TREASURY", discipline: "Balance sheet treasury & Digital property", vote: "REDUCE", reason: "Software utility token with continuous development requirements; not an absolute store-of-value asset." },
+        { seat: 8, name: "Changpeng Zhao", shortName: "CZ", school: "LIQUIDITY", discipline: "Orderbook liquidity & Mass onboarding", vote: "ADD", reason: "Unrivaled market share in price feeds across every major crypto exchange and DeFi protocol." },
+        { seat: 9, name: "Brian Armstrong", shortName: "Armstrong", school: "INSTITUTIONAL", discipline: "Regulated rails & Institutional custody", vote: "ADD", reason: "Prime enterprise partner for DTCC, SWIFT, and regulated banking tokenization pilots." }
       ],
       transcript: [
         { type: "chair", who: "CHAIR", time: "10:10:00", text: "Chamber convened on Chainlink (LINK)." },
-        { type: "verdict", who: "CHAIR", time: "10:45:00", text: "VERDICT RECORDED: ADD (6 / 9 majority). Dissent: 1 REDUCE, 2 PASS." }
+        { type: "verdict", who: "CHAIR", time: "10:45:00", text: "VERDICT RECORDED: ADD (6 / 9 majority). Dissent: 1 REDUCE, 2 PASS. Sizing band: 2.0 – 3.5%." }
       ]
     }
   ];

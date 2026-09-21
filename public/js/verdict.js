@@ -151,7 +151,10 @@ const BourseVerdict = (() => {
       const row = document.createElement('div');
       row.className = 'vote-item-row';
 
-      const agent = (typeof BourseAgents !== 'undefined') ? BourseAgents.getAgentByName(item.name) : null;
+      const council = (typeof BourseCryptoAgents !== 'undefined') ? BourseCryptoAgents : BourseAgents;
+      const agent = (council && typeof council.getAgentByName === 'function')
+        ? council.getAgentByName(item.name)
+        : ((typeof BourseAgents !== 'undefined') ? BourseAgents.getAgentByName(item.name) : null);
       const avatarSvg = BourseUtils.generatePixelAvatarSVG(item.name, 32);
       const voteClass = item.vote ? item.vote.toLowerCase() : 'pass';
 

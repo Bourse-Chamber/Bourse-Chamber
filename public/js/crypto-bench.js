@@ -54,6 +54,33 @@ const BourseCryptoBench = (() => {
     }
 
     agents.forEach(agent => {
+      // Real live record calculated dynamically from recorded sessions
+      const realRecord = (typeof BourseStorage !== 'undefined' && BourseStorage.getAgentVotingRecord)
+        ? BourseStorage.getAgentVotingRecord(agent.name || agent.seat)
+        : null;
+
+      const sessionsCount = (realRecord && realRecord.sessions > 0)
+        ? realRecord.sessions
+        : (agent.computedRecord ? agent.computedRecord.sessions : (agent.record ? agent.record.sessions : 0));
+
+      const votedInCount = (realRecord && realRecord.sessions > 0)
+        ? realRecord.votedFor
+        : (agent.computedRecord ? agent.computedRecord.votedFor : (agent.record ? agent.record.votedFor : 0));
+
+      const dissentsCount = (realRecord && realRecord.sessions > 0)
+        ? realRecord.dissents
+        : (agent.computedRecord ? agent.computedRecord.dissents : (agent.record ? agent.record.dissents : 0));
+
+      // Attach computed live record to agent object for dossier drawer
+      agent.computedRecord = {
+        sessions: sessionsCount,
+        votedFor: votedInCount,
+        dissents: dissentsCount,
+        votes: (realRecord && realRecord.votes && realRecord.votes.length > 0)
+          ? realRecord.votes
+          : (agent.computedRecord && agent.computedRecord.votes ? agent.computedRecord.votes : [])
+      };
+
       const card = document.createElement('article');
       const schoolSlug = agent.school.toLowerCase().replace(/[\s&]+/g, '-');
       card.className = `persona-card school-${schoolSlug}`;
@@ -88,15 +115,15 @@ const BourseCryptoBench = (() => {
         </ul>
         <div class="card-record-row">
           <div class="card-record-item">
-            <b>${agent.record.sessions}</b>
+            <b>${sessionsCount}</b>
             <span>Sessions</span>
           </div>
           <div class="card-record-item">
-            <b>${agent.record.votedFor}</b>
+            <b>${votedInCount}</b>
             <span>Voted In</span>
           </div>
           <div class="card-record-item">
-            <b>${agent.record.dissents}</b>
+            <b>${dissentsCount}</b>
             <span>Dissents</span>
           </div>
         </div>

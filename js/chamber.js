@@ -899,7 +899,7 @@ const BourseChamber = (() => {
       await streamTranscriptMsg({
         type: 'verdict-announcement',
         who: `VERDICT RECORD · SESSION ${sessionId}`,
-        text: `OUTCOME: ${outcome} (${verdictObj.majorityRatio} Majority)\nDISSENT: ${dissentBreakdown}\nPOSITION SIZE BAND: ${sizingBand} (Fixed by Seat 06 Taleb — ${talebSizing.rationale})\nRecord officially closed and committed to the permanent Verdict Ledger.`
+        text: `OUTCOME: ${outcome} (${verdictObj.majorityRatio} Majority)\nDISSENT: ${dissentBreakdown}\nPOSITION SIZE BAND: ${sizingBand} (Fixed by Seat 06 ${sizingSeat.shortName || sizingSeat.name} — ${sizingResult.rationale})\nRecord officially closed and committed to the permanent Verdict Ledger.`
       });
 
       // 6. PERSIST TO STORAGE
