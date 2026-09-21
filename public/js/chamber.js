@@ -93,30 +93,30 @@ const BourseChamber = (() => {
   }
 
   // Canonical rectangular arena coordinates (1000 x 490)
-  // Seat 1 at top center, 4 seats on left flank, 4 seats on right flank, bottom open
+  // 3 Top (Taleb 06, Graham 01, Damodaran 05), 3 Left Flank (Burry 09, Ackman 08, Pabrai 07), 3 Right Flank (Munger 02, Lynch 03, Wood 04)
   const SEAT_COORDINATES = {
-    1: { x: 500, y: 44 },  // Graham (Chair / Value anchor)
-    2: { x: 910, y: 72 },  // Munger (Right Flank Row 1)
-    3: { x: 910, y: 188 }, // Lynch (Right Flank Row 2)
-    4: { x: 910, y: 304 }, // Wood (Right Flank Row 3)
-    5: { x: 910, y: 420 }, // Damodaran (Right Flank Row 4 - moved from bottom)
-    6: { x: 90,  y: 420 }, // Taleb (Left Flank Row 4 - moved from bottom)
-    7: { x: 90,  y: 304 }, // Pabrai (Left Flank Row 3)
-    8: { x: 90,  y: 188 }, // Ackman (Left Flank Row 2)
-    9: { x: 90,  y: 72 }   // Burry (Left Flank Row 1)
+    1: { x: 500, y: 44 },  // Graham (Chair / Center Top)
+    2: { x: 910, y: 120 }, // Munger (Right Flank Row 1)
+    3: { x: 910, y: 270 }, // Lynch (Right Flank Row 2)
+    4: { x: 910, y: 420 }, // Wood (Right Flank Row 3)
+    5: { x: 705, y: 44 },  // Damodaran (Top Row Right — marked position)
+    6: { x: 295, y: 44 },  // Taleb (Top Row Left — marked position)
+    7: { x: 90,  y: 420 }, // Pabrai (Left Flank Row 3)
+    8: { x: 90,  y: 270 }, // Ackman (Left Flank Row 2)
+    9: { x: 90,  y: 120 }  // Burry (Left Flank Row 1)
   };
 
   // Spoke connections: from seat edge to transcript border (rect: x 190..810, y 108..458)
   const SPOKE_COORDINATES = {
     1: { x1: 500, y1: 82,  x2: 500, y2: 108 }, // Vertical down to transcript top
-    2: { x1: 882, y1: 72,  x2: 810, y2: 120 }, // Right flank row 1
-    3: { x1: 882, y1: 188, x2: 810, y2: 188 }, // Right flank row 2 (horizontal)
-    4: { x1: 882, y1: 304, x2: 810, y2: 304 }, // Right flank row 3 (horizontal)
-    5: { x1: 882, y1: 420, x2: 810, y2: 420 }, // Right flank row 4 (horizontal)
-    6: { x1: 118, y1: 420, x2: 190, y2: 420 }, // Left flank row 4 (horizontal)
-    7: { x1: 118, y1: 304, x2: 190, y2: 304 }, // Left flank row 3 (horizontal)
-    8: { x1: 118, y1: 188, x2: 190, y2: 188 }, // Left flank row 2 (horizontal)
-    9: { x1: 118, y1: 72,  x2: 190, y2: 120 }  // Left flank row 1
+    2: { x1: 882, y1: 120, x2: 810, y2: 120 }, // Right flank row 1 (horizontal)
+    3: { x1: 882, y1: 270, x2: 810, y2: 270 }, // Right flank row 2 (horizontal)
+    4: { x1: 882, y1: 420, x2: 810, y2: 420 }, // Right flank row 3 (horizontal)
+    5: { x1: 705, y1: 82,  x2: 705, y2: 108 }, // Vertical down to transcript top (Damodaran)
+    6: { x1: 295, y1: 82,  x2: 295, y2: 108 }, // Vertical down to transcript top (Taleb)
+    7: { x1: 118, y1: 420, x2: 190, y2: 420 }, // Left flank row 3 (horizontal)
+    8: { x1: 118, y1: 270, x2: 190, y2: 270 }, // Left flank row 2 (horizontal)
+    9: { x1: 118, y1: 120, x2: 190, y2: 120 }  // Left flank row 1 (horizontal)
   };
 
   /**
