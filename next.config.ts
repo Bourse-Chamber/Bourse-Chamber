@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
     return {
       beforeFiles: [
         { source: "/", destination: "/index.html" },
+        { source: "/overview", destination: "/index.html" },
         { source: "/chamber", destination: "/chamber.html" },
         { source: "/bench", destination: "/bench.html" },
         { source: "/ledger", destination: "/ledger.html" },
@@ -22,6 +23,18 @@ const nextConfig: NextConfig = {
       afterFiles: [],
       fallback: [],
     };
+  },
+  async redirects() {
+    return [
+      { source: "/index.html", destination: "/overview", permanent: true },
+      { source: "/index", destination: "/overview", permanent: true },
+      { source: "/chamber.html", destination: "/chamber", permanent: true },
+      { source: "/bench.html", destination: "/bench", permanent: true },
+      { source: "/ledger.html", destination: "/ledger", permanent: true },
+      { source: "/verdict.html", destination: "/verdict", permanent: true },
+      { source: "/method.html", destination: "/method", permanent: true },
+      { source: "/disclaimer.html", destination: "/disclaimer", permanent: true },
+    ];
   },
 };
 

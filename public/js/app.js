@@ -16,18 +16,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Active Link Highlight based on current path (supports clean URLs & .html)
-  const rawPath = window.location.pathname.split('/').pop() || 'index.html';
-  const pathPart = rawPath.replace('.html', '') || 'index';
+  // Active Link Highlight based on current path (supports clean URLs & overview)
+  const pathSegments = window.location.pathname.split('/').filter(Boolean);
+  const rawPath = pathSegments[0] || 'overview';
+  const pathPart = rawPath.replace('.html', '') || 'overview';
   const links = document.querySelectorAll('.nav-link');
   links.forEach(link => {
-    const href = (link.getAttribute('href') || '').replace('.html', '');
-    if (
-      href === pathPart ||
-      (pathPart === 'index' && (href === '' || href === 'index')) ||
-      (pathPart === 'bourse-chamber' && href === 'index') ||
-      (pathPart === 'verdict' && href === 'ledger')
-    ) {
+    const rawHref = link.getAttribute('href') || '';
+    const cleanHref = rawHref.replace('.html', '').replace(/^\//, '') || 'overview';
+    const isOverview = (pathPart === 'overview' || pathPart === 'index' || pathPart === '') && (cleanHref === 'overview' || cleanHref === 'index' || cleanHref === '');
+    const isVerdict = pathPart === 'verdict' && cleanHref === 'ledger';
+    if (cleanHref === pathPart || isOverview || isVerdict) {
       link.classList.add('active');
     } else {
       link.classList.remove('active');

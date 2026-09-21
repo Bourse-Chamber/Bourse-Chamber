@@ -890,14 +890,13 @@ const BourseChamber = (() => {
           if (window.BourseSPA) {
             window.BourseSPA.showVerdict(sessionId);
           } else {
-            window.location.href = `verdict.html?id=${sessionId}`;
+            window.location.href = `/verdict?id=${sessionId}`;
           }
         };
       }
       if (shareVerdictBtn) {
         shareVerdictBtn.onclick = async () => {
-          const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
-          const shareUrl = `${window.location.origin}${basePath}verdict.html?id=${sessionId}`;
+          const shareUrl = `${window.location.origin}/verdict?id=${sessionId}`;
           const ok = await BourseUtils.copyToClipboard(shareUrl);
           if (ok) {
             BourseUtils.showToast('Permanent verdict link copied to clipboard!');

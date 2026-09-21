@@ -102,7 +102,7 @@ const BourseLedger = (() => {
     filtered.forEach(session => {
       const row = document.createElement('a');
       row.className = 'ledger-row';
-      row.href = `verdict.html?id=${session.id}`;
+      row.href = `/verdict?id=${session.id}`;
       row.addEventListener('click', (e) => {
         if (window.BourseSPA) {
           e.preventDefault();
