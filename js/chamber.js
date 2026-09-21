@@ -538,7 +538,7 @@ const BourseChamber = (() => {
         composerInput.focus();
         composerInput.style.borderColor = '#FFFFFF';
         composerInput.style.boxShadow = '0 0 12px rgba(255, 255, 255, 0.6)';
-        composerInput.setAttribute('placeholder', 'Ketik aset/tesis (contoh: SOL, BTC, ETH) atau klik contoh di bawah...');
+        composerInput.setAttribute('placeholder', 'Enter ticker or thesis (e.g. SOL, BTC, ETH) or select an example below...');
         setTimeout(() => {
           if (composerInput) {
             composerInput.style.borderColor = '';
@@ -546,7 +546,7 @@ const BourseChamber = (() => {
           }
         }, 1500);
       }
-      BourseUtils.showToast('Ketik aset/tesis (contoh: SOL atau BTC) atau klik salah satu tombol contoh di bawah!');
+      BourseUtils.showToast('Please enter an asset or thesis to examine (e.g. SOL, BTC) or select an example below.');
       return;
     }
 

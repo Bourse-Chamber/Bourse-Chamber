@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
   <g transform="translate(60, 70)">
     <rect x="0" y="0" width="16" height="16" fill="#FFFFFF" />
     <text x="28" y="14" fill="#FFFFFF" class="mono" font-size="20" font-weight="600" letter-spacing="2">BOURSE CHAMBER</text>
-    <text x="28" y="32" fill="#6E6E6E" class="mono" font-size="12" letter-spacing="1">Ruang Sidang Investasi Berbasis AI</text>
+    <text x="28" y="32" fill="#6E6E6E" class="mono" font-size="12" letter-spacing="1">AI INVESTMENT DISCUSSION CHAMBER</text>
   </g>
 
   <g transform="translate(940, 70)">
