@@ -4,6 +4,16 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Strip .html extension from browser address bar and rewrite index to overview
+  if (typeof window !== 'undefined' && window.location) {
+    const pathname = window.location.pathname;
+    if (pathname.endsWith('.html') || pathname === '/index') {
+      let clean = pathname.replace(/\.html$/, '');
+      if (clean === '/index' || clean === '') clean = '/overview';
+      window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
+    }
+  }
+
   // Mobile Nav Toggle
   const navToggle = document.querySelector('.mobile-nav-toggle');
   const navLinks = document.querySelector('.nav-links');

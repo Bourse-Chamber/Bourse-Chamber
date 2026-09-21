@@ -24,18 +24,6 @@ const nextConfig: NextConfig = {
       fallback: [],
     };
   },
-  async redirects() {
-    return [
-      { source: "/index.html", destination: "/overview", permanent: true },
-      { source: "/index", destination: "/overview", permanent: true },
-      { source: "/chamber.html", destination: "/chamber", permanent: true },
-      { source: "/bench.html", destination: "/bench", permanent: true },
-      { source: "/ledger.html", destination: "/ledger", permanent: true },
-      { source: "/verdict.html", destination: "/verdict", permanent: true },
-      { source: "/method.html", destination: "/method", permanent: true },
-      { source: "/disclaimer.html", destination: "/disclaimer", permanent: true },
-    ];
-  },
 };
 
 export default nextConfig;
