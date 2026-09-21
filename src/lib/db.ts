@@ -22,8 +22,16 @@ export interface DatabaseAdapter {
 class PostgresDatabase implements DatabaseAdapter {
   private pool: any = null;
   private isInitialized = false;
+  private fallback: MemoryDatabase | null = null;
 
   constructor(private connectionString: string) {}
+
+  private getFallbackStore(): MemoryDatabase {
+    if (!this.fallback) {
+      this.fallback = new MemoryDatabase();
+    }
+    return this.fallback;
+  }
 
   private async getPool() {
     if (!this.pool) {
@@ -34,9 +42,13 @@ class PostgresDatabase implements DatabaseAdapter {
           ssl: this.connectionString.includes('localhost') ? false : { rejectUnauthorized: false },
           max: 10,
           idleTimeoutMillis: 30000,
+          connectionTimeoutMillis: 4000,
+        });
+        this.pool.on('error', (err: any) => {
+          console.warn('PostgreSQL pool background error:', err.message);
         });
       } catch (err) {
-        console.error('Failed to initialize PostgreSQL pool:', err);
+        console.warn('Failed to create PostgreSQL pool instance:', err);
         throw err;
       }
     }
@@ -45,10 +57,15 @@ class PostgresDatabase implements DatabaseAdapter {
 
   async init(): Promise<void> {
     if (this.isInitialized) return;
-    const pool = await this.getPool();
+    if (this.fallback) {
+      await this.fallback.init();
+      return;
+    }
+    try {
+      const pool = await this.getPool();
 
-    // Create required tables
-    await pool.query(`
+      // Create required tables
+      await pool.query(`
       CREATE TABLE IF NOT EXISTS sessions (
         id VARCHAR(32) PRIMARY KEY,
         asset VARCHAR(32) NOT NULL,
@@ -137,88 +154,100 @@ class PostgresDatabase implements DatabaseAdapter {
       );
     `);
 
-    this.isInitialized = true;
+      this.isInitialized = true;
+    } catch (err: any) {
+      console.warn(`PostgreSQL initialization failed (${err.message}). Seamlessly falling back to memory database.`);
+      const fb = this.getFallbackStore();
+      await fb.init();
+      this.isInitialized = true;
+    }
   }
 
   async getSession(id: string): Promise<ChamberSession | null> {
     await this.init();
-    const pool = await this.getPool();
+    if (this.fallback) return this.fallback.getSession(id);
+    try {
+      const pool = await this.getPool();
 
-    const sessRes = await pool.query('SELECT * FROM sessions WHERE id = $1', [id]);
-    if (sessRes.rows.length === 0) return null;
-    const s = sessRes.rows[0];
+      const sessRes = await pool.query('SELECT * FROM sessions WHERE id = $1', [id]);
+      if (sessRes.rows.length === 0) return null;
+      const s = sessRes.rows[0];
 
-    const verdRes = await pool.query('SELECT * FROM verdicts WHERE session_id = $1', [id]);
-    const evidRes = await pool.query('SELECT * FROM evidence WHERE session_id = $1', [id]);
-    const voteRes = await pool.query('SELECT * FROM votes WHERE session_id = $1 ORDER BY seat ASC', [id]);
-    const msgRes = await pool.query('SELECT * FROM seat_messages WHERE session_id = $1 ORDER BY created_at ASC', [id]);
+      const verdRes = await pool.query('SELECT * FROM verdicts WHERE session_id = $1', [id]);
+      const evidRes = await pool.query('SELECT * FROM evidence WHERE session_id = $1', [id]);
+      const voteRes = await pool.query('SELECT * FROM votes WHERE session_id = $1 ORDER BY seat ASC', [id]);
+      const msgRes = await pool.query('SELECT * FROM seat_messages WHERE session_id = $1 ORDER BY created_at ASC', [id]);
 
-    const v = verdRes.rows[0] || null;
-    const e = evidRes.rows[0] || null;
+      const v = verdRes.rows[0] || null;
+      const e = evidRes.rows[0] || null;
 
-    return {
-      id: s.id,
-      question: s.thesis,
-      ticker: s.asset,
-      assetName: s.asset,
-      createdAt: s.opened_at ? new Date(s.opened_at).toISOString() : new Date().toISOString(),
-      closedAt: s.closed_at ? new Date(s.closed_at).toISOString() : null,
-      seatsPresent: s.seats_present || '9 / 9',
-      speakingTurns: s.speaking_turns || 0,
-      directedMode: 'full_bench',
-      directedSeats: [],
-      evidence: e ? {
-        ticker: e.ticker,
-        name: e.name,
-        price: Number(e.price),
-        priceFormatted: `$${Number(e.price).toLocaleString()}`,
-        change24h: Number(e.change_24h),
-        marketCap: Number(e.market_cap),
-        marketCapFormatted: `$${(Number(e.market_cap) / 1e9).toFixed(2)}B`,
-        volume24h: Number(e.volume_24h),
-        volume24hFormatted: `$${(Number(e.volume_24h) / 1e9).toFixed(2)}B`,
-        ath: Number(e.ath),
-        drawdownFromAthPct: String(e.drawdown_from_ath),
-        sparkline: e.sparkline || [],
-        dataGaps: e.data_gaps || [],
-        networkActivity: 'Verified on-chain',
-        supply: 'Algorithmic hard cap',
-        macroContext: 'Institutional digital asset context',
-        retrievalDate: e.retrieval_date || '',
-        isDemoData: Boolean(e.is_demo_data)
-      } : null,
-      votes: voteRes.rows.map((row: any) => ({
-        seat: row.seat,
-        persona: row.persona,
-        shortName: row.short_name,
-        vote: row.vote,
-        weight: Number(row.weight),
-        rationale: row.rationale
-      })),
-      verdict: v ? {
-        id: v.id,
-        sessionId: v.session_id,
-        ticker: v.ticker,
-        assetName: v.asset_name,
-        question: v.question,
-        outcome: v.outcome,
-        majorityRatio: v.majority_ratio,
-        dissentBreakdown: v.dissent_breakdown || '',
-        positionSizeBand: v.position_size_band || '',
-        keyAgreement: v.key_agreement || '',
-        keyDisagreement: v.key_disagreement || '',
-        unresolvedQuestion: v.unresolved_question || '',
-        reviewTriggers: v.review_triggers || [],
-        votes: [],
-        timestamp: v.recorded_at ? new Date(v.recorded_at).toISOString() : new Date().toISOString()
-      } : null,
-      transcript: msgRes.rows.map((row: any) => ({
-        type: row.message_type,
-        who: row.speaker,
-        time: row.time_label || '--:--',
-        text: row.body
-      }))
-    };
+      return {
+        id: s.id,
+        question: s.thesis,
+        ticker: s.asset,
+        assetName: s.asset,
+        createdAt: s.opened_at ? new Date(s.opened_at).toISOString() : new Date().toISOString(),
+        closedAt: s.closed_at ? new Date(s.closed_at).toISOString() : null,
+        seatsPresent: s.seats_present || '9 / 9',
+        speakingTurns: s.speaking_turns || 0,
+        directedMode: 'full_bench',
+        directedSeats: [],
+        evidence: e ? {
+          ticker: e.ticker,
+          name: e.name,
+          price: Number(e.price),
+          priceFormatted: `$${Number(e.price).toLocaleString()}`,
+          change24h: Number(e.change_24h),
+          marketCap: Number(e.market_cap),
+          marketCapFormatted: `$${(Number(e.market_cap) / 1e9).toFixed(2)}B`,
+          volume24h: Number(e.volume_24h),
+          volume24hFormatted: `$${(Number(e.volume_24h) / 1e9).toFixed(2)}B`,
+          ath: Number(e.ath),
+          drawdownFromAthPct: String(e.drawdown_from_ath),
+          sparkline: e.sparkline || [],
+          dataGaps: e.data_gaps || [],
+          networkActivity: 'Verified on-chain',
+          supply: 'Algorithmic hard cap',
+          macroContext: 'Institutional digital asset context',
+          retrievalDate: e.retrieval_date || '',
+          isDemoData: Boolean(e.is_demo_data)
+        } : null,
+        votes: voteRes.rows.map((row: any) => ({
+          seat: row.seat,
+          persona: row.persona,
+          shortName: row.short_name,
+          vote: row.vote,
+          weight: Number(row.weight),
+          rationale: row.rationale
+        })),
+        verdict: v ? {
+          id: v.id,
+          sessionId: v.session_id,
+          ticker: v.ticker,
+          assetName: v.asset_name,
+          question: v.question,
+          outcome: v.outcome,
+          majorityRatio: v.majority_ratio,
+          dissentBreakdown: v.dissent_breakdown || '',
+          positionSizeBand: v.position_size_band || '',
+          keyAgreement: v.key_agreement || '',
+          keyDisagreement: v.key_disagreement || '',
+          unresolvedQuestion: v.unresolved_question || '',
+          reviewTriggers: v.review_triggers || [],
+          votes: [],
+          timestamp: v.recorded_at ? new Date(v.recorded_at).toISOString() : new Date().toISOString()
+        } : null,
+        transcript: msgRes.rows.map((row: any) => ({
+          type: row.message_type,
+          who: row.speaker,
+          time: row.time_label || '--:--',
+          text: row.body
+        }))
+      };
+    } catch (err: any) {
+      console.warn(`PostgreSQL getSession error (${err.message}), using fallback.`);
+      return this.getFallbackStore().getSession(id);
+    }
   }
 
   async saveSession(session: ChamberSession): Promise<void> {
@@ -329,48 +358,54 @@ class PostgresDatabase implements DatabaseAdapter {
 
   async listSessions(limit = 20): Promise<ChamberSession[]> {
     await this.init();
-    const pool = await this.getPool();
+    if (this.fallback) return this.fallback.listSessions(limit);
+    try {
+      const pool = await this.getPool();
 
-    const res = await pool.query(`
-      SELECT s.*, v.outcome, v.majority_ratio, v.position_size_band
-      FROM sessions s
-      LEFT JOIN verdicts v ON s.id = v.session_id
-      ORDER BY s.opened_at DESC
-      LIMIT $1;
-    `, [limit]);
+      const res = await pool.query(`
+        SELECT s.*, v.outcome, v.majority_ratio, v.position_size_band
+        FROM sessions s
+        LEFT JOIN verdicts v ON s.id = v.session_id
+        ORDER BY s.opened_at DESC
+        LIMIT $1;
+      `, [limit]);
 
-    return res.rows.map((r: any) => ({
-      id: r.id,
-      question: r.thesis,
-      ticker: r.asset,
-      assetName: r.asset,
-      createdAt: r.opened_at ? new Date(r.opened_at).toISOString() : new Date().toISOString(),
-      closedAt: r.closed_at ? new Date(r.closed_at).toISOString() : null,
-      seatsPresent: r.seats_present || '9 / 9',
-      speakingTurns: r.speaking_turns || 0,
-      directedMode: 'full_bench',
-      directedSeats: [],
-      evidence: null,
-      votes: [],
-      verdict: r.outcome ? {
-        id: `VR-${r.id}`,
-        sessionId: r.id,
+      return res.rows.map((r: any) => ({
+        id: r.id,
+        question: r.thesis,
         ticker: r.asset,
         assetName: r.asset,
-        question: r.thesis,
-        outcome: r.outcome,
-        majorityRatio: r.majority_ratio || '5 / 9',
-        dissentBreakdown: '',
-        positionSizeBand: r.position_size_band || '1.0 – 2.0%',
-        keyAgreement: '',
-        keyDisagreement: '',
-        unresolvedQuestion: '',
-        reviewTriggers: [],
+        createdAt: r.opened_at ? new Date(r.opened_at).toISOString() : new Date().toISOString(),
+        closedAt: r.closed_at ? new Date(r.closed_at).toISOString() : null,
+        seatsPresent: r.seats_present || '9 / 9',
+        speakingTurns: r.speaking_turns || 0,
+        directedMode: 'full_bench',
+        directedSeats: [],
+        evidence: null,
         votes: [],
-        timestamp: r.opened_at ? new Date(r.opened_at).toISOString() : new Date().toISOString()
-      } : null,
-      transcript: []
-    }));
+        verdict: r.outcome ? {
+          id: `VR-${r.id}`,
+          sessionId: r.id,
+          ticker: r.asset,
+          assetName: r.asset,
+          question: r.thesis,
+          outcome: r.outcome,
+          majorityRatio: r.majority_ratio || '5 / 9',
+          dissentBreakdown: '',
+          positionSizeBand: r.position_size_band || '1.0 – 2.0%',
+          keyAgreement: '',
+          keyDisagreement: '',
+          unresolvedQuestion: '',
+          reviewTriggers: [],
+          votes: [],
+          timestamp: r.opened_at ? new Date(r.opened_at).toISOString() : new Date().toISOString()
+        } : null,
+        transcript: []
+      }));
+    } catch (err: any) {
+      console.warn(`PostgreSQL listSessions error (${err.message}), using fallback.`);
+      return this.getFallbackStore().listSessions(limit);
+    }
   }
 
   async createWatch(watch: WatchRecord): Promise<void> {
