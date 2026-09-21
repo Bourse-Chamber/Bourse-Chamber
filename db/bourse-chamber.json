@@ -374,6 +374,16 @@
       "email": "analyst@bourse-chamber.internal",
       "status": "ACTIVE",
       "created_at": "2026-09-21T05:23:41.346Z"
+    },
+    {
+      "id": "WATCH-1789968873785-515",
+      "session_id": "BC-0411",
+      "asset": "SOL",
+      "trigger_condition": "Cumulative drawdown exceeding 30–35%",
+      "drawdown_threshold": 30,
+      "email": "analyst@bourse-chamber.internal",
+      "status": "ACTIVE",
+      "created_at": "2026-09-21T05:34:33.786Z"
     }
   ]
 }
