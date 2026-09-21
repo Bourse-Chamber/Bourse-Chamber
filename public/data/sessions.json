@@ -37,14 +37,14 @@
     "seatsPresent": "9 / 9",
     "votes": [
       { "seat": 1, "name": "Benjamin Graham", "shortName": "Graham", "school": "VALUE", "discipline": "Margin of safety", "vote": "REDUCE", "reason": "Current valuation assumes indefinite speculative volume. Lacks a tangible cash margin of safety." },
-      { "seat": 2, "name": "Charlie Munger", "shortName": "Munger", "school": "VALUE", discipline: "Mental models", vote: "REDUCE", reason: "Invert: validator economics and state bloat represent unmodeled operational fragilities." },
-      { "seat": 3, "name": "Peter Lynch", "shortName": "Lynch", "school": "GROWTH", discipline: "Know what you own", vote: "ADD", reason: "Organic retail user volume is observable in real life; consumer apps are choosing Solana." },
-      { "seat": 4, "name": "Cathie Wood", "shortName": "Wood", "school": "GROWTH", discipline: "Growth and disruption", vote: "ADD", reason: "Frictionless execution and monolithic composability represent the future of decentralized finance." },
-      { "seat": 5, "name": "Aswath Damodaran", "shortName": "Damodaran", school: "VALUATION", discipline: "Story into numbers", vote: "REDUCE", reason: "Token fee capture sits well below the protocol's required cost of capital." },
-      { "seat": 6, "name": "Nassim Nicholas Taleb", "shortName": "Taleb", school: "RISK", discipline: "Tail risk", vote: "REDUCE", reason: "Hardware centralization and single-client dependencies create severe absorbing tail risk." },
-      { "seat": 7, "name": "Mohnish Pabrai", "shortName": "Pabrai", school: "VALUE", discipline: "Low risk, high uncertainty", vote: "ADD", reason: "Heads I win, tails I don't lose much: developer gravity provides asymmetric upside." },
-      { "seat": 8, "name": "Bill Ackman", "shortName": "Ackman", school: "CONCENTRATION", discipline: "Concentrated conviction", vote: "REDUCE", reason: "Lacks durable institutional governance protections and predictable long-term cash generation." },
-      { "seat": 9, "name": "Michael Burry", "shortName": "Burry", school: "CONTRARIAN", discipline: "Contrarian audit", vote: "REDUCE", reason: "Concentrated venture backing and reflexive liquidity loops create an asymmetric downside trap." }
+      { "seat": 2, "name": "Charlie Munger", "shortName": "Munger", "school": "VALUE", "discipline": "Mental models", "vote": "REDUCE", "reason": "Invert: validator economics and state bloat represent unmodeled operational fragilities." },
+      { "seat": 3, "name": "Peter Lynch", "shortName": "Lynch", "school": "GROWTH", "discipline": "Know what you own", "vote": "ADD", "reason": "Organic retail user volume is observable in real life; consumer apps are choosing Solana." },
+      { "seat": 4, "name": "Cathie Wood", "shortName": "Wood", "school": "GROWTH", "discipline": "Growth and disruption", "vote": "ADD", "reason": "Frictionless execution and monolithic composability represent the future of decentralized finance." },
+      { "seat": 5, "name": "Aswath Damodaran", "shortName": "Damodaran", "school": "VALUATION", "discipline": "Story into numbers", "vote": "REDUCE", "reason": "Token fee capture sits well below the protocol's required cost of capital." },
+      { "seat": 6, "name": "Nassim Nicholas Taleb", "shortName": "Taleb", "school": "RISK", "discipline": "Tail risk", "vote": "REDUCE", "reason": "Hardware centralization and single-client dependencies create severe absorbing tail risk." },
+      { "seat": 7, "name": "Mohnish Pabrai", "shortName": "Pabrai", "school": "VALUE", "discipline": "Low risk, high uncertainty", "vote": "ADD", "reason": "Heads I win, tails I don't lose much: developer gravity provides asymmetric upside." },
+      { "seat": 8, "name": "Bill Ackman", "shortName": "Ackman", "school": "CONCENTRATION", "discipline": "Concentrated conviction", "vote": "REDUCE", "reason": "Lacks durable institutional governance protections and predictable long-term cash generation." },
+      { "seat": 9, "name": "Michael Burry", "shortName": "Burry", "school": "CONTRARIAN", "discipline": "Contrarian audit", "vote": "REDUCE", "reason": "Concentrated venture backing and reflexive liquidity loops create an asymmetric downside trap." }
     ]
   },
   {
@@ -84,15 +84,15 @@
     "speakingTurns": 16,
     "seatsPresent": "9 / 9",
     "votes": [
-      { "seat": 1, "name": "Benjamin Graham", "shortName": "Graham", "school": "VALUE", discipline: "Margin of safety", vote: "PASS", reason: "Monetary brand acknowledged, but absence of cash flow floor warrants caution over accumulation." },
-      { "seat": 2, "name": "Charlie Munger", "shortName": "Munger", "school": "VALUE", discipline: "Mental models", vote: "REDUCE", reason: "Remains an artificial speculative token with excessive social friction and non-productive economics." },
-      { "seat": 3, "name": "Peter Lynch", "shortName": "Lynch", "school": "GROWTH", discipline: "Know what you own", vote: "ADD", reason: "Global brand awareness is total; institutional adoption has crossed the chasm." },
-      { "seat": 4, "name": "Cathie Wood", "shortName": "Wood", "school": "GROWTH", discipline: "Growth and disruption", vote: "ADD", reason: "Global monetary protocol on track for multi-trillion market capture; supreme conviction." },
-      { "seat": 5, "name": "Aswath Damodaran", "shortName": "Damodaran", school: "VALUATION", discipline: "Story into numbers", vote: "REDUCE", reason: "Without contractual cash flows or dividend yields, valuation is driven entirely by changing market pricing moods." },
-      { "seat": 6, "name": "Nassim Nicholas Taleb", "shortName": "Taleb", school: "RISK", discipline: "Tail risk", vote: "ADD", reason: "Proven survival through multiple 80% drawdowns without bankruptcy gives it antifragile convexity." },
-      { "seat": 7, "name": "Mohnish Pabrai", "shortName": "Pabrai", school: "VALUE", discipline: "Low risk, high uncertainty", vote: "ADD", reason: "Sovereign game theory makes terminal downside remote while global liquidity upside remains convex." },
-      { "seat": 8, "name": "Bill Ackman", "shortName": "Ackman", school: "CONCENTRATION", discipline: "Concentrated conviction", vote: "ADD", reason: "Digital store-of-value monopoly with massive structural network moats and regulated spot ETF custody." },
-      { "seat": 9, "name": "Michael Burry", "shortName": "Burry", school: "CONTRARIAN", discipline: "Contrarian audit", vote: "REDUCE", reason: "Derivative leverage concentration and custodial central counterparty risks create flash liquidation spirals." }
+      { "seat": 1, "name": "Benjamin Graham", "shortName": "Graham", "school": "VALUE", "discipline": "Margin of safety", "vote": "PASS", "reason": "Monetary brand acknowledged, but absence of cash flow floor warrants caution over accumulation." },
+      { "seat": 2, "name": "Charlie Munger", "shortName": "Munger", "school": "VALUE", "discipline": "Mental models", "vote": "REDUCE", "reason": "Remains an artificial speculative token with excessive social friction and non-productive economics." },
+      { "seat": 3, "name": "Peter Lynch", "shortName": "Lynch", "school": "GROWTH", "discipline": "Know what you own", "vote": "ADD", "reason": "Global brand awareness is total; institutional adoption has crossed the chasm." },
+      { "seat": 4, "name": "Cathie Wood", "shortName": "Wood", "school": "GROWTH", "discipline": "Growth and disruption", "vote": "ADD", "reason": "Global monetary protocol on track for multi-trillion market capture; supreme conviction." },
+      { "seat": 5, "name": "Aswath Damodaran", "shortName": "Damodaran", "school": "VALUATION", "discipline": "Story into numbers", "vote": "REDUCE", "reason": "Without contractual cash flows or dividend yields, valuation is driven entirely by changing market pricing moods." },
+      { "seat": 6, "name": "Nassim Nicholas Taleb", "shortName": "Taleb", "school": "RISK", "discipline": "Tail risk", "vote": "ADD", "reason": "Proven survival through multiple 80% drawdowns without bankruptcy gives it antifragile convexity." },
+      { "seat": 7, "name": "Mohnish Pabrai", "shortName": "Pabrai", "school": "VALUE", "discipline": "Low risk, high uncertainty", "vote": "ADD", "reason": "Sovereign game theory makes terminal downside remote while global liquidity upside remains convex." },
+      { "seat": 8, "name": "Bill Ackman", "shortName": "Ackman", "school": "CONCENTRATION", "discipline": "Concentrated conviction", "vote": "ADD", "reason": "Digital store-of-value monopoly with massive structural network moats and regulated spot ETF custody." },
+      { "seat": 9, "name": "Michael Burry", "shortName": "Burry", "school": "CONTRARIAN", "discipline": "Contrarian audit", "vote": "REDUCE", "reason": "Derivative leverage concentration and custodial central counterparty risks create flash liquidation spirals." }
     ]
   },
   {
@@ -132,15 +132,15 @@
     "speakingTurns": 13,
     "seatsPresent": "9 / 9",
     "votes": [
-      { "seat": 1, "name": "Benjamin Graham", "shortName": "Graham", "school": "VALUE", discipline: "Margin of safety", vote: "PASS", reason: "3.2% staking yield offers cash flow, but compressed L1 burn clouds earnings visibility." },
-      { "seat": 2, "name": "Charlie Munger", "shortName": "Munger", school: "VALUE", discipline: "Mental models", vote: "REDUCE", reason: "Unnecessary complexity and agency dilemmas between L1 and competing L2 teams." },
-      { "seat": 3, "name": "Peter Lynch", "shortName": "Lynch", school: "GROWTH", discipline: "Know what you own", vote: "ADD", reason: "Massive developer ecosystem and genuine financial applications running continuously." },
-      { "seat": 4, "name": "Cathie Wood", "shortName": "Wood", school: "GROWTH", discipline: "Growth and disruption", vote: "ADD", reason: "The foundational settlement layer for global financial market tokenization." },
-      { "seat": 5, "name": "Aswath Damodaran", "shortName": "Damodaran", school: "VALUATION", discipline: "Story into numbers", vote: "PASS", reason: "Fee generation is real, but terminal discount rate must reflect constant protocol shifts." },
-      { "seat": 6, "name": "Nassim Nicholas Taleb", "shortName": "Taleb", school: "RISK", discipline: "Tail risk", vote: "ADD", reason: "Longest unbroken track record of smart contract execution and battle-tested consensus." },
-      { "seat": 7, "name": "Mohnish Pabrai", "shortName": "Pabrai", school: "VALUE", discipline: "Low risk, high uncertainty", vote: "PASS", reason: "Unclear whether value accrues to the base asset or to competing Layer-2 execution tokens." },
-      { "seat": 8, "name": "Bill Ackman", "shortName": "Ackman", school: "CONCENTRATION", discipline: "Concentrated conviction", vote: "ADD", reason: "Monopoly on institutional DeFi liquidity and deeply established validator decentralization." },
-      { "seat": 9, "name": "Michael Burry", "shortName": "Burry", school: "CONTRARIAN", discipline: "Contrarian audit", vote: "REDUCE", reason: "L2 cannibalization strips L1 economic rent, exposing stakers to real negative carry." }
+      { "seat": 1, "name": "Benjamin Graham", "shortName": "Graham", "school": "VALUE", "discipline": "Margin of safety", "vote": "PASS", "reason": "3.2% staking yield offers cash flow, but compressed L1 burn clouds earnings visibility." },
+      { "seat": 2, "name": "Charlie Munger", "shortName": "Munger", "school": "VALUE", "discipline": "Mental models", "vote": "REDUCE", "reason": "Unnecessary complexity and agency dilemmas between L1 and competing L2 teams." },
+      { "seat": 3, "name": "Peter Lynch", "shortName": "Lynch", "school": "GROWTH", "discipline": "Know what you own", "vote": "ADD", "reason": "Massive developer ecosystem and genuine financial applications running continuously." },
+      { "seat": 4, "name": "Cathie Wood", "shortName": "Wood", "school": "GROWTH", "discipline": "Growth and disruption", "vote": "ADD", "reason": "The foundational settlement layer for global financial market tokenization." },
+      { "seat": 5, "name": "Aswath Damodaran", "shortName": "Damodaran", "school": "VALUATION", "discipline": "Story into numbers", "vote": "PASS", "reason": "Fee generation is real, but terminal discount rate must reflect constant protocol shifts." },
+      { "seat": 6, "name": "Nassim Nicholas Taleb", "shortName": "Taleb", "school": "RISK", "discipline": "Tail risk", "vote": "ADD", "reason": "Longest unbroken track record of smart contract execution and battle-tested consensus." },
+      { "seat": 7, "name": "Mohnish Pabrai", "shortName": "Pabrai", "school": "VALUE", "discipline": "Low risk, high uncertainty", "vote": "PASS", "reason": "Unclear whether value accrues to the base asset or to competing Layer-2 execution tokens." },
+      { "seat": 8, "name": "Bill Ackman", "shortName": "Ackman", "school": "CONCENTRATION", "discipline": "Concentrated conviction", "vote": "ADD", "reason": "Monopoly on institutional DeFi liquidity and deeply established validator decentralization." },
+      { "seat": 9, "name": "Michael Burry", "shortName": "Burry", "school": "CONTRARIAN", "discipline": "Contrarian audit", "vote": "REDUCE", "reason": "L2 cannibalization strips L1 economic rent, exposing stakers to real negative carry." }
     ]
   },
   {
@@ -180,15 +180,15 @@
     "speakingTurns": 12,
     "seatsPresent": "9 / 9",
     "votes": [
-      { "seat": 1, "name": "Benjamin Graham", "shortName": "Graham", "school": "VALUE", discipline: "Margin of safety", vote: "REDUCE", reason: "Token emissions outpace organic burn, diluting underlying holder equity." },
-      { "seat": 2, "name": "Charlie Munger", "shortName": "Munger", "school": "VALUE", discipline: "Mental models", vote: "REDUCE", reason: "Institutions using subnets have no economic reason to enrich AVAX spot holders." },
-      { "seat": 3, "name": "Peter Lynch", "shortName": "Lynch", "school": "GROWTH", discipline: "Know what you own", vote: "PASS", reason: "Solid gaming and enterprise trials, but end-user retail traction is lagging." },
-      { "seat": 4, "name": "Cathie Wood", "shortName": "Wood", "school": "GROWTH", discipline: "Growth and disruption", vote: "ADD", reason: "Subnet architecture represents a breakthrough in customizable sovereign application chains." },
-      { "seat": 5, "name": "Aswath Damodaran", "shortName": "Damodaran", school: "VALUATION", discipline: "Story into numbers", vote: "REDUCE", reason: "Cost of capital exceeds protocol fee capture; net negative cash margins." },
-      { "seat": 6, "name": "Nassim Nicholas Taleb", "shortName": "Taleb", school: "RISK", discipline: "Tail risk", vote: "REDUCE", reason: "Ecosystem relies heavily on subsidized incentive programs that shatter when treasury dries up." },
-      { "seat": 7, "name": "Mohnish Pabrai", "shortName": "Pabrai", school: "VALUE", discipline: "Low risk, high uncertainty", vote: "PASS", reason: "Uncertainty is too high without clear downside protection." },
-      { "seat": 8, "name": "Bill Ackman", "shortName": "Ackman", school: "CONCENTRATION", discipline: "Concentrated conviction", vote: "REDUCE", reason: "Subnet dilution prevents concentrated value capture at the root governance token." },
-      { "seat": 9, "name": "Michael Burry", "shortName": "Burry", school: "CONTRARIAN", discipline: "Contrarian audit", vote: "REDUCE", reason: "Scheduled unlocks and validator emissions represent continuous sell-side overhang." }
+      { "seat": 1, "name": "Benjamin Graham", "shortName": "Graham", "school": "VALUE", "discipline": "Margin of safety", "vote": "REDUCE", "reason": "Token emissions outpace organic burn, diluting underlying holder equity." },
+      { "seat": 2, "name": "Charlie Munger", "shortName": "Munger", "school": "VALUE", discipline: "Mental models", "vote": "REDUCE", "reason": "Institutions using subnets have no economic reason to enrich AVAX spot holders." },
+      { "seat": 3, "name": "Peter Lynch", "shortName": "Lynch", "school": "GROWTH", "discipline": "Know what you own", "vote": "PASS", "reason": "Solid gaming and enterprise trials, but end-user retail traction is lagging." },
+      { "seat": 4, "name": "Cathie Wood", "shortName": "Wood", "school": "GROWTH", "discipline": "Growth and disruption", "vote": "ADD", "reason": "Subnet architecture represents a breakthrough in customizable sovereign application chains." },
+      { "seat": 5, "name": "Aswath Damodaran", "shortName": "Damodaran", "school": "VALUATION", "discipline": "Story into numbers", "vote": "REDUCE", "reason": "Cost of capital exceeds protocol fee capture; net negative cash margins." },
+      { "seat": 6, "name": "Nassim Nicholas Taleb", "shortName": "Taleb", "school": "RISK", "discipline": "Tail risk", "vote": "REDUCE", "reason": "Ecosystem relies heavily on subsidized incentive programs that shatter when treasury dries up." },
+      { "seat": 7, "name": "Mohnish Pabrai", "shortName": "Pabrai", "school": "VALUE", "discipline": "Low risk, high uncertainty", "vote": "PASS", "reason": "Uncertainty is too high without clear downside protection." },
+      { "seat": 8, "name": "Bill Ackman", "shortName": "Ackman", "school": "CONCENTRATION", "discipline": "Concentrated conviction", "vote": "REDUCE", "reason": "Subnet dilution prevents concentrated value capture at the root governance token." },
+      { "seat": 9, "name": "Michael Burry", "shortName": "Burry", "school": "CONTRARIAN", "discipline": "Contrarian audit", "vote": "REDUCE", "reason": "Scheduled unlocks and validator emissions represent continuous sell-side overhang." }
     ]
   },
   {
@@ -228,15 +228,15 @@
     "speakingTurns": 15,
     "seatsPresent": "9 / 9",
     "votes": [
-      { "seat": 1, "name": "Benjamin Graham", "shortName": "Graham", "school": "VALUE", discipline: "Margin of safety", vote: "PASS", reason: "Monopolistic market share provides defensive comfort, but fee capture model remains young." },
-      { "seat": 2, "name": "Charlie Munger", "shortName": "Munger", "school": "VALUE", discipline: "Mental models", vote: "ADD", reason: "Like the plumbing in a major city: you cannot easily replace the pipes without breaking the buildings." },
-      { "seat": 3, "name": "Peter Lynch", "shortName": "Lynch", "school": "GROWTH", discipline: "Know what you own", vote: "ADD", reason: "Standard of the industry. When everyone needs your data feed, you have pricing power." },
-      { "seat": 4, "name": "Cathie Wood", "shortName": "Wood", "school": "GROWTH", discipline: "Growth and disruption", vote: "ADD", reason: "The universal interoperability protocol connecting legacy finance to decentralized blockchains." },
-      { "seat": 5, "name": "Aswath Damodaran", "shortName": "Damodaran", school: "VALUATION", discipline: "Story into numbers", vote: "PASS", reason: "Essential infrastructure, but valuation trades at speculative multiple to current fee capture." },
-      { "seat": 6, "name": "Nassim Nicholas Taleb", "shortName": "Taleb", school: "RISK", discipline: "Tail risk", vote: "ADD", reason: "Battle-tested during historic market flash crashes without critical oracle failure." },
-      { "seat": 7, "name": "Mohnish Pabrai", "shortName": "Pabrai", school: "VALUE", discipline: "Low risk, high uncertainty", vote: "ADD", reason: "Toll bridge on all institutional smart contracts; asymmetric risk profile." },
-      { "seat": 8, "name": "Bill Ackman", "shortName": "Ackman", school: "CONCENTRATION", discipline: "Concentrated conviction", vote: "ADD", reason: "Defensible competitive moat; near-zero customer churn and SWIFT/DTCC relationships." },
-      { "seat": 9, "name": "Michael Burry", "shortName": "Burry", school: "CONTRARIAN", discipline: "Contrarian audit", vote: "REDUCE", reason: "Foundation token distribution history warrants caution; enterprise pilots take years to monetize." }
+      { "seat": 1, "name": "Benjamin Graham", "shortName": "Graham", "school": "VALUE", "discipline": "Margin of safety", "vote": "PASS", "reason": "Monopolistic market share provides defensive comfort, but fee capture model remains young." },
+      { "seat": 2, "name": "Charlie Munger", "shortName": "Munger", "school": "VALUE", "discipline": "Mental models", "vote": "ADD", "reason": "Like the plumbing in a major city: you cannot easily replace the pipes without breaking the buildings." },
+      { "seat": 3, "name": "Peter Lynch", "shortName": "Lynch", "school": "GROWTH", "discipline": "Know what you own", "vote": "ADD", "reason": "Standard of the industry. When everyone needs your data feed, you have pricing power." },
+      { "seat": 4, "name": "Cathie Wood", "shortName": "Wood", "school": "GROWTH", "discipline": "Growth and disruption", "vote": "ADD", "reason": "The universal interoperability protocol connecting legacy finance to decentralized blockchains." },
+      { "seat": 5, "name": "Aswath Damodaran", "shortName": "Damodaran", "school": "VALUATION", "discipline": "Story into numbers", "vote": "PASS", "reason": "Essential infrastructure, but valuation trades at speculative multiple to current fee capture." },
+      { "seat": 6, "name": "Nassim Nicholas Taleb", "shortName": "Taleb", "school": "RISK", "discipline": "Tail risk", "vote": "ADD", "reason": "Battle-tested during historic market flash crashes without critical oracle failure." },
+      { "seat": 7, "name": "Mohnish Pabrai", "shortName": "Pabrai", "school": "VALUE", "discipline": "Low risk, high uncertainty", "vote": "ADD", "reason": "Toll bridge on all institutional smart contracts; asymmetric risk profile." },
+      { "seat": 8, "name": "Bill Ackman", "shortName": "Ackman", "school": "CONCENTRATION", "discipline": "Concentrated conviction", "vote": "ADD", "reason": "Defensible competitive moat; near-zero customer churn and SWIFT/DTCC relationships." },
+      { "seat": 9, "name": "Michael Burry", "shortName": "Burry", "school": "CONTRARIAN", "discipline": "Contrarian audit", "vote": "REDUCE", "reason": "Foundation token distribution history warrants caution; enterprise pilots take years to monetize." }
     ]
   }
 ]

@@ -316,18 +316,28 @@ const BourseChamber = (() => {
 
       // Budget Validation
       const warningEl = document.getElementById('budget-warning-text');
+      conveneBtn.disabled = false; // Always keep convene button interactive
       if (remaining < required) {
-        conveneBtn.disabled = true;
         if (warningEl) {
           warningEl.style.display = 'block';
-          if (count === 0 && remaining < 9 && remaining > 0) {
-            warningEl.textContent = `A full bench costs 9. You have ${remaining} left — click ${remaining} seats above to direct the floor instead.`;
-          } else {
-            warningEl.textContent = `Not enough credits. This prompt costs ${required}, but you have ${remaining} left today. Pick fewer seats or come back at 00:00 UTC.`;
+          warningEl.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <span>This prompt costs ${required} credits (${remaining} left today). Allowance will auto-replenish on convene.</span>
+              <button type="button" id="budget-warning-replenish-btn" style="background:#FFFFFF;color:#050505;border:none;padding:3px 8px;font-family:var(--font-mono);font-size:0.68rem;font-weight:700;cursor:pointer;">↻ REPLENISH 13 CREDITS</button>
+            </div>
+          `;
+          const repBtn = document.getElementById('budget-warning-replenish-btn');
+          if (repBtn) {
+            repBtn.onclick = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (typeof BourseBudget !== 'undefined') BourseBudget.reset();
+              updateComposerMode();
+              if (typeof BourseUtils !== 'undefined') BourseUtils.showToast('Budget replenished to 13/13 credits.');
+            };
           }
         }
       } else {
-        conveneBtn.disabled = false;
         if (warningEl && remaining > 3) {
           warningEl.style.display = 'none';
         }
@@ -552,11 +562,14 @@ const BourseChamber = (() => {
 
     const requiredCredits = getRequiredCredits();
     if (typeof BourseBudget !== 'undefined') {
-      const ok = BourseBudget.consume(requiredCredits);
-      if (!ok) {
-        BourseUtils.showToast('Insufficient daily answer credits. Check budget HUD.');
-        return;
+      const remaining = BourseBudget.getRemaining();
+      if (remaining < requiredCredits) {
+        BourseBudget.reset();
+        if (typeof BourseUtils !== 'undefined') {
+          BourseUtils.showToast('Daily budget auto-replenished (+13 credits). Convening the bench...');
+        }
       }
+      BourseBudget.consume(requiredCredits);
     }
 
     // Lock UI

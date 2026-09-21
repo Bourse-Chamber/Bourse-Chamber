@@ -1404,3 +1404,21 @@ footer.site-footer {
     scroll-behavior: auto !important;
   }
 }
+
+.budget-replenish-btn {
+  background: transparent;
+  border: 1px solid var(--border-subtle, #333333);
+  color: var(--text-muted, #888888);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.6rem;
+  padding: 1px 6px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.budget-replenish-btn:hover {
+  color: #FFFFFF;
+  border-color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.1);
+}

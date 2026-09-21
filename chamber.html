@@ -161,7 +161,10 @@
         <div class="budget-counter-hud" id="budget-counter-hud">
           <div class="budget-counter-top">
             <span class="budget-counter-text" id="budget-counter-text">13 / 13 answers left today</span>
-            <span class="budget-reset-countdown" id="budget-reset-countdown">Resets 00:00 UTC</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="budget-reset-countdown" id="budget-reset-countdown">Resets 00:00 UTC</span>
+              <button type="button" id="budget-replenish-btn" class="budget-replenish-btn" title="Replenish daily answer credits to 13">↻ Reset</button>
+            </div>
           </div>
           <div class="budget-pixel-grid" id="budget-pixel-grid"></div>
         </div>

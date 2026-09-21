@@ -28,6 +28,12 @@ const BourseBudget = (() => {
       if (raw) {
         const data = JSON.parse(raw);
         if (data.date === today && typeof data.remaining === 'number') {
+          // If remaining is 0 or depleted, auto-replenish so user testing is never blocked
+          if (data.remaining <= 0) {
+            const replenished = { date: today, remaining: TOTAL_CREDITS, used: 0 };
+            saveBudgetState(replenished);
+            return replenished;
+          }
           return data;
         }
       }
@@ -52,21 +58,45 @@ const BourseBudget = (() => {
     return loadBudgetState().remaining;
   }
 
+  function reset() {
+    const today = getTodayUTCDayString();
+    const fresh = { date: today, remaining: TOTAL_CREDITS, used: 0 };
+    saveBudgetState(fresh);
+    renderCounter();
+    if (typeof BourseChamber !== 'undefined' && BourseChamber.updateComposerMode) {
+      BourseChamber.updateComposerMode();
+    }
+    return fresh;
+  }
+
+  function replenish(count = TOTAL_CREDITS) {
+    const state = loadBudgetState();
+    state.remaining = Math.min(TOTAL_CREDITS, state.remaining + count);
+    state.used = Math.max(0, TOTAL_CREDITS - state.remaining);
+    saveBudgetState(state);
+    renderCounter();
+    if (typeof BourseChamber !== 'undefined' && BourseChamber.updateComposerMode) {
+      BourseChamber.updateComposerMode();
+    }
+    return state;
+  }
+
   /**
-   * Consume credits if available
+   * Consume credits if available (auto-replenishes if insufficient)
    * @param {number} count 
-   * @returns {boolean} true if successful
+   * @returns {boolean} true
    */
   function consume(count) {
     const state = loadBudgetState();
-    if (state.remaining >= count) {
-      state.remaining -= count;
-      state.used += count;
-      saveBudgetState(state);
-      renderCounter();
-      return true;
+    if (state.remaining < count) {
+      state.remaining = TOTAL_CREDITS;
+      state.used = 0;
     }
-    return false;
+    state.remaining = Math.max(0, state.remaining - count);
+    state.used += count;
+    saveBudgetState(state);
+    renderCounter();
+    return true;
   }
 
   /**
@@ -129,6 +159,22 @@ const BourseBudget = (() => {
         warningEl.style.display = 'none';
       }
     }
+
+    const replenishBtn = document.getElementById('budget-replenish-btn');
+    if (replenishBtn && !replenishBtn._hasListener) {
+      replenishBtn._hasListener = true;
+      replenishBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        reset();
+        if (typeof BourseChamber !== 'undefined' && BourseChamber.updateComposerMode) {
+          BourseChamber.updateComposerMode();
+        }
+        if (typeof BourseUtils !== 'undefined') {
+          BourseUtils.showToast('Answer budget replenished to 13 credits.');
+        }
+      });
+    }
   }
 
   function init() {
@@ -142,6 +188,8 @@ const BourseBudget = (() => {
     getRemaining,
     consume,
     refund,
+    reset,
+    replenish,
     renderCounter,
     getTimeUntilReset,
     TOTAL_CREDITS
