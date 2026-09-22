@@ -735,6 +735,7 @@ const BourseCryptoAgents = (() => {
       primaryMetric: "Institutional ETF Custodial Assets Under Management (AUM) & Legal Clarity",
       fatalFlaw: "Over-deference to regulatory regimes can compromise core permissionless and censorship-resistant crypto values.",
       firstQuestion: "Will this protocol withstand a formal SEC review and qualify for institutional custody?",
+      avatarImg: '/img/armstrong.png',
       record: { sessions: 43, votedFor: 22, dissents: 21 },
       traits: { decentralizationBias: 5, censorshipResistance: 5, securityFocus: 8, throughputBias: 6 },
       generateAnalysis(asset, evidence, query) {

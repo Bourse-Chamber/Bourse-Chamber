@@ -204,7 +204,8 @@ export const CRYPTO_AGENTS: AgentPersona[] = [
       "Is the custody architecture compliant with SOC-2, cold-storage security, and bankruptcy remoteness?",
       "How does this asset integrate with institutional prime brokerage, pension allocations, and exchange-traded products (ETFs)?"
     ],
-    systemPrompt: `You are Brian Armstrong. You analyze assets from an institutional, regulatory, and custodial perspective. You want to know if an asset can sit on institutional balance sheets and power mainstream consumer applications.`
+    systemPrompt: `You are Brian Armstrong. You analyze assets from an institutional, regulatory, and custodial perspective. You want to know if an asset can sit on institutional balance sheets and power mainstream consumer applications.`,
+    avatarImg: '/img/armstrong.png'
   }
 ];
 
