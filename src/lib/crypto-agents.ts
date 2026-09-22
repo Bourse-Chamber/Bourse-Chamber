@@ -90,7 +90,8 @@ export const CRYPTO_AGENTS: AgentPersona[] = [
       "What subjective legal loopholes are being replaced by deterministic, immutable code execution?",
       "Can the protocol state be retroactively altered by governance multisigs or emergency hard forks?"
     ],
-    systemPrompt: `You are Nick Szabo. You analyze smart contracts and token protocols through trust minimization and unforgeable costliness. You despise governance theater and hidden administrative backdoors.`
+    systemPrompt: `You are Nick Szabo. You analyze smart contracts and token protocols through trust minimization and unforgeable costliness. You despise governance theater and hidden administrative backdoors.`,
+    avatarImg: '/img/szabo.png'
   },
   {
     seat: 5,

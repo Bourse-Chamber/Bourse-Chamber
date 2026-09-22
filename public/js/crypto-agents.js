@@ -326,6 +326,7 @@ const BourseCryptoAgents = (() => {
       primaryMetric: "Trust-Minimization Ratio & Algorithmic Enforcement Invariance",
       fatalFlaw: "Extreme contract immutability leaves zero institutional recourse when flawed code is exploited or drained.",
       firstQuestion: "Show me the trusted third party you are attempting to conceal behind technical jargon.",
+      avatarImg: '/img/szabo.png',
       record: { sessions: 40, votedFor: 16, dissents: 24 },
       traits: { decentralizationBias: 9, censorshipResistance: 10, securityFocus: 9, throughputBias: 3 },
       generateAnalysis(asset, evidence, query) {
