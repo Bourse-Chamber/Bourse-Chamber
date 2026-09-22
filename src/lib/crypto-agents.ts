@@ -200,3 +200,7 @@ export const CRYPTO_AGENTS: AgentPersona[] = [
     systemPrompt: `You are Brian Armstrong. You analyze assets from an institutional, regulatory, and custodial perspective. You want to know if an asset can sit on institutional balance sheets and power mainstream consumer applications.`
   }
 ];
+
+export function getAgentBySeat(seat: number): AgentPersona | undefined {
+  return CRYPTO_AGENTS.find(a => a.seat === seat);
+}

@@ -232,34 +232,34 @@ const BourseChamber = (() => {
     9: { x1: 118, y1: 120, x2: 190, y2: 120 }  // Left flank row 1 (horizontal)
   };
 
-  // Canonical 9 Economist Council Personas
-  const ECONOMIST_PERSONAS = [
-    "Benjamin Graham",
-    "Charlie Munger",
-    "Peter Lynch",
-    "Cathie Wood",
-    "Aswath Damodaran",
-    "Nassim Nicholas Taleb",
-    "Mohnish Pabrai",
-    "Bill Ackman",
-    "Michael Burry"
+  // Canonical 9 Crypto Architect Council Personas
+  const CRYPTO_PERSONAS = [
+    "Satoshi Nakamoto",
+    "Vitalik Buterin",
+    "Hal Finney",
+    "Nick Szabo",
+    "Anatoly Yakovenko",
+    "Arthur Hayes",
+    "Michael Saylor",
+    "Changpeng Zhao",
+    "Brian Armstrong"
   ];
 
   /**
-   * Get active council (9 Canonical Economists)
-   * The Chamber must NEVER load the Crypto Bench persona list.
+   * Get active council (9 Canonical Crypto Architects)
+   * The Chamber uses BourseCryptoAgents.
    */
   function getChamberCouncil() {
-    if (typeof BourseAgents !== 'undefined' && BourseAgents && Array.isArray(BourseAgents.AGENTS)) {
-      return BourseAgents;
+    if (typeof BourseCryptoAgents !== 'undefined' && BourseCryptoAgents && Array.isArray(BourseCryptoAgents.AGENTS)) {
+      return BourseCryptoAgents;
     }
-    if (typeof window !== 'undefined' && window.BourseAgents && Array.isArray(window.BourseAgents.AGENTS)) {
-      return window.BourseAgents;
+    if (typeof window !== 'undefined' && window.BourseCryptoAgents && Array.isArray(window.BourseCryptoAgents.AGENTS)) {
+      return window.BourseCryptoAgents;
     }
-    if (typeof globalThis !== 'undefined' && globalThis.BourseAgents && Array.isArray(globalThis.BourseAgents.AGENTS)) {
-      return globalThis.BourseAgents;
+    if (typeof globalThis !== 'undefined' && globalThis.BourseCryptoAgents && Array.isArray(globalThis.BourseCryptoAgents.AGENTS)) {
+      return globalThis.BourseCryptoAgents;
     }
-    throw new Error('Canonical 9 Economist Council (BourseAgents) failed to load into Chamber.');
+    throw new Error('Canonical 9 Crypto Architects (BourseCryptoAgents) failed to load into Chamber.');
   }
 
   /**

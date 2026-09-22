@@ -4,7 +4,7 @@
  * 3-Round Deliberation (9 Personas, Cross-Exam, Voting, Deterministic Verdict)
  */
 
-const { AGENTS } = require("../src/lib/agents");
+const { CRYPTO_AGENTS: AGENTS } = require("../src/lib/crypto-agents");
 const {
   generateRound1Analysis,
   generateRound2CrossExam,

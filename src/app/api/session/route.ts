@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { AGENTS } from '../../../lib/agents';
+import { CRYPTO_AGENTS as AGENTS } from '../../../lib/crypto-agents';
 import {
   generateRound1Analysis,
   generateRound2CrossExam,
