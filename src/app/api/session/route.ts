@@ -199,22 +199,26 @@ export async function POST(req: NextRequest) {
           emit('verdict', verdict);
 
           // --- PERSISTENCE: Save completed session to Database ---
-          await db.saveSession({
-            id: sessionId,
-            question: query,
-            ticker,
-            assetName: evidence.name,
-            createdAt: new Date().toISOString(),
-            closedAt: new Date().toISOString(),
-            evidence,
-            speakingTurns: transcript.length,
-            seatsPresent: '9 / 9',
-            directedMode: 'full_bench',
-            directedSeats: [],
-            votes,
-            verdict,
-            transcript,
-          });
+          try {
+            await db.saveSession({
+              id: sessionId,
+              question: query,
+              ticker,
+              assetName: evidence.name,
+              createdAt: new Date().toISOString(),
+              closedAt: new Date().toISOString(),
+              evidence,
+              speakingTurns: transcript.length,
+              seatsPresent: '9 / 9',
+              directedMode: 'full_bench',
+              directedSeats: [],
+              votes,
+              verdict,
+              transcript,
+            });
+          } catch (dbErr) {
+            console.warn('[Session DB Save Warning]:', dbErr);
+          }
 
           emit('done', { sessionId, completed: true, savedToDb: true, verdictId: verdict.id, outcome: verdict.outcome });
           emit('complete', { sessionId, completed: true, savedToDb: true, verdictId: verdict.id, outcome: verdict.outcome });

@@ -252,107 +252,115 @@ class PostgresDatabase implements DatabaseAdapter {
 
   async saveSession(session: ChamberSession): Promise<void> {
     await this.init();
-    const pool = await this.getPool();
+    if (this.fallback) {
+      return this.fallback.saveSession(session);
+    }
 
-    const client = await pool.connect();
     try {
-      await client.query('BEGIN');
+      const pool = await this.getPool();
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
 
-      // 1. Upsert session
-      await client.query(`
-        INSERT INTO sessions (id, asset, thesis, verdict, for_count, against_count, abstain_count, majority, size_band, opened_at, closed_at, seats_present, speaking_turns)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-        ON CONFLICT (id) DO UPDATE SET
-          verdict = EXCLUDED.verdict,
-          closed_at = EXCLUDED.closed_at,
-          speaking_turns = EXCLUDED.speaking_turns;
-      `, [
-        session.id,
-        session.ticker,
-        session.question,
-        session.verdict?.outcome || 'PASS',
-        session.votes.filter(v => v.vote === 'ADD').length,
-        session.votes.filter(v => v.vote === 'REDUCE').length,
-        session.votes.filter(v => v.vote === 'PASS').length,
-        session.verdict ? parseInt(session.verdict.majorityRatio.split('/')[0]) || 5 : 5,
-        session.verdict?.positionSizeBand || '1.0 – 2.0%',
-        session.createdAt || new Date().toISOString(),
-        session.closedAt || new Date().toISOString(),
-        session.seatsPresent || '9 / 9',
-        session.speakingTurns || session.transcript.length
-      ]);
-
-      // 2. Insert Evidence
-      if (session.evidence) {
-        const evidId = `EV-${session.id}`;
+        // 1. Upsert session
         await client.query(`
-          INSERT INTO evidence (id, session_id, ticker, name, price, change_24h, market_cap, volume_24h, ath, drawdown_from_ath, sparkline, data_gaps, retrieval_date, is_demo_data)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+          INSERT INTO sessions (id, asset, thesis, verdict, for_count, against_count, abstain_count, majority, size_band, opened_at, closed_at, seats_present, speaking_turns)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
           ON CONFLICT (id) DO UPDATE SET
-            price = EXCLUDED.price,
-            change_24h = EXCLUDED.change_24h;
+            verdict = EXCLUDED.verdict,
+            closed_at = EXCLUDED.closed_at,
+            speaking_turns = EXCLUDED.speaking_turns;
         `, [
-          evidId,
           session.id,
-          session.evidence.ticker,
-          session.evidence.name,
-          session.evidence.price,
-          session.evidence.change24h,
-          session.evidence.marketCap,
-          session.evidence.volume24h,
-          session.evidence.ath || session.evidence.price,
-          Number(session.evidence.drawdownFromAthPct) || 0,
-          JSON.stringify((session.evidence as any).sparkline || []),
-          JSON.stringify(session.evidence.dataGaps || []),
-          session.evidence.retrievalDate,
-          session.evidence.isDemoData
+          session.ticker,
+          session.question,
+          session.verdict?.outcome || 'PASS',
+          session.votes.filter(v => v.vote === 'ADD').length,
+          session.votes.filter(v => v.vote === 'REDUCE').length,
+          session.votes.filter(v => v.vote === 'PASS').length,
+          session.verdict ? parseInt(session.verdict.majorityRatio.split('/')[0]) || 5 : 5,
+          session.verdict?.positionSizeBand || '1.0 – 2.0%',
+          session.createdAt || new Date().toISOString(),
+          session.closedAt || new Date().toISOString(),
+          session.seatsPresent || '9 / 9',
+          session.speakingTurns || session.transcript.length
         ]);
-      }
 
-      // 3. Insert Votes
-      for (const v of session.votes) {
-        const voteId = `VOTE-${session.id}-${v.seat}`;
-        await client.query(`
-          INSERT INTO votes (id, session_id, seat, persona, short_name, vote, weight, rationale)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-          ON CONFLICT (id) DO UPDATE SET vote = EXCLUDED.vote, rationale = EXCLUDED.rationale;
-        `, [voteId, session.id, v.seat, v.persona, v.shortName, v.vote, v.weight || 1.0, v.rationale]);
-      }
+        // 2. Insert Evidence
+        if (session.evidence) {
+          const evidId = `EV-${session.id}`;
+          await client.query(`
+            INSERT INTO evidence (id, session_id, ticker, name, price, change_24h, market_cap, volume_24h, ath, drawdown_from_ath, sparkline, data_gaps, retrieval_date, is_demo_data)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+            ON CONFLICT (id) DO UPDATE SET
+              price = EXCLUDED.price,
+              change_24h = EXCLUDED.change_24h;
+          `, [
+            evidId,
+            session.id,
+            session.evidence.ticker,
+            session.evidence.name,
+            session.evidence.price,
+            session.evidence.change24h,
+            session.evidence.marketCap,
+            session.evidence.volume24h,
+            session.evidence.ath || session.evidence.price,
+            Number(session.evidence.drawdownFromAthPct) || 0,
+            JSON.stringify((session.evidence as any).sparkline || []),
+            JSON.stringify(session.evidence.dataGaps || []),
+            session.evidence.retrievalDate,
+            session.evidence.isDemoData
+          ]);
+        }
 
-      // 4. Insert Verdict
-      if (session.verdict) {
-        const verdId = `VR-${session.id}`;
-        await client.query(`
-          INSERT INTO verdicts (id, session_id, ticker, asset_name, question, outcome, majority_ratio, dissent_breakdown, position_size_band, key_agreement, key_disagreement, unresolved_question, review_triggers, recorded_at)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-          ON CONFLICT (session_id) DO UPDATE SET
-            outcome = EXCLUDED.outcome,
-            majority_ratio = EXCLUDED.majority_ratio,
-            recorded_at = EXCLUDED.recorded_at;
-        `, [
-          verdId,
-          session.id,
-          session.verdict.ticker,
-          session.verdict.assetName,
-          session.verdict.question,
-          session.verdict.outcome,
-          session.verdict.majorityRatio,
-          session.verdict.dissentBreakdown,
-          session.verdict.positionSizeBand,
-          session.verdict.keyAgreement,
-          session.verdict.keyDisagreement,
-          session.verdict.unresolvedQuestion,
-          JSON.stringify(session.verdict.reviewTriggers || []),
-          session.verdict.timestamp || new Date().toISOString()
-        ]);
-      }
+        // 3. Insert Votes
+        for (const v of session.votes) {
+          const voteId = `VOTE-${session.id}-${v.seat}`;
+          await client.query(`
+            INSERT INTO votes (id, session_id, seat, persona, short_name, vote, weight, rationale)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (id) DO UPDATE SET vote = EXCLUDED.vote, rationale = EXCLUDED.rationale;
+          `, [voteId, session.id, v.seat, v.persona, v.shortName, v.vote, v.weight || 1.0, v.rationale]);
+        }
 
-      await client.query('COMMIT');
-    } catch (err) {
-      await client.query('ROLLBACK');
-      throw err;
-    } finally {
-      client.release();
+        // 4. Insert Verdict
+        if (session.verdict) {
+          const verdId = `VR-${session.id}`;
+          await client.query(`
+            INSERT INTO verdicts (id, session_id, ticker, asset_name, question, outcome, majority_ratio, dissent_breakdown, position_size_band, key_agreement, key_disagreement, unresolved_question, review_triggers, recorded_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+            ON CONFLICT (session_id) DO UPDATE SET
+              outcome = EXCLUDED.outcome,
+              majority_ratio = EXCLUDED.majority_ratio,
+              recorded_at = EXCLUDED.recorded_at;
+          `, [
+            verdId,
+            session.id,
+            session.verdict.ticker,
+            session.verdict.assetName,
+            session.verdict.question,
+            session.verdict.outcome,
+            session.verdict.majorityRatio,
+            session.verdict.dissentBreakdown,
+            session.verdict.positionSizeBand,
+            session.verdict.keyAgreement,
+            session.verdict.keyDisagreement,
+            session.verdict.unresolvedQuestion,
+            JSON.stringify(session.verdict.reviewTriggers || []),
+            session.verdict.timestamp || new Date().toISOString()
+          ]);
+        }
+
+        await client.query('COMMIT');
+      } catch (txErr) {
+        await client.query('ROLLBACK');
+        throw txErr;
+      } finally {
+        client.release();
+      }
+    } catch (err: any) {
+      console.warn(`PostgreSQL saveSession failed (${err.message}). Falling back to memory store.`);
+      return this.getFallbackStore().saveSession(session);
     }
   }
 
@@ -434,61 +442,88 @@ class PostgresDatabase implements DatabaseAdapter {
 
   async createWatch(watch: WatchRecord): Promise<void> {
     await this.init();
-    const pool = await this.getPool();
-
-    await pool.query(`
-      INSERT INTO watches (id, session_id, asset, trigger_condition, drawdown_threshold, email, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      ON CONFLICT (id) DO NOTHING;
-    `, [watch.id, watch.sessionId, watch.asset, watch.triggerCondition, watch.drawdownThreshold, watch.email, watch.status]);
+    if (this.fallback) return this.fallback.createWatch(watch);
+    try {
+      const pool = await this.getPool();
+      await pool.query(`
+        INSERT INTO watches (id, session_id, asset, trigger_condition, drawdown_threshold, email, status)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        ON CONFLICT (id) DO NOTHING;
+      `, [watch.id, watch.sessionId, watch.asset, watch.triggerCondition, watch.drawdownThreshold, watch.email, watch.status]);
+    } catch (err: any) {
+      console.warn(`PostgreSQL createWatch failed (${err.message}). Falling back to memory store.`);
+      return this.getFallbackStore().createWatch(watch);
+    }
   }
 
   async getActiveWatches(): Promise<WatchRecord[]> {
     await this.init();
-    const pool = await this.getPool();
-
-    const res = await pool.query("SELECT * FROM watches WHERE status = 'ACTIVE' ORDER BY created_at DESC");
-    return res.rows.map((r: any) => ({
-      id: r.id,
-      sessionId: r.session_id,
-      asset: r.asset,
-      triggerCondition: r.trigger_condition,
-      drawdownThreshold: Number(r.drawdown_threshold),
-      email: r.email,
-      status: r.status,
-      createdAt: r.created_at ? new Date(r.created_at).toISOString() : new Date().toISOString(),
-      lastTriggeredAt: r.last_triggered_at ? new Date(r.last_triggered_at).toISOString() : undefined
-    }));
+    if (this.fallback) return this.fallback.getActiveWatches();
+    try {
+      const pool = await this.getPool();
+      const res = await pool.query("SELECT * FROM watches WHERE status = 'ACTIVE' ORDER BY created_at DESC");
+      return res.rows.map((r: any) => ({
+        id: r.id,
+        sessionId: r.session_id,
+        asset: r.asset,
+        triggerCondition: r.trigger_condition,
+        drawdownThreshold: Number(r.drawdown_threshold),
+        email: r.email,
+        status: r.status,
+        createdAt: r.created_at ? new Date(r.created_at).toISOString() : new Date().toISOString(),
+        lastTriggeredAt: r.last_triggered_at ? new Date(r.last_triggered_at).toISOString() : undefined
+      }));
+    } catch (err: any) {
+      console.warn(`PostgreSQL getActiveWatches failed (${err.message}). Falling back to memory store.`);
+      return this.getFallbackStore().getActiveWatches();
+    }
   }
 
   async getWatchesBySession(sessionId: string): Promise<WatchRecord[]> {
     await this.init();
-    const pool = await this.getPool();
-
-    const res = await pool.query('SELECT * FROM watches WHERE session_id = $1 ORDER BY created_at DESC', [sessionId]);
-    return res.rows.map((r: any) => ({
-      id: r.id,
-      sessionId: r.session_id,
-      asset: r.asset,
-      triggerCondition: r.trigger_condition,
-      drawdownThreshold: Number(r.drawdown_threshold),
-      email: r.email,
-      status: r.status,
-      createdAt: r.created_at ? new Date(r.created_at).toISOString() : new Date().toISOString(),
-      lastTriggeredAt: r.last_triggered_at ? new Date(r.last_triggered_at).toISOString() : undefined
-    }));
+    if (this.fallback) return this.fallback.getWatchesBySession(sessionId);
+    try {
+      const pool = await this.getPool();
+      const res = await pool.query('SELECT * FROM watches WHERE session_id = $1 ORDER BY created_at DESC', [sessionId]);
+      return res.rows.map((r: any) => ({
+        id: r.id,
+        sessionId: r.session_id,
+        asset: r.asset,
+        triggerCondition: r.trigger_condition,
+        drawdownThreshold: Number(r.drawdown_threshold),
+        email: r.email,
+        status: r.status,
+        createdAt: r.created_at ? new Date(r.created_at).toISOString() : new Date().toISOString(),
+        lastTriggeredAt: r.last_triggered_at ? new Date(r.last_triggered_at).toISOString() : undefined
+      }));
+    } catch (err: any) {
+      console.warn(`PostgreSQL getWatchesBySession failed (${err.message}). Falling back to memory store.`);
+      return this.getFallbackStore().getWatchesBySession(sessionId);
+    }
   }
 
   async updateWatchTriggered(id: string): Promise<void> {
     await this.init();
-    const pool = await this.getPool();
-    await pool.query("UPDATE watches SET status = 'TRIGGERED', last_triggered_at = CURRENT_TIMESTAMP WHERE id = $1", [id]);
+    if (this.fallback) return this.fallback.updateWatchTriggered(id);
+    try {
+      const pool = await this.getPool();
+      await pool.query("UPDATE watches SET status = 'TRIGGERED', last_triggered_at = CURRENT_TIMESTAMP WHERE id = $1", [id]);
+    } catch (err: any) {
+      console.warn(`PostgreSQL updateWatchTriggered failed (${err.message}). Falling back to memory store.`);
+      return this.getFallbackStore().updateWatchTriggered(id);
+    }
   }
 
   async updateWatchStatus(id: string, status: 'ACTIVE' | 'TRIGGERED' | 'DISMISSED'): Promise<void> {
     await this.init();
-    const pool = await this.getPool();
-    await pool.query("UPDATE watches SET status = $1 WHERE id = $2", [status, id]);
+    if (this.fallback) return this.fallback.updateWatchStatus(id, status);
+    try {
+      const pool = await this.getPool();
+      await pool.query("UPDATE watches SET status = $1 WHERE id = $2", [status, id]);
+    } catch (err: any) {
+      console.warn(`PostgreSQL updateWatchStatus failed (${err.message}). Falling back to memory store.`);
+      return this.getFallbackStore().updateWatchStatus(id, status);
+    }
   }
 }
 
