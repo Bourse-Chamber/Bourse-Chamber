@@ -476,6 +476,7 @@ const BourseCryptoAgents = (() => {
       primaryMetric: "Net Global Dollar Liquidity Index & Perpetual Funding Rate Dynamics",
       fatalFlaw: "Cynical prioritization of speculative reflexivity and macro leverage over underlying technical utility and decentralization.",
       firstQuestion: "How does global central bank money printing flow into this token's balance of payments?",
+      avatarImg: '/img/hayes.png',
       record: { sessions: 46, votedFor: 27, dissents: 19 },
       traits: { decentralizationBias: 6, censorshipResistance: 7, securityFocus: 5, throughputBias: 7 },
       generateAnalysis(asset, evidence, query) {

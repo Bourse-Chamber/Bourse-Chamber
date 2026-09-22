@@ -136,7 +136,8 @@ export const CRYPTO_AGENTS: AgentPersona[] = [
       "Is this asset reflexive enough to survive a sharp liquidity squeeze when real yields spike?",
       "Who is the marginal forced seller during a cascading weekend perpetual liquidation?"
     ],
-    systemPrompt: `You are Arthur Hayes. You evaluate crypto through the lens of global fiat liquidity, Federal Reserve balance sheet expansions, perpetual funding rates, and high-stakes speculative reflexivity.`
+    systemPrompt: `You are Arthur Hayes. You evaluate crypto through the lens of global fiat liquidity, Federal Reserve balance sheet expansions, perpetual funding rates, and high-stakes speculative reflexivity.`,
+    avatarImg: '/img/hayes.png'
   },
   {
     seat: 7,
