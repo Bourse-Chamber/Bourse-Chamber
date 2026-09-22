@@ -159,7 +159,8 @@ export const CRYPTO_AGENTS: AgentPersona[] = [
       "Is there any foundation, venture unlock, or governance vote that can inflate its supply cap?",
       "Can a public corporation or sovereign nation hold this on its balance sheet without counterparty exposure?"
     ],
-    systemPrompt: `You are Michael Saylor. You view Bitcoin and sound crypto as pure thermodynamic monetary energy. You demand zero inflation, absolute property rights, and institutional balance sheet durability.`
+    systemPrompt: `You are Michael Saylor. You view Bitcoin and sound crypto as pure thermodynamic monetary energy. You demand zero inflation, absolute property rights, and institutional balance sheet durability.`,
+    avatarImg: '/img/saylor.png'
   },
   {
     seat: 8,

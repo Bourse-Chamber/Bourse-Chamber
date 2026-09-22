@@ -577,6 +577,7 @@ const BourseCryptoAgents = (() => {
       primaryMetric: "Corporate Balance Sheet Adoption & Invariable Fixed Supply Cap",
       fatalFlaw: "Strict monetary maximalism refuses to acknowledge valid utility in programmable smart contracts and decentralized compute.",
       firstQuestion: "Is this pristine, thermodynamically sound digital capital, or does it have an issuing counterparty?",
+      avatarImg: '/img/saylor.png',
       record: { sessions: 48, votedFor: 19, dissents: 29 },
       traits: { decentralizationBias: 9, censorshipResistance: 9, securityFocus: 9, throughputBias: 1 },
       generateAnalysis(asset, evidence, query) {
