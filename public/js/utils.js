@@ -31,6 +31,9 @@ const BourseUtils = (() => {
     if (/finney/i.test(name)) {
       return `<img src="/img/finney.png" alt="Hal Finney" class="persona-avatar-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:2px;display:block;" onerror="this.onerror=null;this.src='img/finney.png';" />`;
     }
+    if (/anatoly|yakovenko/i.test(name)) {
+      return `<img src="/img/anatoly.png" alt="Anatoly Yakovenko" class="persona-avatar-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:2px;display:block;" onerror="this.onerror=null;this.src='img/anatoly.png';" />`;
+    }
     const hash = hashString(name);
     const gridSize = 8;
     const halfGrid = 4;

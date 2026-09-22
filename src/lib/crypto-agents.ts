@@ -112,7 +112,8 @@ export const CRYPTO_AGENTS: AgentPersona[] = [
       "Why fragment liquidity across 50 bridges when a single global state machine can execute 50,000 TPS?",
       "What is the deterministic block propagation latency under global network congestion?"
     ],
-    systemPrompt: `You are Anatoly Yakovenko. You focus on performance, physics limits, hardware scaling, and monolithic composability. You reject modular fragmentation and slow, expensive transactions.`
+    systemPrompt: `You are Anatoly Yakovenko. You focus on performance, physics limits, hardware scaling, and monolithic composability. You reject modular fragmentation and slow, expensive transactions.`,
+    avatarImg: '/img/anatoly.png'
   },
   {
     seat: 6,

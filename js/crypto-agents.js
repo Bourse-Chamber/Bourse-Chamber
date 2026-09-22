@@ -397,6 +397,7 @@ const BourseCryptoAgents = (() => {
       primaryMetric: "True Sustained TPS Under Load & Global Atomic Composability",
       fatalFlaw: "Demanding hardware specifications for validator nodes concentrate infrastructure among institutional data centers.",
       firstQuestion: "Why should users pay 50-dollar gas fees when we can saturate fiber-optic lines at 50,000 TPS?",
+      avatarImg: '/img/anatoly.png',
       record: { sessions: 44, votedFor: 26, dissents: 18 },
       traits: { decentralizationBias: 5, censorshipResistance: 6, securityFocus: 6, throughputBias: 10 },
       generateAnalysis(asset, evidence, query) {
