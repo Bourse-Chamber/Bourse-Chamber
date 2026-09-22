@@ -89,7 +89,6 @@ export async function POST(req: NextRequest) {
             const words = r1.analysis.split(' ');
             for (const w of words) {
               emit('seat_token', { seat: agent.seat, seatId: agent.seat, text: w + ' ', chunk: w + ' ' });
-              emit('token', { seat: agent.seat, chunk: w + ' ' });
             }
 
             emit('seat_end', {

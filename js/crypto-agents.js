@@ -18,6 +18,8 @@ const BourseCryptoAgents = (() => {
       topic = 'CRASH';
     } else if (/\b(tembus|100k|ath|all time high|kapan naik|to the moon|moon|bull|bullish|pump|target|naik|terbang|kaya)\b/i.test(q)) {
       topic = 'ATH_100K';
+    } else if (/\b(solana|sol).*(vs|versus|competitor|kompetitor|ethereum|eth|compete|bersaing|rival|long.?term|jangka panjang|serious|serius)\b/i.test(q) || /\b(ethereum|eth).*(vs|versus|solana|sol)\b/i.test(q)) {
+      topic = 'SOL_VS_ETH';
     } else if (/\b(solana|sol|eth|ethereum|l2|layer 2|layer2|tps|kecepatan|speed|downtime|scaling|throughput|gas fee|monolitik|modular|rollup)\b/i.test(q)) {
       topic = 'L2_SOLANA';
     } else if (/\b(sec|regulasi|regulation|pemerintah|etf|legal|pajak|gensler|hukum|bappebti|banned|dilarang|compliance)\b/i.test(q)) {
@@ -61,7 +63,11 @@ const BourseCryptoAgents = (() => {
         let position = isBtc ? "Pristine Byzantine Consensus" : "Centralized Trust Surface";
         let confidence = isBtc ? 96 : 82;
 
-        if (topic === 'CRASH') {
+        if (topic === 'SOL_VS_ETH') {
+          position = "Both Fail the Decentralization Standard";
+          argument = `On "${cleanQuery}": Both Ethereum and Solana have drifted from Satoshi's original vision. Ethereum's proof-of-stake introduced validator cartelization, while Solana's high hardware requirements mean only institutional data centers can run validating nodes. Neither achieves the permissionless, trustless peer-to-peer standard that Bitcoin established. The question is not which is better — it's whether either survives a coordinated state-level censorship attack.`;
+          confidence = 91;
+        } else if (topic === 'CRASH') {
           position = "Byzantine Fault Tolerance Over Market Noise";
           argument = isIndo
             ? `Mengenai "${cleanQuery}": Fluktuasi nilai tukar fiat adalah distraksi spekulatif. Buku besar Proof-of-Work tetap menghasilkan blok setiap 10 menit tanpa manipulasi bank sentral. Penurunan harga terjadi karena likuidasi utang dan kepanikan bursa terpusat, bukan kegagalan matematika 21 juta koin.`
@@ -156,7 +162,10 @@ const BourseCryptoAgents = (() => {
         let position = hasCompute ? "Constructive Mechanism Design" : "Mechanism Design Review";
         let argument = "";
 
-        if (topic === 'CRASH') {
+        if (topic === 'SOL_VS_ETH') {
+          position = "Ethereum Modular vs Solana Monolithic";
+          argument = `On "${cleanQuery}": Solana's monolithic single-chain execution achieves raw throughput, but it does so by raising the validator hardware bar so high that only institutional data centers can participate — that's not decentralization, it's performance theater. Ethereum's rollup-centric roadmap separates execution from settlement and data availability, allowing anyone to run a validating node while L2s handle high-frequency transactions. The real long-term question is: can Solana deliver full-node verifiability to ordinary participants, or does it converge into a high-speed permissioned network?`;
+        } else if (topic === 'CRASH') {
           position = "Deleveraging vs Consensus Health";
           argument = isIndo
             ? `Mengenai "${cleanQuery}": Penurunan pasar saat ini mencerminkan likuidasi posisi leverage di bursa berjangka, bukan kegagalan layer konsensus. Yang terpenting adalah apakah aktivitas pengembang, finalitas data L2 rollups, dan keamanan public goods tetap berjalan lancar tanpa eksploitasi MEV.`
@@ -244,7 +253,10 @@ const BourseCryptoAgents = (() => {
         let argument = "";
         let position = "Cryptographic Sovereignty Benchmark";
 
-        if (topic === 'CRASH') {
+        if (topic === 'SOL_VS_ETH') {
+          position = "Cryptographic Usability vs. Privacy Tradeoffs";
+          argument = `On "${cleanQuery}": From a cryptographic standpoint, both Solana and Ethereum expose complete transaction graphs — neither implements native privacy at the base layer. Solana's sub-second finality makes it practical for everyday payments, which is what I envisioned for digital cash, but the network's liveness depends on a small cartel of high-performance validators with no cryptographic privacy guarantees. Ethereum's direction toward ZK-proofs is more architecturally sound for privacy, but usability today remains poor for ordinary users.`;
+        } else if (topic === 'CRASH') {
           argument = isIndo
             ? `Mengenai "${cleanQuery}": Sejak saya menjalankan node Bitcoin kedua di dunia pada Januari 2009, pasar telah berkali-kali anjlok puluhan persen. Penurunan harga jangka pendek tidak pernah sedikit pun mengurangi keindahan matematika dari uang digital bebas sensor.`
             : `On "${cleanQuery}": Since running the second Bitcoin node on earth in January 2009, I witnessed countless drawdowns. Short-term price drops never diminish the mathematical elegance of sovereign, censorship-resistant digital cash.`;
@@ -317,7 +329,9 @@ const BourseCryptoAgents = (() => {
         const { topic, isIndo, cleanQuery } = analyzeTopic(query, asset);
 
         let argument = "";
-        if (topic === 'CRASH') {
+        if (topic === 'SOL_VS_ETH') {
+          argument = `On "${cleanQuery}": Neither Solana nor Ethereum is immune to my core principle — trusted third parties are security holes. Solana's network has halted multiple times due to its centralized validator set, requiring foundation intervention to restart the chain — that is precisely the trusted-third-party failure mode I warned about. Ethereum's governance via EIP processes and core developer multisigs also introduces social trust vectors. Smart contracts on both chains are only as trustless as the validator set and upgrade mechanisms allow.`;
+        } else if (topic === 'CRASH') {
           argument = isIndo
             ? `Mengenai "${cleanQuery}": Fluktuasi harga pasar adalah kebisingan spekulatif jangka pendek. Nilai abadi smart contract dan Bit Gold terletak pada 'social scalability'—kemampuan mengamankan kontrak tanpa perlu saling percaya dan tanpa perantara manusia.`
             : `On "${cleanQuery}": Price drawdowns are secondary market noise. The lasting value of smart contracts and Bit Gold rests on social scalability—reducing subjective trust vulnerabilities regardless of speculative sentiment.`;
@@ -389,7 +403,10 @@ const BourseCryptoAgents = (() => {
         let argument = "";
         let position = isHighThroughput ? "Monolithic Performance Benchmark" : "Throughput Constrained";
 
-        if (topic === 'CRASH') {
+        if (topic === 'SOL_VS_ETH') {
+          position = "Monolithic Execution Supremacy";
+          argument = `On "${cleanQuery}": This is precisely the architectural debate I designed Solana to settle. Ethereum's rollup fragmentation is an engineering compromise — you get lower hardware requirements for L1 nodes, but at the cost of fragmented liquidity, async composability failures, and bridge exploits. Solana's Proof of History enables deterministic clock synchronization so every validator processes the same ordered transaction log in parallel, achieving 65,000+ TPS with 400ms finality on a single unified state machine. As hardware costs continue halving, Solana's throughput advantage compounds — Ethereum's L2 complexity does not.`;
+        } else if (topic === 'CRASH') {
           position = "Execution Resiliency Under Liquidation";
           argument = isIndo
             ? `Mengenai "${cleanQuery}": Pasar boleh bergejolak, tetapi mesin eksekusi kami tetap memproses ribuan TPS tanpa antrean mempool macet. Likuidasi posisi berjalan instan dalam 400 milidetik. Infrastruktur kecepatan tinggi membuktikan ketahanannya saat jaringan lambat lumpuh.`
@@ -463,7 +480,10 @@ const BourseCryptoAgents = (() => {
         let argument = "";
         let position = isLiquid ? "High Beta Liquidity Sponge" : "Illiquid Convexity Play";
 
-        if (topic === 'CRASH') {
+        if (topic === 'SOL_VS_ETH') {
+          position = "Liquidity Reflexivity & Token Market Structure";
+          argument = `On "${cleanQuery}": From a pure liquidity and reflexivity perspective, Solana has successfully captured a younger, higher-beta capital flow while Ethereum accumulates institutional positioning and ETF wrapper demand. Solana's perpetual funding rates and options market are deepening — that matters more to crypto capital markets than architecture debates. Both chains are net beneficiaries of global fiat debasement, but SOL carries higher reflexive upside in a bull cycle precisely because its narrative (speed, low fees) is simple and retail-accessible. The real question is which token captures the next wave of speculative capital rotation.`;
+        } else if (topic === 'CRASH') {
           position = "Macro Liquidity Contraction & Margin Flush";
           argument = isIndo
             ? `Mengenai "${cleanQuery}": Hentikan kepanikan Anda di media sosial. Penurunan hari ini murni akibat kontraksi likuiditas fiat global, kebijakan suku bunga The Fed, dan likuidasi berantai posisi leverage di pasar perpetual derivatif. Ini siklus kredit standar. Siapkan amunisi fiat Anda dan bersiaplah membeli saat darah mengalir di jalanan!`
@@ -560,7 +580,10 @@ const BourseCryptoAgents = (() => {
         let argument = "";
         let position = isBtc ? "Thermodynamic Digital Capital" : "Unbacked Software Speculation";
 
-        if (topic === 'CRASH') {
+        if (topic === 'SOL_VS_ETH') {
+          position = "Both Are Inferior to Bitcoin's Monetary Network";
+          argument = `On "${cleanQuery}": Comparing Solana to Ethereum is like debating which melting ice cube is colder. Both have active foundations that can change consensus rules, both have continuous token emissions diluting holders, and neither has Bitcoin's unalterable 21 million hard cap. Solana's network has suffered repeated outages proving it is not a sound monetary network — you cannot store decades of purchasing power on infrastructure that requires foundation intervention to restart. Ethereum at least has a longer security track record, but it is still not pristine monetary capital.`;
+        } else if (topic === 'CRASH') {
           position = "Thermodynamic Immortality Over Paper Volatility";
           argument = isIndo
             ? `Mengenai "${cleanQuery}": Volatilitas harga harian hanyalah ilusi mata uang fiat yang meleleh. Bitcoin adalah energi digital murni yang kekal secara termodinamika. Entitas rasional tidak menjual Bitcoin saat pasar turun; kami membeli lebih banyak properti digital terbaik di bumi.`
@@ -641,7 +664,10 @@ const BourseCryptoAgents = (() => {
         let argument = "";
         let position = hasHighVolume ? "Deep Market Liquidity" : "Orderbook Liquidity Evaluation";
 
-        if (topic === 'CRASH') {
+        if (topic === 'SOL_VS_ETH') {
+          position = "Exchange Liquidity & Ecosystem Adoption";
+          argument = `On "${cleanQuery}": From a pure exchange infrastructure standpoint, Solana has become a dominant ecosystem for on-chain trading volume — meme coins, NFTs, and DeFi on Solana generate more daily transactions than most L2s combined. SOL/USDT spot depth on major orderbooks is deep and growing. However, Ethereum's ecosystem has more institutional-grade DeFi TVL and broader cross-chain bridge infrastructure. Long-term competitiveness will be decided by which chain makes it easiest for the next hundred million users to onboard, trade, and hold without losing funds to bridge exploits or network outages.`;
+        } else if (topic === 'CRASH') {
           position = "Market Cycle Normalization";
           argument = isIndo
             ? `Mengenai "${cleanQuery}": Koreksi pasar adalah bagian alami dari siklus industri kripto. Kami telah melihat volatilitas serupa di 2017, 2020, dan 2022. Kuncinya sederhana: kelola risiko portofolio Anda, jangan terbawa FUD spekulatif, dan fokuslah membangun infrastruktur adopsi pengguna jangka panjang.`
@@ -711,7 +737,10 @@ const BourseCryptoAgents = (() => {
         let argument = "";
         let position = isCompliant ? "Institutional Custody Standard" : "Regulatory Scrutiny Risk";
 
-        if (topic === 'CRASH') {
+        if (topic === 'SOL_VS_ETH') {
+          position = "Institutional Custody & Regulatory Classification";
+          argument = `On "${cleanQuery}": From a regulatory and institutional custody standpoint, Ethereum has a significant advantage — it was classified as a commodity by the CFTC, its spot ETFs are live, and Coinbase Custody already safeguards billions in ETH institutional assets. Solana lacks a spot ETF approval, faces potential SEC security classification risk, and its repeated network outages raise questions about institutional-grade reliability standards. Long-term competitiveness requires regulatory clarity and custody infrastructure — Ethereum is further ahead on both counts.`;
+        } else if (topic === 'CRASH') {
           position = "Institutional Flight to Quality";
           argument = isIndo
             ? `Mengenai "${cleanQuery}": Penurunan pasar menyaring proyek spekulatif tanpa utilitas. Arus modal institusi jangka panjang melalui kustodi teregulasi dan ETF spot tetap solid karena mereka membutuhkan kepastian hukum dan tata kelola yang transparan, bukan skema spekulasi liar.`
