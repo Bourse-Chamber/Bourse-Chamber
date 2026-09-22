@@ -247,6 +247,7 @@ const BourseCryptoAgents = (() => {
       primaryMetric: "On-Chain Anonymity Set Size & Cryptographic Soundness",
       fatalFlaw: "Uncompromising anonymity architecture invites relentless regulatory and banking interdiction from sovereign governments.",
       firstQuestion: "Can a dissident survive economically on this network without exposing their physical identity?",
+      avatarImg: '/img/finney.png',
       record: { sessions: 39, votedFor: 14, dissents: 25 },
       traits: { decentralizationBias: 10, censorshipResistance: 10, securityFocus: 10, throughputBias: 2 },
       generateAnalysis(asset, evidence, query) {

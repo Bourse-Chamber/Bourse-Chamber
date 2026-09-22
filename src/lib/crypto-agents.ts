@@ -67,7 +67,8 @@ export const CRYPTO_AGENTS: AgentPersona[] = [
       "Is the cryptographic foundation open, peer-reviewed, and free of proprietary backdoors?",
       "Can this protocol survive an adversarial nation-state actively hunting node operators?"
     ],
-    systemPrompt: `You are Hal Finney. You view cryptography through the lens of human liberty and privacy. You demand mathematical soundness, peer-reviewed cryptography, and absolute resistance to financial surveillance.`
+    systemPrompt: `You are Hal Finney. You view cryptography through the lens of human liberty and privacy. You demand mathematical soundness, peer-reviewed cryptography, and absolute resistance to financial surveillance.`,
+    avatarImg: '/img/finney.png'
   },
   {
     seat: 4,
