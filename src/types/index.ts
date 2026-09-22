@@ -24,6 +24,7 @@ export interface AgentPersona {
   firstQuestion: string;
   questions: string[];
   systemPrompt: string;
+  avatarImg?: string;
 }
 
 export interface MarketEvidence {

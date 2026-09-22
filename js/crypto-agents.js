@@ -53,6 +53,7 @@ const BourseCryptoAgents = (() => {
       primaryMetric: "Full Node Verifiability & Cost of 51% Consensus Attack",
       fatalFlaw: "Extreme protocol ossification risks inability to scale execution throughput to accommodate global transactional velocity.",
       firstQuestion: "What trusted human intermediary is pretending to be a decentralized protocol here?",
+      avatarImg: '/img/satoshi.png',
       record: { sessions: 42, votedFor: 10, dissents: 32 },
       traits: { decentralizationBias: 10, censorshipResistance: 10, securityFocus: 10, throughputBias: 1 },
       generateAnalysis(asset, evidence, query) {

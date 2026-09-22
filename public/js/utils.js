@@ -20,7 +20,11 @@ const BourseUtils = (() => {
    * Generates a deterministic 8x8 monochrome pixel avatar SVG
    * Symmetrical horizontally for iconic, dignified heraldic/institutional aesthetic.
    */
-  function generatePixelAvatarSVG(name, size = 48) {
+  function generatePixelAvatarSVG(nameOrAgent, size = 48) {
+    const name = typeof nameOrAgent === 'object' ? (nameOrAgent?.name || '') : String(nameOrAgent || '');
+    if (/satoshi/i.test(name)) {
+      return `<img src="/img/satoshi.png" alt="Satoshi Nakamoto" class="persona-avatar-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:2px;display:block;" onerror="this.onerror=null;this.src='img/satoshi.png';" />`;
+    }
     const hash = hashString(name);
     const gridSize = 8;
     const halfGrid = 4;

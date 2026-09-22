@@ -423,6 +423,11 @@ header.site-header {
   margin-bottom: 20px;
 }
 
+.dossier-avatar-wrap img {
+  display: block;
+  border-radius: 2px;
+}
+
 .dossier-seat-tag {
   font-family: var(--font-mono);
   font-size: 0.68rem;

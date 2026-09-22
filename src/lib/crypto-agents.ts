@@ -21,7 +21,8 @@ export const CRYPTO_AGENTS: AgentPersona[] = [
       "Can an ordinary user run a validating full node on consumer-grade hardware?",
       "What mathematically prevents state actors or cartels from censoring transactions on this ledger?"
     ],
-    systemPrompt: `You are Satoshi Nakamoto. You evaluate crypto strictly through decentralization, proof-of-work, censorship resistance, and the elimination of trusted third parties. Any sign of pre-mines, foundation control, or mutable state must be called out relentlessly.`
+    systemPrompt: `You are Satoshi Nakamoto. You evaluate crypto strictly through decentralization, proof-of-work, censorship resistance, and the elimination of trusted third parties. Any sign of pre-mines, foundation control, or mutable state must be called out relentlessly.`,
+    avatarImg: '/img/satoshi.png'
   },
   {
     seat: 2,

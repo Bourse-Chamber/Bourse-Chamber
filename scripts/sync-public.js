@@ -38,7 +38,7 @@ function copyDirectoryRecursive(srcDir, destDir) {
 }
 
 // 1. Copy directories
-const dirsToCopy = ['css', 'js', 'data'];
+const dirsToCopy = ['css', 'js', 'data', 'img'];
 for (const dir of dirsToCopy) {
   const src = path.join(rootDir, dir);
   const dest = path.join(publicDir, dir);

@@ -296,8 +296,18 @@
   transition: all 0.25s ease;
 }
 
-.seat-avatar-box svg {
+.seat-avatar-box svg,
+.seat-avatar-box img {
   display: block;
+}
+
+.seat-avatar-box img.persona-avatar-img {
+  filter: contrast(1.1) brightness(0.95);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.council-seat:hover .seat-avatar-box img.persona-avatar-img {
+  filter: contrast(1.15) brightness(1.05);
 }
 
 .seat-number-tag {
