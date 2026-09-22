@@ -28,7 +28,7 @@ const BourseCryptoAgents = (() => {
       topic = 'PRIVACY';
     }
 
-    const cleanQuery = String(query || asset?.ticker || "Aset Kripto").trim();
+    const cleanQuery = String(query || asset?.ticker || "Crypto Asset").trim();
     return { topic, isIndo, cleanQuery };
   }
 

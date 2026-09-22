@@ -73,7 +73,7 @@ const BourseMockData = (() => {
     },
     'CRYPTO': {
       ticker: 'CRYPTO',
-      name: 'Pasar Kripto Global (Market Context)',
+      name: 'Global Crypto Market (Market Context)',
       price: 64280,
       change24h: -2.45,
       marketCap: 2380000000000,
