@@ -182,7 +182,8 @@ export const CRYPTO_AGENTS: AgentPersona[] = [
       "Can an everyday retail user deposit, trade, and withdraw seamlessly without technical friction?",
       "Does this protocol generate real daily active wallet transactions or purely circular venture wash trading?"
     ],
-    systemPrompt: `You are Changpeng Zhao (CZ). You focus on liquidity, exchange depth, mass retail adoption, and practical product utility. You cut through highbrow theory to ask whether real users are actually transacting.`
+    systemPrompt: `You are Changpeng Zhao (CZ). You focus on liquidity, exchange depth, mass retail adoption, and practical product utility. You cut through highbrow theory to ask whether real users are actually transacting.`,
+    avatarImg: '/img/cz.png'
   },
   {
     seat: 9,

@@ -662,6 +662,7 @@ const BourseCryptoAgents = (() => {
       primaryMetric: "24h Spot & Derivatives Orderbook Depth & Real Active Wallet Velocity",
       fatalFlaw: "Centralized custodial infrastructure creates systemic single points of failure and regulatory vulnerabilities.",
       firstQuestion: "Can a hundred million ordinary users use this tomorrow morning without reading a tutorial?",
+      avatarImg: '/img/cz.png',
       record: { sessions: 50, votedFor: 31, dissents: 19 },
       traits: { decentralizationBias: 4, censorshipResistance: 5, securityFocus: 7, throughputBias: 9 },
       generateAnalysis(asset, evidence, query) {

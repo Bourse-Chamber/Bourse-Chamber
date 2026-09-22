@@ -46,6 +46,9 @@ const BourseUtils = (() => {
     if (/armstrong/i.test(name)) {
       return `<img src="/img/armstrong.png" alt="Brian Armstrong" class="persona-avatar-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:2px;display:block;" onerror="this.onerror=null;this.src='img/armstrong.png';" />`;
     }
+    if (/changpeng|zhao|\bcz\b/i.test(name)) {
+      return `<img src="/img/cz.png" alt="Changpeng Zhao" class="persona-avatar-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:2px;display:block;" onerror="this.onerror=null;this.src='img/cz.png';" />`;
+    }
     const hash = hashString(name);
     const gridSize = 8;
     const halfGrid = 4;
