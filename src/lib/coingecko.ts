@@ -22,6 +22,48 @@ const COIN_MAP: Record<string, string> = {
   'PEPE': 'pepe'
 };
 
+export function extractTickerFromQuery(query: string): string {
+  const clean = String(query || '').trim().toUpperCase();
+  const words = clean.split(/[^A-Z0-9]/).filter(w => w.length > 0);
+
+  const SYNONYMS: Record<string, string> = {
+    'SOLANA': 'SOL', 'SOL': 'SOL',
+    'ETHEREUM': 'ETH', 'ETH': 'ETH', 'ETHER': 'ETH',
+    'BITCOIN': 'BTC', 'BTC': 'BTC',
+    'AVALANCHE': 'AVAX', 'AVAX': 'AVAX',
+    'CHAINLINK': 'LINK', 'LINK': 'LINK',
+    'RIPPLE': 'XRP', 'XRP': 'XRP',
+    'CARDANO': 'ADA', 'ADA': 'ADA',
+    'BINANCE': 'BNB', 'BNB': 'BNB',
+    'DOGECOIN': 'DOGE', 'DOGE': 'DOGE',
+    'PEPE': 'PEPE', 'SHIBA': 'SHIB', 'SHIB': 'SHIB',
+    'SUI': 'SUI', 'NEAR': 'NEAR',
+    'ARBITRUM': 'ARB', 'ARB': 'ARB',
+    'OPTIMISM': 'OP', 'OP': 'OP',
+    'CELESTIA': 'TIA', 'TIA': 'TIA',
+    'RENDER': 'RENDER', 'INJECTIVE': 'INJ', 'INJ': 'INJ',
+    'AAVE': 'AAVE', 'UNISWAP': 'UNI', 'UNI': 'UNI'
+  };
+
+  for (const w of words) {
+    if (SYNONYMS[w]) {
+      return SYNONYMS[w];
+    }
+  }
+
+  const STOP_WORDS = new Set([
+    'IS', 'WHAT', 'HOW', 'WHY', 'CAN', 'DOES', 'WILL', 'SHOULD', 'THE',
+    'APAKAH', 'BAGAIMANA', 'MENGAPA', 'KENAPA', 'PADA', 'DENGAN', 'UNTUK',
+    'DALAM', 'ADALAH', 'ABOUT', 'COULD', 'WOULD', 'THERE'
+  ]);
+  const firstWord = words[0] || '';
+  if (firstWord.length >= 2 && firstWord.length <= 6 && !STOP_WORDS.has(firstWord)) {
+    return firstWord;
+  }
+
+  return 'BTC';
+}
+
 export async function fetchCryptoEvidence(tickerSymbol: string): Promise<MarketEvidence> {
   const ticker = tickerSymbol.trim().toUpperCase();
 

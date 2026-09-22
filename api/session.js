@@ -13,6 +13,7 @@ const {
 } = require("../src/lib/openrouter");
 const { db } = require("../src/lib/db");
 const { demoEvidence } = require("../db/engine");
+const { extractTickerFromQuery } = require("../src/lib/coingecko");
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -91,7 +92,7 @@ module.exports = async function handler(req, res) {
   }
 
   const sessionId = `BC-${Math.floor(1000 + Math.random() * 9000)}`;
-  const ticker = query.split(' ')[0].replace(/[^a-zA-Z0-9]/g, '').toUpperCase() || 'ASSET';
+  const ticker = extractTickerFromQuery(query);
 
   try {
     // 1. Motion Event
@@ -153,7 +154,6 @@ module.exports = async function handler(req, res) {
       const delay = process.env.NODE_ENV === 'test' ? 0 : 15;
       for (const w of words) {
         sendEvent('seat_token', { seatId: agent.seat, seat: agent.seat, text: w + ' ', chunk: w + ' ' });
-        sendEvent('token', { seat: agent.seat, chunk: w + ' ' });
         if (delay > 0) await new Promise(r => setTimeout(r, delay));
       }
 

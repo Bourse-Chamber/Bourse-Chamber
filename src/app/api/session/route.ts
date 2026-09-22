@@ -6,7 +6,7 @@ import {
   generateRound3Vote,
   aggregateVotes
 } from '../../../lib/openrouter';
-import { fetchCryptoEvidence } from '../../../lib/coingecko';
+import { fetchCryptoEvidence, extractTickerFromQuery } from '../../../lib/coingecko';
 import { db } from '../../../lib/db';
 import { redis } from '../../../lib/redis';
 import { SeatVote, TranscriptMessage, Round1Analysis } from '../../../types';
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const ticker = query.split(' ')[0].replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 12) || 'BTC';
+    const ticker = extractTickerFromQuery(query);
     const evidence = await fetchCryptoEvidence(ticker);
     const sessionId = `BC-${Math.floor(1000 + Math.random() * 9000)}`;
 

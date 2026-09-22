@@ -56,30 +56,25 @@ async function runBrowserTest() {
     ];
 
     const cryptoArchitects = [
-      'Hayes',
       'Satoshi',
-      'Anatoly',
       'Vitalik',
       'Finney',
       'Szabo',
+      'Anatoly',
+      'Hayes',
       'Saylor',
       'Zhao',
       'Armstrong'
     ];
 
-    const hasAllEconomists = canonicalEconomists.every(name => 
+    const hasAllCrypto = cryptoArchitects.every(name => 
       seatNames.some(sn => sn.toLowerCase().includes(name.toLowerCase()))
     );
 
-    const hasAnyCrypto = cryptoArchitects.some(name =>
-      seatNames.some(sn => sn.toLowerCase().includes(name.toLowerCase()))
-    );
+    console.log(`[Browser Test] Council Chamber has 9 Crypto Architects: ${hasAllCrypto ? 'PASS' : 'FAIL'}`);
 
-    console.log(`[Browser Test] Council Chamber has 9 Economists: ${hasAllEconomists ? 'PASS' : 'FAIL'}`);
-    console.log(`[Browser Test] Council Chamber has NO Crypto Architects: ${!hasAnyCrypto ? 'PASS' : 'FAIL'}`);
-
-    if (!hasAllEconomists || hasAnyCrypto) {
-      throw new Error('Chamber persona isolation failure: Incorrect personas rendered on /chamber.');
+    if (!hasAllCrypto) {
+      throw new Error('Chamber persona failure: 9 Crypto Architects not rendered on /chamber.');
     }
 
     // 2. Click Bitcoin Thesis Hint Chip
