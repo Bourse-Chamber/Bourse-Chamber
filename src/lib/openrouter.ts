@@ -1,6 +1,6 @@
 import { AgentPersona, SeatVote, VoteOutcome, VerdictRecord } from '../types';
 
-export const OPENROUTER_DEFAULT_MODEL = 'anthropic/claude-3.5-haiku';
+export const OPENROUTER_DEFAULT_MODEL = 'openrouter/free';
 
 export function getOpenRouterModel(): string {
   return process.env.OPENROUTER_MODEL || OPENROUTER_DEFAULT_MODEL;

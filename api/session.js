@@ -7,6 +7,11 @@
 const { AGENTS } = require("../db/agents");
 const { evaluateSession, demoEvidence } = require("../db/engine");
 
+let CRYPTO_AGENTS = [];
+try {
+  CRYPTO_AGENTS = require("../data/crypto-agents.json");
+} catch (_) {}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -66,14 +71,15 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed. Use GET or POST.' });
   }
 
-  const { input, directedSeats, isCrossExam, openRouterKey: bodyKey } = req.body || {};
+  const { input, directedSeats, isCrossExam, personaType, model, openRouterKey: bodyKey } = req.body || {};
   const query = String(input || "").trim().slice(0, 280);
 
   if (!query) {
     return res.status(400).json({ error: 'Input thesis or asset is required.' });
   }
 
-  const openRouterApiKey = (process.env.OPENROUTER_API_KEY || '').trim();
+  const openRouterApiKey = (bodyKey || req.headers?.['x-openrouter-key'] || process.env.OPENROUTER_API_KEY || '').trim();
+  const openRouterModel = (model || process.env.OPENROUTER_MODEL || 'openrouter/free').trim();
 
   // Set SSE Headers
   res.setHeader('Content-Type', 'text/event-stream');
@@ -94,7 +100,7 @@ module.exports = async function handler(req, res) {
       asset: ticker,
       motion: query,
       sessionId,
-      llmProvider: openRouterApiKey ? 'OpenRouter Live AI' : 'Deterministic Cognitive Simulator'
+      llmProvider: openRouterApiKey ? `OpenRouter Live AI (${openRouterModel})` : 'Deterministic Cognitive Simulator'
     });
 
     // 2. Evidence Pack Event
@@ -110,11 +116,17 @@ module.exports = async function handler(req, res) {
       sources: ['CoinGecko v3 API Feed', 'On-chain RPC snapshot']
     });
 
+    // Determine active personas (Crypto Architects by default, Classical Economists if specified)
+    const isEconomist = personaType === 'economist';
+    const availableAgents = isEconomist ? AGENTS : (CRYPTO_AGENTS.length === 9 ? CRYPTO_AGENTS : AGENTS);
+
     // Determine target seats (Full bench or Directed)
-    let targetSeats = AGENTS;
+    let targetSeats = availableAgents;
     if (Array.isArray(directedSeats) && directedSeats.length > 0) {
-      targetSeats = AGENTS.filter(a => directedSeats.includes(a.seat));
+      targetSeats = availableAgents.filter(a => directedSeats.includes(a.seat));
     }
+
+    const isIndo = /\b(kenapa|mengapa|bagaimana|apakah|bisa|turun|naik|kapan|hari ini|koin|pasar|rugi|cuan|bagus|apa|investasi|solana|bitcoin|kripto)\b/i.test(query);
 
     // 3. Readings: Stream tokens per seat
     for (const agent of targetSeats) {
@@ -125,7 +137,11 @@ module.exports = async function handler(req, res) {
       // If OpenRouter key is available, attempt live LLM streaming
       if (openRouterApiKey) {
         try {
-          const sysPrompt = `You are ${agent.name}, an investor at the Bourse Chamber. Your discipline is "${agent.discipline}" (${agent.school} school). Philosophy: "${agent.philosophy}". When presented with the thesis "${query}" on asset ${ticker}, give your concise verdict reading in character in exactly 2-3 sentences. Challenge assumptions based on your philosophy. Do not give financial advice.`;
+          const sysPrompt = `You are ${agent.name}, Seat 0${agent.seat} (${agent.discipline}) at the Bourse Chamber.
+Core philosophy: "${agent.philosophy || agent.bio}".
+Do not write any thoughts, inner monologue, or meta preamble.
+Respond strictly in 2-3 concise sentences in character directly addressing the user's question or thesis.
+${isIndo ? 'CRITICAL: The user is asking in Indonesian. You MUST answer directly in natural, authentic Indonesian.' : 'CRITICAL: Answer directly and specifically in English.'}`;
 
           const llmRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
@@ -136,16 +152,16 @@ module.exports = async function handler(req, res) {
               'X-Title': 'Bourse Chamber'
             },
             body: JSON.stringify({
-              model: 'anthropic/claude-3.5-sonnet',
+              model: openRouterModel,
               messages: [
                 { role: 'system', content: sysPrompt },
-                { role: 'user', content: `Examine the asset: ${ticker}. Thesis: ${query}. Market context: Price $${evidence.price}, 24h change ${evidence.change24h}%.` }
+                { role: 'user', content: `Question/Thesis: "${query}". Asset context: ${ticker} at $${evidence.price}. Give your direct answer now as ${agent.name}.` }
               ],
               stream: true,
-              max_tokens: 120,
-              temperature: 0.7
+              max_tokens: 140,
+              temperature: 0.6
             }),
-            signal: AbortSignal.timeout(10000)
+            signal: AbortSignal.timeout(12000)
           });
 
           if (llmRes.ok && llmRes.body) {
@@ -182,9 +198,11 @@ module.exports = async function handler(req, res) {
 
       // Fallback to deterministic token stream if live LLM did not complete
       if (!streamedText) {
-        const text = agent.say.replace(/\{A\}/g, query);
+        const text = agent.say
+          ? agent.say.replace(/\{A\}/g, query)
+          : (agent.philosophy ? `On ${query}: ${agent.philosophy}` : `Evaluating ${query} through ${agent.discipline}.`);
         const words = text.split(' ');
-        const delay = process.env.NODE_ENV === 'test' ? 0 : 35;
+        const delay = process.env.NODE_ENV === 'test' ? 0 : 25;
         for (const word of words) {
           sendEvent('seat_token', { seatId: agent.seat, text: word + ' ' });
           if (delay > 0) await new Promise(r => setTimeout(r, delay));
@@ -193,7 +211,7 @@ module.exports = async function handler(req, res) {
 
       sendEvent('seat_end', {
         seatId: agent.seat,
-        stance: agent.traits.riskAversion >= 8 ? 'against' : 'for'
+        stance: (agent.traits && (agent.traits.riskAversion >= 8 || agent.traits.securityFocus >= 9)) ? 'against' : 'for'
       });
     }
 
@@ -201,11 +219,18 @@ module.exports = async function handler(req, res) {
     if (targetSeats.length >= 2) {
       const seatA = targetSeats[0];
       const seatB = targetSeats[targetSeats.length - 1];
+      const challenge = isIndo
+        ? `Kepada ${seatB.name}: Pendekatan Anda mengabaikan risiko struktural. Bagaimana model Anda bertahan saat terjadi guncangan likuiditas ekstrem?`
+        : `To ${seatB.name}: You are framing this as if adoption guarantees downside protection. What stops an 80% drawdown?`;
+      const response = isIndo
+        ? `Kepada ${seatA.name}: Bertahan melalui volatilitas tinggi dan beradaptasi secara dinamis justru menciptakan ketahanan jangka panjang yang sejati.`
+        : `To ${seatA.name}: Survival through high volatility is what creates long-term convex alpha.`;
+
       sendEvent('rebuttal', {
         seatId: seatA.seat,
         targetSeatId: seatB.seat,
-        challenge: `To ${seatB.name}: You are framing this as if adoption guarantees downside protection. What stops an 80% drawdown?`,
-        response: `To ${seatA.name}: Survival through high volatility is what creates long-term convex alpha.`
+        challenge,
+        response
       });
     }
 

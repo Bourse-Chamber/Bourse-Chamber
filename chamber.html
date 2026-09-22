@@ -69,6 +69,10 @@
         </div>
         <span>Session: <b id="session-id-display">—</b></span>
         <span>Seats present: <b>9 / 9</b></span>
+        <button id="engine-config-btn" class="engine-badge-btn" type="button" title="Configure OpenRouter Live AI Engine">
+          <span class="engine-indicator-dot" id="engine-indicator-dot"></span>
+          <span id="engine-status-text">⚡ AI: LIVE (FREE)</span>
+        </button>
       </div>
     </div>
 
@@ -186,15 +190,16 @@
       </div>
 
       <form class="composer-form" onsubmit="event.preventDefault();">
-        <input class="composer-input" id="composer-input" type="text" placeholder="Present a ticker or a thesis to the committee (e.g. BTC, or @satoshi is SOL an enduring moat?)" autocomplete="off">
+        <input class="composer-input" id="composer-input" type="text" placeholder="Ajukan pertanyaan atau tesis (misal: Kenapa crypto turun hari ini?, atau Apakah BTC tembus 100k?)" autocomplete="off">
         <button class="composer-btn" id="convene-btn" type="button">Ask the full bench (9)</button>
       </form>
       <div class="hint-chips-row">
         <span class="hint-chip-label">Examples:</span>
-        <button class="hint-chip" data-thesis="Is BTC still a reasonable core holding at current market levels?" type="button">BTC core holding?</button>
-        <button class="hint-chip" data-thesis="Is throughput a moat, or a commodity waiting to be priced?" type="button">SOL throughput moat?</button>
-        <button class="hint-chip" data-thesis="Does Ethereum Layer-2 fragmentation degrade its monetary premium?" type="button">ETH Layer-2 fragmentation</button>
-        <button class="hint-chip" data-thesis="Can high-yield synthetic liquidity protocols survive extended drawdowns?" type="button">New L2 40% APY</button>
+        <button class="hint-chip" data-thesis="Kenapa crypto turun hari ini?" type="button">Kenapa crypto turun?</button>
+        <button class="hint-chip" data-thesis="Apakah Bitcoin bisa tembus 100k tahun ini?" type="button">BTC tembus 100k?</button>
+        <button class="hint-chip" data-thesis="Solana vs Ethereum mana yang lebih unggul untuk scaling?" type="button">SOL vs ETH scaling</button>
+        <button class="hint-chip" data-thesis="Apakah memecoin berbahaya bagi investor ritel?" type="button">Memecoin berbahaya?</button>
+        <button class="hint-chip" data-thesis="Is throughput a moat, or a commodity waiting to be priced?" type="button">Throughput moat?</button>
       </div>
     </div>
   </main>
@@ -248,6 +253,43 @@
       </div>
     </div>
   </footer>
+
+  <!-- AI Engine Configuration Modal -->
+  <div class="ai-config-overlay" id="ai-config-overlay" style="display:none;">
+    <div class="ai-config-modal">
+      <div class="ai-config-header">
+        <span>AI DELIBERATION ENGINE CONFIG</span>
+        <button class="ai-config-close" id="ai-config-close" type="button" aria-label="Close modal">✕</button>
+      </div>
+      <div class="ai-config-body">
+        <p style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:14px;line-height:1.4;">
+          Pilih mode musyawarah untuk ke-9 tokoh kripto. Live AI menggunakan OpenRouter untuk streaming jawaban unik dan dinamis langsung dari model LLM.
+        </p>
+        <div style="margin-bottom:12px;">
+          <label style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text-muted);display:block;margin-bottom:4px;">ENGINE MODE</label>
+          <select id="engine-mode-select" style="padding:7px 10px;font-size:0.8rem;background:#0d0d0d;border:1px solid var(--border-main);color:#fff;width:100%;font-family:var(--font-mono);">
+            <option value="live">⚡ Live AI (OpenRouter Streaming)</option>
+            <option value="simulator">⚙ Smart Cognitive Simulator (Offline NLP)</option>
+          </select>
+        </div>
+        <div id="ai-key-fields">
+          <div style="margin-bottom:12px;">
+            <label style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text-muted);display:block;margin-bottom:4px;">OPENROUTER API KEY</label>
+            <input type="password" id="openrouter-key-input" style="padding:7px 10px;font-size:0.8rem;background:#0d0d0d;border:1px solid var(--border-main);color:#fff;width:100%;font-family:var(--font-mono);" placeholder="sk-or-v1-...">
+            <span style="font-size:0.62rem;color:var(--text-muted);margin-top:3px;display:block;">Tersimpan lokal di browser atau membaca dari .env.local backend.</span>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text-muted);display:block;margin-bottom:4px;">MODEL ID</label>
+            <input type="text" id="openrouter-model-input" style="padding:7px 10px;font-size:0.8rem;background:#0d0d0d;border:1px solid var(--border-main);color:#fff;width:100%;font-family:var(--font-mono);" placeholder="openrouter/free" value="openrouter/free">
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+          <button id="ai-test-btn" class="btn btn-outline" type="button" style="padding:6px 12px;font-size:0.75rem;">Test Connection</button>
+          <button id="ai-save-btn" class="btn btn-primary" type="button" style="padding:6px 14px;font-size:0.75rem;">Save & Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="js/utils.js"></script>
   <script src="js/agents.js"></script>

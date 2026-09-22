@@ -35,6 +35,13 @@ const BourseChamber = (() => {
   let postActionsEl, viewVerdictBtn, shareVerdictBtn, resetChamberBtn;
   let selectedChipsGroupEl, directedBarEl, crossExamToggleBtn, clearSelectionBtn, composerModeLabelEl;
 
+  // AI Configuration references
+  let engineConfigBtn, engineIndicatorDot, engineStatusText;
+  let aiConfigOverlay, aiConfigClose, engineModeSelect, openRouterKeyInput, openRouterModelInput, aiTestBtn, aiSaveBtn;
+
+  const DEFAULT_OPENROUTER_KEY = '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';
+  const DEFAULT_OPENROUTER_MODEL = 'openrouter/free';
+
   function init() {
     seatsContainer = document.getElementById('council-seats');
     spokesSvg = document.getElementById('spoke-lines-svg');
@@ -61,6 +68,19 @@ const BourseChamber = (() => {
     clearSelectionBtn = document.getElementById('clear-selection-btn');
     composerModeLabelEl = document.getElementById('composer-mode-label');
 
+    engineConfigBtn = document.getElementById('engine-config-btn');
+    engineIndicatorDot = document.getElementById('engine-indicator-dot');
+    engineStatusText = document.getElementById('engine-status-text');
+    aiConfigOverlay = document.getElementById('ai-config-overlay');
+    aiConfigClose = document.getElementById('ai-config-close');
+    engineModeSelect = document.getElementById('engine-mode-select');
+    openRouterKeyInput = document.getElementById('openrouter-key-input');
+    openRouterModelInput = document.getElementById('openrouter-model-input');
+    aiTestBtn = document.getElementById('ai-test-btn');
+    aiSaveBtn = document.getElementById('ai-save-btn');
+
+    setupAIConfig();
+
     // Start Clock
     startClock();
 
@@ -81,6 +101,99 @@ const BourseChamber = (() => {
     const initialQuery = urlParams.get('q');
     if (initialQuery && composerInput) {
       composerInput.value = initialQuery;
+    }
+  }
+
+  function setupAIConfig() {
+    if (typeof localStorage !== 'undefined') {
+      if (!localStorage.getItem('bourse_ai_key')) {
+        localStorage.setItem('bourse_ai_key', DEFAULT_OPENROUTER_KEY);
+      }
+      if (!localStorage.getItem('bourse_ai_model')) {
+        localStorage.setItem('bourse_ai_model', DEFAULT_OPENROUTER_MODEL);
+      }
+      if (!localStorage.getItem('bourse_ai_mode')) {
+        localStorage.setItem('bourse_ai_mode', 'live');
+      }
+    }
+
+    updateEngineUI();
+
+    if (engineConfigBtn && aiConfigOverlay) {
+      engineConfigBtn.onclick = () => {
+        if (openRouterKeyInput) openRouterKeyInput.value = localStorage.getItem('bourse_ai_key') || DEFAULT_OPENROUTER_KEY;
+        if (openRouterModelInput) openRouterModelInput.value = localStorage.getItem('bourse_ai_model') || DEFAULT_OPENROUTER_MODEL;
+        if (engineModeSelect) engineModeSelect.value = localStorage.getItem('bourse_ai_mode') || 'live';
+        aiConfigOverlay.style.display = 'flex';
+      };
+    }
+
+    if (aiConfigClose && aiConfigOverlay) {
+      aiConfigClose.onclick = () => { aiConfigOverlay.style.display = 'none'; };
+      aiConfigOverlay.onclick = (e) => {
+        if (e.target === aiConfigOverlay) aiConfigOverlay.style.display = 'none';
+      };
+    }
+
+    if (aiSaveBtn && aiConfigOverlay) {
+      aiSaveBtn.onclick = () => {
+        const key = openRouterKeyInput ? openRouterKeyInput.value.trim() : '';
+        const model = openRouterModelInput ? openRouterModelInput.value.trim() : DEFAULT_OPENROUTER_MODEL;
+        const mode = engineModeSelect ? engineModeSelect.value : 'live';
+
+        localStorage.setItem('bourse_ai_key', key || DEFAULT_OPENROUTER_KEY);
+        localStorage.setItem('bourse_ai_model', model || DEFAULT_OPENROUTER_MODEL);
+        localStorage.setItem('bourse_ai_mode', mode);
+
+        updateEngineUI();
+        aiConfigOverlay.style.display = 'none';
+        BourseUtils.showToast(`AI Engine updated: ${mode === 'live' ? 'Live AI Streaming' : 'Smart Simulator'}`);
+      };
+    }
+
+    if (aiTestBtn) {
+      aiTestBtn.onclick = async () => {
+        const key = (openRouterKeyInput ? openRouterKeyInput.value.trim() : '') || localStorage.getItem('bourse_ai_key') || DEFAULT_OPENROUTER_KEY;
+        aiTestBtn.textContent = 'Testing...';
+        aiTestBtn.disabled = true;
+        try {
+          const res = await fetch('https://openrouter.ai/api/v1/auth/key', {
+            headers: { 'Authorization': `Bearer ${key}` }
+          });
+          const data = await res.json();
+          if (res.ok && data?.data) {
+            BourseUtils.showToast(`OpenRouter Key Valid! Limit: ${data.data.limit_remaining || '50'}/day`, 'success');
+          } else {
+            BourseUtils.showToast(`Key response: ${res.status} (${data?.error?.message || 'Check key'})`, 'info');
+          }
+        } catch (e) {
+          BourseUtils.showToast(`Connection test error: ${e.message}`, 'error');
+        } finally {
+          aiTestBtn.textContent = 'Test Connection';
+          aiTestBtn.disabled = false;
+        }
+      };
+    }
+  }
+
+  function updateEngineUI() {
+    const mode = (typeof localStorage !== 'undefined' && localStorage.getItem('bourse_ai_mode')) || 'live';
+    const model = (typeof localStorage !== 'undefined' && localStorage.getItem('bourse_ai_model')) || DEFAULT_OPENROUTER_MODEL;
+
+    if (engineStatusText) {
+      if (mode === 'live') {
+        const modelLabel = model.includes('free') ? 'FREE' : (model.split('/')[1] || 'ACTIVE');
+        engineStatusText.textContent = `⚡ AI: LIVE (${modelLabel.toUpperCase()})`;
+      } else {
+        engineStatusText.textContent = `⚙ SIMULATOR (NLP)`;
+      }
+    }
+    if (engineIndicatorDot) {
+      if (mode === 'live') {
+        engineIndicatorDot.classList.remove('simulator');
+      } else {
+        engineIndicatorDot.classList.add('simulator');
+      }
     }
   }
 
@@ -413,6 +526,23 @@ const BourseChamber = (() => {
     return msg;
   }
 
+  function createLiveTranscriptMsg(type, who) {
+    if (!feedEl) return null;
+    const msg = document.createElement('div');
+    msg.className = `transcript-msg ${type || 'analysis'}`;
+    const time = (typeof BourseUtils !== 'undefined') ? BourseUtils.formatTimestamp(new Date()) : '--:--';
+    msg.innerHTML = `
+      <div class="msg-meta">
+        <span>${who}</span>
+        <span class="msg-time">${time}</span>
+      </div>
+      <div class="msg-body typing"></div>
+    `;
+    feedEl.appendChild(msg);
+    feedEl.scrollTop = feedEl.scrollHeight;
+    return msg;
+  }
+
   async function streamTranscriptMsg({ type, who, text, time = null }) {
     if (!feedEl) return null;
     const msgTime = time || BourseUtils.formatTimestamp(new Date());
@@ -485,6 +615,248 @@ const BourseChamber = (() => {
     void el.offsetWidth;
     el.classList.add('tally-pop');
     setTimeout(() => el.classList.remove('tally-pop'), 400);
+  }
+
+  async function finalizeSessionVerdict(outcome, majorityCount, addTally, reduceTally, passTally) {
+    const sessionId = currentSession ? currentSession.id : BourseUtils.generateSessionId();
+    const sizingSeat = getChamberCouncil().getAgentBySeat(6);
+
+    const dissentList = [];
+    if (outcome !== 'ADD' && addTally > 0) dissentList.push(`${addTally} ADD`);
+    if (outcome !== 'REDUCE' && reduceTally > 0) dissentList.push(`${reduceTally} REDUCE`);
+    if (outcome !== 'PASS' && passTally > 0) dissentList.push(`${passTally} PASS`);
+    const dissentBreakdown = dissentList.length > 0 ? dissentList.join(', ') : 'None (Unanimous)';
+
+    const sizingResult = (sizingSeat && typeof sizingSeat.calculatePositionSizeBand === 'function')
+      ? sizingSeat.calculatePositionSizeBand(
+          { ticker: currentEvidence?.ticker || 'ASSET', name: currentEvidence?.name || 'Asset' },
+          currentEvidence || {},
+          outcome
+        )
+      : { band: "1.0 – 2.5%", rationale: "Default macroeconomic risk sizing." };
+    const sizingBand = sizingResult.band;
+
+    const keyAgreement = `${currentEvidence?.name || 'Asset'} retains recognizable market liquidity and participation, but carries starkly distinct cryptoeconomic risks across analytical schools.`;
+    const keyDisagreement = `The core fault line separates base-layer sound money and proof-of-work security from high-throughput monolithic execution.`;
+    const unresolvedQuestion = `Can long-term network fee accrual sustain validator security if macro liquidity contracts?`;
+    const reviewTriggers = [
+      `Material deterioration in active on-chain daily settlement volume (>35% drawdown).`,
+      `Price expansion exceeding 50% without corresponding expansion in organic fee capture.`,
+      `Acceleration in venture/insider unlock distribution schedules.`
+    ];
+
+    const verdictObj = {
+      outcome,
+      majorityRatio: `${majorityCount} / 9`,
+      dissentBreakdown,
+      positionSizeBand: sizingBand,
+      sizingSeat: `Seat 06 · ${sizingSeat.name} (${sizingSeat.discipline})`,
+      sizingRationale: sizingResult.rationale,
+      keyAgreement,
+      keyDisagreement,
+      unresolvedQuestion,
+      reviewTriggers
+    };
+
+    if (currentSession) {
+      currentSession.verdict = verdictObj;
+      currentSession.closedAt = BourseUtils.formatTimestamp(new Date());
+    }
+
+    triggerVerdictImpact(outcome);
+
+    await streamTranscriptMsg({
+      type: 'verdict-announcement',
+      who: `VERDICT RECORD · SESSION ${sessionId}`,
+      text: `OUTCOME: ${outcome} (${verdictObj.majorityRatio} Majority)\nDISSENT: ${dissentBreakdown}\nPOSITION SIZE BAND: ${sizingBand} (Fixed by Seat 06 ${sizingSeat.shortName || sizingSeat.name} — ${sizingResult.rationale})\nRecord officially closed and committed to the permanent Verdict Ledger.`
+    });
+
+    if (currentSession && typeof BourseStorage !== 'undefined') {
+      BourseStorage.saveSession(currentSession);
+    }
+
+    updateChamberState(STATES.COMPLETED);
+    BourseUtils.showToast(`Session ${sessionId} recorded to Verdict Ledger.`);
+
+    if (postActionsEl) postActionsEl.classList.add('active');
+    if (viewVerdictBtn) {
+      viewVerdictBtn.onclick = () => {
+        if (window.BourseSPA) {
+          window.BourseSPA.showVerdict(sessionId);
+        } else {
+          window.location.href = `/verdict?id=${sessionId}`;
+        }
+      };
+    }
+  }
+
+  async function streamLiveServerSession(query, targetSeats, isDirected, isCrossExam) {
+    try {
+      const customKey = (typeof localStorage !== 'undefined' && localStorage.getItem('bourse_ai_key')) || DEFAULT_OPENROUTER_KEY;
+      const customModel = (typeof localStorage !== 'undefined' && localStorage.getItem('bourse_ai_model')) || DEFAULT_OPENROUTER_MODEL;
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+      const res = await fetch('/api/session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-OpenRouter-Key': customKey
+        },
+        body: JSON.stringify({
+          input: query,
+          directedSeats: isDirected ? targetSeats.map(s => s.seat) : [],
+          isCrossExam,
+          personaType: 'crypto',
+          model: customModel,
+          openRouterKey: customKey
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!res.ok || !res.body) return false;
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('text/event-stream')) return false;
+
+      updateChamberState(STATES.ROUND_1);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      let currentSpeakerMsg = null;
+      let currentSpeakerBody = null;
+      let currentSpeakerSeat = null;
+
+      let addTally = 0;
+      let reduceTally = 0;
+      let passTally = 0;
+      const recordedVotes = [];
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        let currentEvent = 'message';
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('event: ')) {
+            currentEvent = trimmed.slice(7).trim();
+          } else if (trimmed.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(trimmed.slice(6));
+              
+              if (currentEvent === 'motion') {
+                if (data.llmProvider && stateLabelEl) {
+                  BourseUtils.showToast(`Live AI Engine active: ${data.llmProvider}`);
+                }
+              } else if (currentEvent === 'seat_start') {
+                currentSpeakerSeat = data.seatId;
+                setSeatState(data.seatId, 'speaking', 'SPEAKING');
+                const agent = getChamberCouncil().getAgentBySeat(data.seatId);
+                const whoLabel = agent ? `${agent.name.toUpperCase()} (SEAT 0${agent.seat} · ${agent.school})` : (data.name || `SEAT 0${data.seatId}`).toUpperCase();
+                currentSpeakerMsg = createLiveTranscriptMsg('analysis', whoLabel);
+                currentSpeakerBody = currentSpeakerMsg.querySelector('.msg-body');
+              } else if (currentEvent === 'seat_token') {
+                if (currentSpeakerBody) {
+                  currentSpeakerBody.textContent += data.text;
+                  feedEl.scrollTop = feedEl.scrollHeight;
+                }
+              } else if (currentEvent === 'seat_end') {
+                if (currentSpeakerSeat) {
+                  setSeatState(currentSpeakerSeat, '', 'READ FILED');
+                  if (currentSession && currentSession.transcript && currentSpeakerBody) {
+                    currentSession.transcript.push({
+                      type: 'analysis',
+                      who: currentSpeakerMsg.querySelector('.msg-meta span').textContent,
+                      time: BourseUtils.formatTimestamp(new Date()),
+                      text: currentSpeakerBody.textContent
+                    });
+                    currentSession.speakingTurns = currentSession.transcript.length;
+                  }
+                }
+                currentSpeakerSeat = null;
+                currentSpeakerMsg = null;
+                currentSpeakerBody = null;
+              } else if (currentEvent === 'rebuttal') {
+                updateChamberState(STATES.ROUND_2);
+                const sA = data.seatId;
+                const sB = data.targetSeatId;
+                const agA = getChamberCouncil().getAgentBySeat(sA);
+                const agB = getChamberCouncil().getAgentBySeat(sB);
+
+                drawDuelBeam(sA, sB);
+                setSeatState(sA, 'challenging', 'CHALLENGING');
+                await streamTranscriptMsg({
+                  type: 'challenge',
+                  who: `${(agA?.name || 'SEAT 0' + sA).toUpperCase()} (CHALLENGE TO SEAT 0${sB})`,
+                  text: data.challenge
+                });
+                await chamberWait(400);
+
+                setSeatState(sA, '', 'WAITING');
+                setSeatState(sB, 'challenging', 'RESPONDING');
+                await streamTranscriptMsg({
+                  type: 'response',
+                  who: `${(agB?.name || 'SEAT 0' + sB).toUpperCase()} (RESPONSE TO SEAT 0${sA})`,
+                  text: data.response
+                });
+                clearDuelBeam();
+                setSeatState(sB, '', 'WAITING');
+              } else if (currentEvent === 'vote') {
+                updateChamberState(STATES.ROUND_3);
+                if (scoreboardEl) scoreboardEl.classList.add('active');
+                const vUpper = (data.vote || '').toUpperCase();
+                if (vUpper === 'ADD') {
+                  addTally++;
+                  animateCounter(tallyAddEl, addTally);
+                } else if (vUpper === 'REDUCE') {
+                  reduceTally++;
+                  animateCounter(tallyReduceEl, reduceTally);
+                } else {
+                  passTally++;
+                  animateCounter(tallyPassEl, passTally);
+                }
+
+                recordedVotes.push({
+                  seat: data.seatId,
+                  name: data.name,
+                  vote: vUpper,
+                  reason: data.reason
+                });
+
+                appendTranscriptMsg({
+                  type: 'vote-call',
+                  who: `BALLOT · ${data.name.toUpperCase()}`,
+                  text: `Casts: [${vUpper}] — ${data.reason}`
+                });
+                setSeatState(data.seatId, 'voted', vUpper);
+              } else if (currentEvent === 'verdict') {
+                updateChamberState(STATES.SYNTHESIZING);
+                currentSession.votes = recordedVotes;
+                let majorityCount = passTally;
+                if (data.decision === 'ADD') majorityCount = addTally;
+                else if (data.decision === 'REDUCE') majorityCount = reduceTally;
+
+                await finalizeSessionVerdict(data.decision, majorityCount, addTally, reduceTally, passTally);
+              }
+            } catch (_) {}
+          }
+        }
+      }
+
+      return true;
+    } catch (err) {
+      console.warn('Live AI server streaming unreached; falling back to Smart Simulator:', err);
+      return false;
+    }
   }
 
   function triggerVerdictImpact(outcome) {
@@ -658,80 +1030,23 @@ const BourseChamber = (() => {
         }
       });
 
-      // 3. ROUND 1 — READINGS (Consumes 1 credit per speaking seat)
-      updateChamberState(STATES.ROUND_1);
+      // Check if Live AI Streaming is active
+      const aiMode = (typeof localStorage !== 'undefined' && localStorage.getItem('bourse_ai_mode')) || 'live';
+      let didLiveStream = false;
 
-      if (isCrossExamMode && targetSeats.length === 2) {
-        // DIRECTED CROSS-EXAMINATION MODE (2 seats, 2 rounds)
-        const seatA = targetSeats[0];
-        const seatB = targetSeats[1];
+      if (aiMode === 'live') {
+        didLiveStream = await streamLiveServerSession(query, targetSeats, isDirected, isCrossExamMode);
+      }
 
-        drawDuelBeam(seatA.seat, seatB.seat);
-        setSeatState(seatA.seat, 'challenging', 'CHALLENGING');
-        showTypingIndicator(seatA.name);
-        await chamberWait(1000);
-        removeTypingIndicator();
-        setSeatState(seatA.seat, 'speaking', 'SPEAKING');
-        const challengeA = seatA.generateChallenge(seatB);
-        await streamTranscriptMsg({
-          type: 'challenge',
-          who: `${seatA.name.toUpperCase()} (CHALLENGE TO SEAT 0${seatB.seat})`,
-          text: challengeA
-        });
+      if (!didLiveStream) {
+        // Fallback to Smart Cognitive Simulator
+        // 3. ROUND 1 — READINGS
+        updateChamberState(STATES.ROUND_1);
 
-        await chamberWait(700);
-        setSeatState(seatA.seat, '', 'WAITING');
-        setSeatState(seatB.seat, 'challenging', 'RESPONDING');
-        showTypingIndicator(seatB.name);
-        await chamberWait(1100);
-        removeTypingIndicator();
-        setSeatState(seatB.seat, 'speaking', 'SPEAKING');
-        const respB = seatB.generateResponse(seatA);
-        await streamTranscriptMsg({
-          type: 'response',
-          who: `${seatB.name.toUpperCase()} (RESPONSE TO SEAT 0${seatA.seat})`,
-          text: respB
-        });
-        clearDuelBeam();
-        setSeatState(seatB.seat, '', 'WAITING');
-
-      } else {
-        // STANDARD READINGS (Full Bench or Directed)
-        for (const agent of targetSeats) {
-          setSeatState(agent.seat, 'analyzing', 'ANALYZING');
-          showTypingIndicator(agent.name);
-          await chamberWait(800 + Math.random() * 400);
-          removeTypingIndicator();
-
-          setSeatState(agent.seat, 'speaking', 'SPEAKING');
-          const read = agent.generateAnalysis(
-            { ticker: currentEvidence.ticker, name: currentEvidence.name },
-            currentEvidence
-          );
-          liveSeatStates[agent.seat] = read;
-
-          await streamTranscriptMsg({
-            type: 'analysis',
-            who: `${agent.name.toUpperCase()} (SEAT 0${agent.seat} · ${agent.school})`,
-            text: read.argument
-          });
-
-          setSeatState(agent.seat, '', 'READ FILED');
-          await chamberWait(350);
-        }
-
-        // Automatic Stage 2 Clash if Full Bench
-        if (!isDirected) {
-          updateChamberState(STATES.ROUND_2);
-          const seatA = getChamberCouncil().getAgentBySeat(1); // Satoshi Nakamoto
-          const seatB = getChamberCouncil().getAgentBySeat(2); // Vitalik Buterin
-
-          appendTranscriptMsg({
-            type: 'chair',
-            who: 'CHAIR',
-            text: `Round 1 readings complete. Fundamental cryptoeconomic fault line identified. Opening cross-examination between Seat 01 (${seatA.name}) and Seat 02 (${seatB.name}).`
-          });
-          await chamberWait(900);
+        if (isCrossExamMode && targetSeats.length === 2) {
+          // DIRECTED CROSS-EXAMINATION MODE (2 seats, 2 rounds)
+          const seatA = targetSeats[0];
+          const seatB = targetSeats[1];
 
           drawDuelBeam(seatA.seat, seatB.seat);
           setSeatState(seatA.seat, 'challenging', 'CHALLENGING');
@@ -739,11 +1054,11 @@ const BourseChamber = (() => {
           await chamberWait(1000);
           removeTypingIndicator();
           setSeatState(seatA.seat, 'speaking', 'SPEAKING');
-          const challengeText = seatA.generateChallenge(seatB);
+          const challengeA = seatA.generateChallenge(seatB, query);
           await streamTranscriptMsg({
             type: 'challenge',
             who: `${seatA.name.toUpperCase()} (CHALLENGE TO SEAT 0${seatB.seat})`,
-            text: challengeText
+            text: challengeA
           });
 
           await chamberWait(700);
@@ -753,171 +1068,164 @@ const BourseChamber = (() => {
           await chamberWait(1100);
           removeTypingIndicator();
           setSeatState(seatB.seat, 'speaking', 'SPEAKING');
-          const responseText = seatB.generateResponse(seatA);
+          const respB = seatB.generateResponse(seatA, query);
           await streamTranscriptMsg({
             type: 'response',
             who: `${seatB.name.toUpperCase()} (RESPONSE TO SEAT 0${seatA.seat})`,
-            text: responseText
+            text: respB
           });
           clearDuelBeam();
           setSeatState(seatB.seat, '', 'WAITING');
-          await chamberWait(700);
-        }
-      }
 
-      // 4. ROUND 3 — VOTING (ALWAYS FREE: 0 CREDITS)
-      updateChamberState(STATES.ROUND_3);
-      resetAllSeatStates('WAITING');
-      if (scoreboardEl) scoreboardEl.classList.add('active');
-
-      appendTranscriptMsg({
-        type: 'chair',
-        who: 'CHAIR',
-        text: `The floor is closed for debate. All nine seats will now cast recorded ballots on the motion: ADD, REDUCE, or PASS.`
-      });
-      await chamberWait(800);
-
-      let addTally = 0;
-      let reduceTally = 0;
-      let passTally = 0;
-      const recordedVotes = [];
-
-      for (const agent of getChamberCouncil().AGENTS) {
-        setSeatState(agent.seat, 'speaking', 'VOTING');
-        await chamberWait(350);
-
-        const voteResult = agent.generateVote(
-          { ticker: currentEvidence.ticker, name: currentEvidence.name },
-          currentEvidence
-        );
-
-        if (voteResult.vote === 'ADD') {
-          addTally++;
-          animateCounter(tallyAddEl, addTally);
-        } else if (voteResult.vote === 'REDUCE') {
-          reduceTally++;
-          animateCounter(tallyReduceEl, reduceTally);
         } else {
-          passTally++;
-          animateCounter(tallyPassEl, passTally);
+          // STANDARD READINGS (Full Bench or Directed)
+          for (const agent of targetSeats) {
+            setSeatState(agent.seat, 'analyzing', 'ANALYZING');
+            showTypingIndicator(agent.name);
+            await chamberWait(800 + Math.random() * 400);
+            removeTypingIndicator();
+
+            setSeatState(agent.seat, 'speaking', 'SPEAKING');
+            const read = agent.generateAnalysis(
+              { ticker: currentEvidence.ticker, name: currentEvidence.name },
+              currentEvidence,
+              query
+            );
+            liveSeatStates[agent.seat] = read;
+
+            await streamTranscriptMsg({
+              type: 'analysis',
+              who: `${agent.name.toUpperCase()} (SEAT 0${agent.seat} · ${agent.school})`,
+              text: read.argument
+            });
+
+            setSeatState(agent.seat, '', 'READ FILED');
+            await chamberWait(350);
+          }
+
+          // Automatic Stage 2 Clash if Full Bench
+          if (!isDirected) {
+            updateChamberState(STATES.ROUND_2);
+            const seatA = getChamberCouncil().getAgentBySeat(1); // Satoshi Nakamoto
+            const seatB = getChamberCouncil().getAgentBySeat(2); // Vitalik Buterin
+
+            appendTranscriptMsg({
+              type: 'chair',
+              who: 'CHAIR',
+              text: `Round 1 readings complete. Fundamental cryptoeconomic fault line identified. Opening cross-examination between Seat 01 (${seatA.name}) and Seat 02 (${seatB.name}).`
+            });
+            await chamberWait(900);
+
+            drawDuelBeam(seatA.seat, seatB.seat);
+            setSeatState(seatA.seat, 'challenging', 'CHALLENGING');
+            showTypingIndicator(seatA.name);
+            await chamberWait(1000);
+            removeTypingIndicator();
+            setSeatState(seatA.seat, 'speaking', 'SPEAKING');
+            const challengeText = seatA.generateChallenge(seatB, query);
+            await streamTranscriptMsg({
+              type: 'challenge',
+              who: `${seatA.name.toUpperCase()} (CHALLENGE TO SEAT 0${seatB.seat})`,
+              text: challengeText
+            });
+
+            await chamberWait(700);
+            setSeatState(seatA.seat, '', 'WAITING');
+            setSeatState(seatB.seat, 'challenging', 'RESPONDING');
+            showTypingIndicator(seatB.name);
+            await chamberWait(1100);
+            removeTypingIndicator();
+            setSeatState(seatB.seat, 'speaking', 'SPEAKING');
+            const responseText = seatB.generateResponse(seatA, query);
+            await streamTranscriptMsg({
+              type: 'response',
+              who: `${seatB.name.toUpperCase()} (RESPONSE TO SEAT 0${seatA.seat})`,
+              text: responseText
+            });
+            clearDuelBeam();
+            setSeatState(seatB.seat, '', 'WAITING');
+            await chamberWait(700);
+          }
         }
 
-        recordedVotes.push({
-          seat: agent.seat,
-          name: agent.name,
-          school: agent.school,
-          discipline: agent.discipline,
-          vote: voteResult.vote,
-          reason: voteResult.rationale
-        });
+        // 4. ROUND 3 — VOTING (ALWAYS FREE: 0 CREDITS)
+        updateChamberState(STATES.ROUND_3);
+        resetAllSeatStates('WAITING');
+        if (scoreboardEl) scoreboardEl.classList.add('active');
 
         appendTranscriptMsg({
-          type: 'vote-call',
-          who: `BALLOT · ${agent.name.toUpperCase()}`,
-          text: `Casts: [${voteResult.vote}] — ${voteResult.rationale}`
+          type: 'chair',
+          who: 'CHAIR',
+          text: `The floor is closed for debate. All nine seats will now cast recorded ballots on the motion: ADD, REDUCE, or PASS.`
         });
+        await chamberWait(800);
 
-        setSeatState(agent.seat, 'voted', voteResult.vote);
-        await chamberWait(200);
-      }
+        let addTally = 0;
+        let reduceTally = 0;
+        let passTally = 0;
+        const recordedVotes = [];
 
-      currentSession.votes = recordedVotes;
-      await chamberWait(700);
+        for (const agent of getChamberCouncil().AGENTS) {
+          setSeatState(agent.seat, 'speaking', 'VOTING');
+          await chamberWait(350);
 
-      // 5. SYNTHESIZING VERDICT & POSITION SIZING BAND
-      updateChamberState(STATES.SYNTHESIZING);
-      const sizingSeat = getChamberCouncil().getAgentBySeat(6);
-      appendTranscriptMsg({
-        type: 'chair',
-        who: 'CHAIR',
-        text: `Balloting closed. Calling Seat 06 (${sizingSeat.shortName}) for macroeconomic position sizing and synthesizing permanent ledger record.`
-      });
-      await chamberWait(1000);
-
-      // Calculate Majority Outcome
-      let outcome = 'PASS';
-      let majorityCount = passTally;
-      if (addTally >= 5) {
-        outcome = 'ADD';
-        majorityCount = addTally;
-      } else if (reduceTally >= 5) {
-        outcome = 'REDUCE';
-        majorityCount = reduceTally;
-      } else if (addTally > reduceTally && addTally > passTally) {
-        outcome = 'ADD';
-        majorityCount = addTally;
-      } else if (reduceTally > addTally && reduceTally > passTally) {
-        outcome = 'REDUCE';
-        majorityCount = reduceTally;
-      }
-
-      const dissentList = [];
-      if (outcome !== 'ADD' && addTally > 0) dissentList.push(`${addTally} ADD`);
-      if (outcome !== 'REDUCE' && reduceTally > 0) dissentList.push(`${reduceTally} REDUCE`);
-      if (outcome !== 'PASS' && passTally > 0) dissentList.push(`${passTally} PASS`);
-      const dissentBreakdown = dissentList.length > 0 ? dissentList.join(', ') : 'None (Unanimous)';
-
-      // Seat 06 calculates sizing band
-      const sizingResult = (sizingSeat && typeof sizingSeat.calculatePositionSizeBand === 'function')
-        ? sizingSeat.calculatePositionSizeBand(
+          const voteResult = agent.generateVote(
             { ticker: currentEvidence.ticker, name: currentEvidence.name },
             currentEvidence,
-            outcome
-          )
-        : { band: "1.0 – 2.5%", rationale: "Default macroeconomic risk sizing." };
-      const sizingBand = sizingResult.band;
+            query
+          );
 
-      const keyAgreement = `${currentEvidence.name} retains recognizable market liquidity and participation, but carries starkly distinct cryptoeconomic risks across analytical schools.`;
-      const keyDisagreement = `The core fault line separates base-layer sound money and proof-of-work security from high-throughput monolithic execution.`;
-      const unresolvedQuestion = `Can long-term network fee accrual sustain validator security if macro liquidity contracts?`;
-      const reviewTriggers = [
-        `Material deterioration in active on-chain daily settlement volume (>35% drawdown).`,
-        `Price expansion exceeding 50% without corresponding expansion in organic fee capture.`,
-        `Acceleration in venture/insider unlock distribution schedules.`
-      ];
-
-      const verdictObj = {
-        outcome,
-        majorityRatio: `${majorityCount} / 9`,
-        dissentBreakdown,
-        positionSizeBand: sizingBand,
-        sizingSeat: `Seat 06 · ${sizingSeat.name} (${sizingSeat.discipline})`,
-        sizingRationale: sizingResult.rationale,
-        keyAgreement,
-        keyDisagreement,
-        unresolvedQuestion,
-        reviewTriggers
-      };
-
-      currentSession.verdict = verdictObj;
-      currentSession.closedAt = BourseUtils.formatTimestamp(new Date());
-
-      // Trigger High-Impact Verdict Quake & Stamp Slam Animation
-      triggerVerdictImpact(outcome);
-
-      // Final Verdict Announcement
-      await streamTranscriptMsg({
-        type: 'verdict-announcement',
-        who: `VERDICT RECORD · SESSION ${sessionId}`,
-        text: `OUTCOME: ${outcome} (${verdictObj.majorityRatio} Majority)\nDISSENT: ${dissentBreakdown}\nPOSITION SIZE BAND: ${sizingBand} (Fixed by Seat 06 ${sizingSeat.shortName || sizingSeat.name} — ${sizingResult.rationale})\nRecord officially closed and committed to the permanent Verdict Ledger.`
-      });
-
-      // 6. PERSIST TO STORAGE
-      BourseStorage.saveSession(currentSession);
-
-      // 7. COMPLETED
-      updateChamberState(STATES.COMPLETED);
-      BourseUtils.showToast(`Session ${sessionId} recorded to Verdict Ledger.`);
-
-      if (postActionsEl) postActionsEl.classList.add('active');
-      if (viewVerdictBtn) {
-        viewVerdictBtn.onclick = () => {
-          if (window.BourseSPA) {
-            window.BourseSPA.showVerdict(sessionId);
+          if (voteResult.vote === 'ADD') {
+            addTally++;
+            animateCounter(tallyAddEl, addTally);
+          } else if (voteResult.vote === 'REDUCE') {
+            reduceTally++;
+            animateCounter(tallyReduceEl, reduceTally);
           } else {
-            window.location.href = `/verdict?id=${sessionId}`;
+            passTally++;
+            animateCounter(tallyPassEl, passTally);
           }
-        };
+
+          recordedVotes.push({
+            seat: agent.seat,
+            name: agent.name,
+            school: agent.school,
+            discipline: agent.discipline,
+            vote: voteResult.vote,
+            reason: voteResult.rationale
+          });
+
+          appendTranscriptMsg({
+            type: 'vote-call',
+            who: `BALLOT · ${agent.name.toUpperCase()}`,
+            text: `Casts: [${voteResult.vote}] — ${voteResult.rationale}`
+          });
+
+          setSeatState(agent.seat, 'voted', voteResult.vote);
+          await chamberWait(200);
+        }
+
+        currentSession.votes = recordedVotes;
+        await chamberWait(700);
+
+        // Calculate Majority Outcome
+        let outcome = 'PASS';
+        let majorityCount = passTally;
+        if (addTally >= 5) {
+          outcome = 'ADD';
+          majorityCount = addTally;
+        } else if (reduceTally >= 5) {
+          outcome = 'REDUCE';
+          majorityCount = reduceTally;
+        } else if (addTally > reduceTally && addTally > passTally) {
+          outcome = 'ADD';
+          majorityCount = addTally;
+        } else if (reduceTally > addTally && reduceTally > passTally) {
+          outcome = 'REDUCE';
+          majorityCount = reduceTally;
+        }
+
+        await finalizeSessionVerdict(outcome, majorityCount, addTally, reduceTally, passTally);
       }
       if (shareVerdictBtn) {
         shareVerdictBtn.onclick = async () => {

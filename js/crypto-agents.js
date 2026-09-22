@@ -1,10 +1,36 @@
 /**
  * Bourse Chamber — Canonical 9 Crypto Personas Matrix
- * 9 Crypto Architects · 5 Core Schools · Deliberation Logic & Traits
+ * 9 Crypto Architects · 5 Core Schools · Deliberation Logic & Smart Topic-Aware Reasoning
  */
 
 const BourseCryptoAgents = (() => {
   const SCHOOLS = ['ALL', 'CYPHERPUNK', 'COMPUTATION', 'MONOLITHIC', 'MACRO', 'TREASURY', 'LIQUIDITY', 'INSTITUTIONAL'];
+
+  /**
+   * Intelligently parses user query/thesis to extract intent, language, and core topic
+   */
+  function analyzeTopic(query, asset) {
+    const q = String(query || "").trim().toLowerCase();
+    const isIndo = /\b(kenapa|mengapa|bagaimana|apakah|bisa|turun|naik|kapan|hari ini|koin|pasar|rugi|cuan|bagus|apa|investasi|solana|bitcoin|kripto|merah|longsor|anjlok|tembus|untung|beli|jual|gimana|kenapah)\b/i.test(q);
+
+    let topic = 'GENERAL';
+    if (/\b(turun|crash|anjlok|drop|merah|dump|koreksi|bear|bearish|rugi|longsor|jatuh|drawdown|mengapa turun|kenapa turun)\b/i.test(q)) {
+      topic = 'CRASH';
+    } else if (/\b(tembus|100k|ath|all time high|kapan naik|to the moon|moon|bull|bullish|pump|target|naik|terbang|kaya)\b/i.test(q)) {
+      topic = 'ATH_100K';
+    } else if (/\b(solana|sol|eth|ethereum|l2|layer 2|layer2|tps|kecepatan|speed|downtime|scaling|throughput|gas fee|monolitik|modular|rollup)\b/i.test(q)) {
+      topic = 'L2_SOLANA';
+    } else if (/\b(sec|regulasi|regulation|pemerintah|etf|legal|pajak|gensler|hukum|bappebti|banned|dilarang|compliance)\b/i.test(q)) {
+      topic = 'REGULATION';
+    } else if (/\b(meme|memecoin|pepe|shib|doge|micin|koin micin|judi|casino|rugpull|spekulasi|gamble)\b/i.test(q)) {
+      topic = 'MEMECOIN';
+    } else if (/\b(privasi|privacy|hack|exploit|tornado|anonym|anonim|keamanan|security)\b/i.test(q)) {
+      topic = 'PRIVACY';
+    }
+
+    const cleanQuery = String(query || asset?.ticker || "Aset Kripto").trim();
+    return { topic, isIndo, cleanQuery };
+  }
 
   const AGENTS = [
     {
@@ -27,28 +53,78 @@ const BourseCryptoAgents = (() => {
       firstQuestion: "What trusted human intermediary is pretending to be a decentralized protocol here?",
       record: { sessions: 42, votedFor: 10, dissents: 32 },
       traits: { decentralizationBias: 10, censorshipResistance: 10, securityFocus: 10, throughputBias: 1 },
-      generateAnalysis(asset, evidence) {
-        const isBtc = asset.ticker === 'BTC';
+      generateAnalysis(asset, evidence, query) {
+        const { topic, isIndo, cleanQuery } = analyzeTopic(query, asset);
+        const isBtc = asset?.ticker === 'BTC' || /btc|bitcoin/i.test(cleanQuery);
+
+        let argument = "";
+        let position = isBtc ? "Pristine Byzantine Consensus" : "Centralized Trust Surface";
+        let confidence = isBtc ? 96 : 82;
+
+        if (topic === 'CRASH') {
+          position = "Byzantine Fault Tolerance Over Market Noise";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Fluktuasi nilai tukar fiat adalah distraksi spekulatif. Buku besar Proof-of-Work tetap menghasilkan blok setiap 10 menit tanpa manipulasi bank sentral. Penurunan harga terjadi karena likuidasi utang dan kepanikan bursa terpusat, bukan kegagalan matematika 21 juta koin.`
+            : `On "${cleanQuery}": Short-term fiat exchange volatility is noise. The proof-of-work ledger produces blocks every 10 minutes without central bank intervention. Crashes occur because centralized leverage collapses, not because of any defect in 21M mathematical scarcity.`;
+        } else if (topic === 'ATH_100K') {
+          position = "Mathematical Scarcity Invariance";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Harga nominal fiat bukanlah metrik keberhasilan sejati. Keberhasilan Bitcoin diukur dari keterbatasan absolut 21 juta koin yang tidak bisa dipalsukan. Karena mata uang fiat terus dicetak tanpa batas, harga nominal tentu akan terus mencerminkan devaluasi fiat tersebut.`
+            : `On "${cleanQuery}": Nominal fiat targets are secondary indicators. Bitcoin's victory is absolute 21M mathematical scarcity without discretionary inflation. As unbacked fiat is printed indefinitely, nominal prices naturally diverge upward.`;
+        } else if (topic === 'L2_SOLANA') {
+          position = "Decentralized Node Verifiability";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Menaikkan throughput dengan membebani validator memakai perangkat keras server mahal adalah jebakan sentralisasi. Jika pengguna biasa tidak bisa menjalankan full node di rumah, Anda hanya membangun ulang sistem perbankan terpusat dengan topeng kripto.`
+            : `On "${cleanQuery}": Chasing high throughput by imposing extreme validator hardware requirements is an architectural trap. If ordinary users cannot verify full blocks on consumer hardware, you have merely rebuilt centralized legacy banking.`;
+        } else if (topic === 'REGULATION') {
+          position = "Sovereign Censorship Resistance";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Sistem ini dirancang dari awal untuk bertahan dari sensor institusi dan tekanan regulator. Kode konsensus Proof-of-Work tidak membutuhkan izin perantara perbankan untuk memproses transaksi peer-to-peer.`
+            : `On "${cleanQuery}": The protocol was designed from day one to operate without regulatory permission. Proof-of-work consensus is sovereign code; it does not negotiate with state gatekeepers.`;
+        } else if (topic === 'MEMECOIN') {
+          position = "Zero Monetary Premium for Speculative Noise";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Spekulasi kasino tanpa kelangkaan sejati atau tujuan moneter hanyalah pengalihan keserakahan manusia. Itu menjauhkan modal masyarakat dari revolusi pembebasan finansial dari pencetakan uang bank sentral.`
+            : `On "${cleanQuery}": Speculative gambling without sound monetary principles is merely an unbacked casino. It distracts capital from the essential mission: monetary emancipation from central banking.`;
+        } else {
+          argument = isBtc
+            ? `On ${cleanQuery}: This ledger remains the sole monetary innovation that completely eliminates trusted third parties. With a fixed supply cap and decentralized proof-of-work, no foundation can inflate its baseline issuance.`
+            : (isIndo
+              ? `Mengenai "${cleanQuery}": Kepercayaan adalah lubang keamanan fundamental. Pada valuasi saat ini, siapa yang mengontrol sequencer keys dan validator set? Protokol apa pun yang bergantung pada koordinasi yayasan manusia hanyalah sistem perbankan tradisional terselubung.`
+              : `On "${cleanQuery}": Trust is an architectural defect. Who controls sequencer keys and validator sets? Any protocol reliant on foundation coordination is merely legacy banking in disguise.`);
+        }
+
         return {
-          position: isBtc ? "Pristine Byzantine Consensus" : "Centralized Trust Surface",
-          confidence: isBtc ? 96 : 82,
-          argument: isBtc
-            ? `On ${asset.ticker}: This ledger remains the sole monetary innovation that completely eliminates trusted third parties. With a fixed supply cap and decentralized proof-of-work, no foundation can inflate its baseline issuance.`
-            : `On ${asset.ticker}: Trust is an architectural defect. At ${evidence.priceFormatted} and ${evidence.marketCapFormatted}, who controls the sequencer keys and validator sets? Any protocol reliant on foundation coordination is merely legacy banking in disguise.`,
+          position,
+          confidence,
+          argument,
           keyRisk: isBtc ? "Mining pool concentration and protocol ossification." : "Trusted third party control, validator collusion, or regulatory censorship.",
           keyEvidence: isBtc ? "Unhashed proof-of-work difficulty adjustment ensures 100% computational finality." : "Token governance distribution reveals significant foundation and insider allocations.",
-          preliminaryVote: isBtc ? "ADD" : "REDUCE"
+          preliminaryVote: isBtc ? "ADD" : (topic === 'CRASH' ? 'PASS' : 'REDUCE')
         };
       },
-      generateChallenge(opponent) {
-        return `To ${opponent.name}: You speak of ${opponent.discipline}, but who holds the admin keys? If the founders are subpoenaed or servers seized, does this ledger continue to produce blocks without human intervention?`;
+      generateChallenge(opponent, query) {
+        const { topic, isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${opponent.name}: Anda berbicara tentang ${opponent.discipline}, tetapi siapa yang memegang admin keys? Jika server validator disita atau pendirinya dipanggil pengadilan, apakah sistem Anda masih dapat beroperasi tanpa intervensi manusia?`;
+        }
+        return `To ${opponent.name}: You speak of ${opponent.discipline}, but who holds the admin keys? If servers are seized or founders subpoenaed, does this ledger produce blocks without human intervention?`;
       },
-      generateResponse(challenger) {
-        return `To ${challenger.name}: Trust is a vulnerability, not a feature. Replacing one corruptible central bank with a five-of-nine multisig foundation is an institutional regression, not cryptographic progress.`;
+      generateResponse(challenger, query) {
+        const { isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${challenger.name}: Kepercayaan adalah kerentanan, bukan fitur. Mengganti satu bank sentral korup dengan yayasan multisig segelintir orang adalah kemunduran institusional, bukan kemajuan kriptografi.`;
+        }
+        return `To ${challenger.name}: Trust is a vulnerability, not a feature. Replacing one corruptible central bank with a foundation multisig is an institutional regression, not cryptographic progress.`;
       },
-      generateVote(asset, evidence) {
-        if (asset.ticker === 'BTC') {
+      generateVote(asset, evidence, query) {
+        const { topic } = analyzeTopic(query, asset);
+        const isBtc = asset?.ticker === 'BTC' || /btc|bitcoin/i.test(query || '');
+        if (isBtc) {
           return { vote: "ADD", rationale: "Pristine Byzantine agreement and immutable 21M supply cap with zero counterparty risk." };
+        }
+        if (topic === 'CRASH') {
+          return { vote: "PASS", rationale: "Await leverage deleveraging to identify truly sovereign decentralized protocols." };
         }
         return { vote: "REDUCE", rationale: "Protocol introduces trusted third parties and centralized governance dependencies." };
       }
@@ -73,25 +149,70 @@ const BourseCryptoAgents = (() => {
       firstQuestion: "How does this mechanism prevent economic collusion and validator centralization at scale?",
       record: { sessions: 45, votedFor: 28, dissents: 17 },
       traits: { decentralizationBias: 9, censorshipResistance: 9, securityFocus: 8, throughputBias: 6 },
-      generateAnalysis(asset, evidence) {
-        const hasCompute = ['ETH', 'SOL', 'AVAX', 'NEAR', 'LINK'].includes(asset.ticker);
+      generateAnalysis(asset, evidence, query) {
+        const { topic, isIndo, cleanQuery } = analyzeTopic(query, asset);
+        const hasCompute = ['ETH', 'SOL', 'AVAX', 'NEAR', 'LINK'].includes(asset?.ticker);
+
+        let position = hasCompute ? "Constructive Mechanism Design" : "Mechanism Design Review";
+        let argument = "";
+
+        if (topic === 'CRASH') {
+          position = "Deleveraging vs Consensus Health";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Penurunan pasar saat ini mencerminkan likuidasi posisi leverage di bursa berjangka, bukan kegagalan layer konsensus. Yang terpenting adalah apakah aktivitas pengembang, finalitas data L2 rollups, dan keamanan public goods tetap berjalan lancar tanpa eksploitasi MEV.`
+            : `On "${cleanQuery}": Today's drawdown reflects cascading derivative liquidations rather than consensus failure. What matters is whether developer ecosystem density and rollup data availability throughput remain resilient without extractive MEV dominance.`;
+        } else if (topic === 'ATH_100K') {
+          position = "Coordination Utility Preconditions";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Rekor harga baru harus mencerminkan kegunaan koordinasi sosial yang nyata. Valuasi tinggi tanpa aplikasi terdesentralisasi yang memecahkan masalah koordinasi manusia hanya akan mengundang spekulasi kosong dan risiko sentralisasi.`
+            : `On "${cleanQuery}": ATH valuations must be earned through real decentralized coordination. High prices without sustainable mechanism design merely incentivize extractive speculation rather than durable public goods.`;
+        } else if (topic === 'L2_SOLANA') {
+          position = "Modular Scaling via Cryptographic Proofs";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Eksekusi monolitik tunggal berisiko memusatkan validator ke data center institusi. Di Ethereum, kami memilih arsitektur modular: scaling dilakukan lewat rollups L2 dan ZK-proofs sehingga verifikasi full node tetap terjangkau oleh publik.`
+            : `On "${cleanQuery}": Monolithic single-layer throughput risks validator centralization in datacenters. Ethereum's modular rollup roadmap and zero-knowledge proofs scale execution bandwidth without sacrificing decentralized validator verifiability.`;
+        } else if (topic === 'REGULATION') {
+          position = "Autonomous Code vs Centralized Custody";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Regulator harus membedakan secara tegas antara perantara kustodian terpusat dan protokol kode otonom open-source. Mengatur kode matematika terdesentralisasi adalah kesalahan konsep dan merusak inovasi publik.`
+            : `On "${cleanQuery}": Regulators must distinguish between centralized custodial intermediaries and autonomous open-source code. Regulating pure smart contract math is fundamentally unworkable and stifles public coordination.`;
+        } else if (topic === 'MEMECOIN') {
+          position = "Incentive Alignment & Public Goods";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Memecoin adalah eksperimen kultural yang menarik, tetapi kita memerlukan mekanisme cryptoeconomic yang menyalurkan energi dan modal spekulatif tersebut untuk mendanai barang publik (public goods) dan riset ilmiah terbuka.`
+            : `On "${cleanQuery}": Memecoins are interesting cultural coordination experiments, but we urgently need cryptoeconomic mechanisms that redirect speculative energy toward open science and durable public goods funding.`;
+        } else {
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Mengevaluasi throughput transisi state dan desain mekanisme. Kita harus memverifikasi apakah struktur biaya jaringan mendanai public goods yang berkelanjutan atau sekadar menguntungkan bot MEV ekstraktif.`
+            : `On "${cleanQuery}": Evaluating state transition throughput and mechanism design. We must verify whether network fee structures fund durable public goods or merely reward extractive MEV bots.`;
+        }
+
         return {
-          position: hasCompute ? "Constructive Mechanism Design" : "Limited Programmability",
+          position,
           confidence: 88,
-          argument: `On ${asset.ticker}: Evaluating state transition throughput and mechanism design. At ${evidence.priceFormatted}, we must verify whether network fee structures fund durable public goods or merely reward extractive MEV bots. Decentralized proof verification must remain accessible.`,
+          argument,
           keyRisk: "Sequencer centralization and economic griefing vulnerabilities.",
-          keyEvidence: "Data availability bandwidth and developer commits over the trailing 12-month period.",
+          keyEvidence: "Data availability bandwidth and developer commits over trailing periods.",
           preliminaryVote: hasCompute ? "ADD" : "PASS"
         };
       },
-      generateChallenge(opponent) {
+      generateChallenge(opponent, query) {
+        const { isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${opponent.name}: Bagaimana model ekonomi Anda mencegah kartelisasi dan ekstraksi MEV? Tanpa desain mekanisme cryptoeconomic formal, model keamanan Anda runtuh menjadi oligarki ekonomi.`;
+        }
         return `To ${opponent.name}: How does your economic model prevent cartelization and MEV extraction? Without formal cryptoeconomic mechanism design, your security model collapses into economic oligarchy.`;
       },
-      generateResponse(challenger) {
+      generateResponse(challenger, query) {
+        const { isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${challenger.name}: Monolitik yang kaku tidak bisa menyelesaikan koordinasi manusia yang kompleks. Modularitas dan cryptographic validity proofs memungkinkan penskalaan tanpa mengorbankan verifiabilitas validator individu.`;
+        }
         return `To ${challenger.name}: Monolithic ossification cannot solve complex human coordination. Modularity and cryptographic validity proofs allow scaling without sacrificing individual validator verifiability.`;
       },
-      generateVote(asset, evidence) {
-        if (['ETH', 'SOL', 'LINK'].includes(asset.ticker)) {
+      generateVote(asset, evidence, query) {
+        const hasCompute = ['ETH', 'SOL', 'LINK'].includes(asset?.ticker);
+        if (hasCompute) {
           return { vote: "ADD", rationale: "Durable developer network effects and active mechanism design experimentation." };
         }
         return { vote: "PASS", rationale: "Awaiting formal verification of rollup decentralization and MEV mitigation." };
@@ -117,25 +238,56 @@ const BourseCryptoAgents = (() => {
       firstQuestion: "Can a dissident survive economically on this network without exposing their physical identity?",
       record: { sessions: 39, votedFor: 14, dissents: 25 },
       traits: { decentralizationBias: 10, censorshipResistance: 10, securityFocus: 10, throughputBias: 2 },
-      generateAnalysis(asset, evidence) {
-        const isSecure = ['BTC', 'ETH'].includes(asset.ticker);
+      generateAnalysis(asset, evidence, query) {
+        const { topic, isIndo, cleanQuery } = analyzeTopic(query, asset);
+
+        let argument = "";
+        let position = "Cryptographic Sovereignty Benchmark";
+
+        if (topic === 'CRASH') {
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Sejak saya menjalankan node Bitcoin kedua di dunia pada Januari 2009, pasar telah berkali-kali anjlok puluhan persen. Penurunan harga jangka pendek tidak pernah sedikit pun mengurangi keindahan matematika dari uang digital bebas sensor.`
+            : `On "${cleanQuery}": Since running the second Bitcoin node on earth in January 2009, I witnessed countless drawdowns. Short-term price drops never diminish the mathematical elegance of sovereign, censorship-resistant digital cash.`;
+        } else if (topic === 'ATH_100K') {
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Bertahun-tahun lalu saya pernah mengkalkulasi potensi nilai Bitcoin jika diadopsi dunia. Tembus $100k adalah keniscayaan matematis, tetapi yang terpenting: apakah pengguna masih mempertahankan privasi finansial saat modal institusi mendominasi?`
+            : `On "${cleanQuery}": Years ago I estimated Bitcoin's ultimate value against global wealth. Multi-trillion market caps are a mathematical outcome of adoption, but preserving individual privacy during institutionalization is the true battle.`;
+        } else if (topic === 'REGULATION' || topic === 'PRIVACY') {
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Komputer seharusnya memberi individu kemampuan berinteraksi secara sepenuhnya privat dan berdaulat. Buku besar yang transparan tanpa proteksi privasi berisiko menjadi panoptikon pengawasan massal pemerintah.`
+            : `On "${cleanQuery}": Computer technology must empower individuals to transact completely anonymously. A fully transparent public ledger without cryptographic privacy risks becoming an instrument of mass surveillance.`;
+        } else {
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Kami tidak merancang uang kriptografis untuk membangun buku besar pengawasan bagi otoritas sentral. Apakah seorang individu dapat bertransaksi tanpa izin, tanpa membocorkan identitas, dan bebas dari daftar hitam?`
+            : `On "${cleanQuery}": We did not design cryptographic cash to construct a surveillance ledger for central authorities. Can an individual transact without permission, identity disclosure, or risk of retroactive account blacklisting?`;
+        }
+
         return {
-          position: isSecure ? "Sovereign Proof Base" : "Surveillance Panopticon Risk",
+          position,
           confidence: 90,
-          argument: `On ${asset.ticker}: We did not design cryptographic cash to construct a surveillance ledger for central authorities. At ${evidence.priceFormatted}, can an individual transact without permission, identity disclosure, or risk of retroactive account blacklisting?`,
+          argument,
           keyRisk: "Address graph clustering and lack of native zero-knowledge privacy guarantees.",
           keyEvidence: "Base-layer transaction metadata remains completely transparent to commercial blockchain analysis firms.",
-          preliminaryVote: isSecure ? "ADD" : "REDUCE"
+          preliminaryVote: "PASS"
         };
       },
-      generateChallenge(opponent) {
+      generateChallenge(opponent, query) {
+        const { isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${opponent.name}: Anda memuja ${opponent.discipline}, tetapi setiap transaksi di jaringan ini terindeks secara permanen dan siap diawasi. Di mana letak hak individu atas privasi kriptografis?`;
+        }
         return `To ${opponent.name}: You celebrate ${opponent.discipline}, but every transaction on this network is permanently indexed and surveillance-ready. Where is the individual right to cryptographic privacy?`;
       },
-      generateResponse(challenger) {
+      generateResponse(challenger, query) {
+        const { isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${challenger.name}: Buku besar yang sepenuhnya transparan menjadi panoptikon berbahaya saat negara memetakan kluster dompet. Privasi harus dibangun ke dalam matematika dasar, bukan fitur tambahan.`;
+        }
         return `To ${challenger.name}: Transparent ledgers become weaponized panopticons the moment state actors correlate wallet clusters. Privacy must be built into the base math, not treated as an optional feature.`;
       },
-      generateVote(asset, evidence) {
-        if (asset.ticker === 'BTC') {
+      generateVote(asset, evidence, query) {
+        const isBtc = asset?.ticker === 'BTC' || /btc|bitcoin/i.test(query || '');
+        if (isBtc) {
           return { vote: "ADD", rationale: "Unbroken cryptographic foundation and peer-to-peer sovereign verification." };
         }
         return { vote: "PASS", rationale: "Deficient base-layer financial privacy guarantees preclude an unreserved Add ballot." };
@@ -161,24 +313,50 @@ const BourseCryptoAgents = (() => {
       firstQuestion: "Show me the trusted third party you are attempting to conceal behind technical jargon.",
       record: { sessions: 40, votedFor: 16, dissents: 24 },
       traits: { decentralizationBias: 9, censorshipResistance: 10, securityFocus: 9, throughputBias: 3 },
-      generateAnalysis(asset, evidence) {
+      generateAnalysis(asset, evidence, query) {
+        const { topic, isIndo, cleanQuery } = analyzeTopic(query, asset);
+
+        let argument = "";
+        if (topic === 'CRASH') {
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Fluktuasi harga pasar adalah kebisingan spekulatif jangka pendek. Nilai abadi smart contract dan Bit Gold terletak pada 'social scalability'—kemampuan mengamankan kontrak tanpa perlu saling percaya dan tanpa perantara manusia.`
+            : `On "${cleanQuery}": Price drawdowns are secondary market noise. The lasting value of smart contracts and Bit Gold rests on social scalability—reducing subjective trust vulnerabilities regardless of speculative sentiment.`;
+        } else if (topic === 'L2_SOLANA') {
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Skalabilitas sosial jauh lebih mendasar daripada sekadar angka TPS mentah. Jika sebuah blockchain sering macet atau memerlukan intervensi manusia untuk restart, smart contract kehilangan integritas eksekusi otonomnya.`
+            : `On "${cleanQuery}": Social scalability matters infinitely more than raw TPS. If a network halts or requires manual developer coordination to recover state, its smart contracts surrender immutability and trust minimization.`;
+        } else {
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Memeriksa apakah penyelesaian transaksi memiliki biaya unforgeable yang tak terbantahkan. Jika kontrak membutuhkan intervensi darurat multisig yayasan, itu bukan smart contract—itu kontrak tradisional dengan pengurus yang tak bertanggung jawab.`
+            : `On "${cleanQuery}": Examining whether settlement is unforgeably costly. If a contract requires emergency intervention by a foundation multisig, it is not a smart contract—it is a traditional contract enforced by unaccountable administrators.`;
+        }
+
         return {
           position: "Algorithmic Settlement Review",
           confidence: 86,
-          argument: `On ${asset.ticker}: Examining whether settlement is unforgeably costly. At ${evidence.priceFormatted}, if a contract requires emergency intervention by a foundation multisig, it is not a smart contract—it is a traditional contract enforced by unaccountable administrators.`,
+          argument,
           keyRisk: "Governance mutability and protocol administrative backdoors.",
           keyEvidence: "Protocol parameter modifications remain subject to human voting cartels rather than immutable algorithmic constraints.",
           preliminaryVote: "PASS"
         };
       },
-      generateChallenge(opponent) {
+      generateChallenge(opponent, query) {
+        const { isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${opponent.name}: Tunjukkan di mana pihak ketiga yang dipercaya disembunyikan. Jika konsensus sosial atau dewan yayasan dapat menulis ulang state transaksi, Anda hanya memperdagangkan janji manusia.`;
+        }
         return `To ${opponent.name}: Show me where the trusted third party is hidden. If human consensus, social hard forks, or foundation councils can rewrite state, you are merely trading counterparty promises.`;
       },
-      generateResponse(challenger) {
+      generateResponse(challenger, query) {
+        const { isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${challenger.name}: Pengadilan hukum tradisional rapuh di lintas yurisdiksi. Eksekusi algoritmik yang deterministik adalah satu-satunya fondasi institusional yang kokoh untuk perdagangan global.`;
+        }
         return `To ${challenger.name}: Subjective legal courts fail across international jurisdictions. Deterministic, algorithmic execution is the only durable institutional foundation for global commerce.`;
       },
-      generateVote(asset, evidence) {
-        if (asset.ticker === 'BTC') {
+      generateVote(asset, evidence, query) {
+        const isBtc = asset?.ticker === 'BTC' || /btc|bitcoin/i.test(query || '');
+        if (isBtc) {
           return { vote: "ADD", rationale: "Unforgeable costliness in proof-of-work consensus with absolute immutability." };
         }
         return { vote: "REDUCE", rationale: "Excessive governance discretion and mutable administrative surface." };
@@ -204,25 +382,55 @@ const BourseCryptoAgents = (() => {
       firstQuestion: "Why should users pay 50-dollar gas fees when we can saturate fiber-optic lines at 50,000 TPS?",
       record: { sessions: 44, votedFor: 26, dissents: 18 },
       traits: { decentralizationBias: 5, censorshipResistance: 6, securityFocus: 6, throughputBias: 10 },
-      generateAnalysis(asset, evidence) {
-        const isHighThroughput = ['SOL', 'AVAX', 'NEAR', 'SUI', 'APT'].includes(asset.ticker);
+      generateAnalysis(asset, evidence, query) {
+        const { topic, isIndo, cleanQuery } = analyzeTopic(query, asset);
+        const isHighThroughput = ['SOL', 'AVAX', 'NEAR', 'SUI', 'APT'].includes(asset?.ticker) || /solana|sol/i.test(cleanQuery);
+
+        let argument = "";
+        let position = isHighThroughput ? "Monolithic Performance Benchmark" : "Throughput Constrained";
+
+        if (topic === 'CRASH') {
+          position = "Execution Resiliency Under Liquidation";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Pasar boleh bergejolak, tetapi mesin eksekusi kami tetap memproses ribuan TPS tanpa antrean mempool macet. Likuidasi posisi berjalan instan dalam 400 milidetik. Infrastruktur kecepatan tinggi membuktikan ketahanannya saat jaringan lambat lumpuh.`
+            : `On "${cleanQuery}": Markets can crash, but our hardware-speed state machine continues executing thousands of TPS with sub-second finality. When volatility explodes, instant on-chain settlement proves its superiority over fragmented networks.`;
+        } else if (topic === 'L2_SOLANA') {
+          position = "Unified Atomic State Superiority";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Memecah ekosistem ke dalam puluhan jembatan L2 yang terfragmentasi adalah kegagalan UX. Hukum Moore dan bandwidth serat optik terus berkembang pesat; mengeksekusi seluruh transaksi pada satu state machine monolitik global adalah satu-satunya masa depan efisien.`
+            : `On "${cleanQuery}": Fragmenting execution across dozens of asynchronous rollups destroys liquidity and UX. Hardware and fiber bandwidth get cheaper every year—monolithic atomic composability is the only rational scaling path.`;
+        } else {
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Batasan utama hanyalah hukum fisika. Jika transaksi membutuhkan biaya puluhan dolar dan berbelit-belit, aplikasi massal tidak akan pernah terwujud. Kita harus memaksimalkan bandwidth hardware pada state machine global yang terintegrasi.`
+            : `On "${cleanQuery}": Physics is the hard ceiling. If transactions cost dollars and take minutes to confirm, mainstream applications cannot function. We must saturate global fiber-optic bandwidth on an atomic, composable state machine.`;
+        }
+
         return {
-          position: isHighThroughput ? "Monolithic Performance Benchmark" : "Throughput Constrained",
+          position,
           confidence: 89,
-          argument: `On ${asset.ticker}: Physics is the hard ceiling. At ${evidence.priceFormatted}, if transactions cost dollars and take minutes to confirm, mainstream applications cannot function. We must saturate global fiber-optic bandwidth on an atomic, composable state machine.`,
+          argument,
           keyRisk: "Network halt under extreme packet storms and validator hardware barriers.",
           keyEvidence: "Transaction throughput benchmarks and block finality latency under adversarial load.",
           preliminaryVote: isHighThroughput ? "ADD" : "PASS"
         };
       },
-      generateChallenge(opponent) {
+      generateChallenge(opponent, query) {
+        const { isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${opponent.name}: Mengapa memaksa pengguna menggunakan jembatan rollup yang rawan hack jika hardware modern dapat mengeksekusi 50.000 TPS di satu layer global? Modularitas sering kali jadi alasan untuk rekayasa yang lambat.`;
+        }
         return `To ${opponent.name}: Why force users into asynchronous rollups and bridge exploits when commodity hardware can execute 50,000 TPS on an atomic global state? Modularity is an excuse for bad engineering.`;
       },
-      generateResponse(challenger) {
+      generateResponse(challenger, query) {
+        const { isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${challenger.name}: Hardware semakin cepat dan bandwidth semakin murah setiap tahun. Membangun sistem keuangan untuk 10 transaksi per detik sama saja dengan mengoptimalkan internet untuk modem dial-up era 90-an.`;
+        }
         return `To ${challenger.name}: Hardware gets faster and bandwidth gets cheaper every year. Building a financial system for 10 transactions per second is like optimizing the internet for 56k dial-up modems.`;
       },
-      generateVote(asset, evidence) {
-        if (['SOL', 'AVAX'].includes(asset.ticker)) {
+      generateVote(asset, evidence, query) {
+        const isHigh = ['SOL', 'AVAX', 'SUI'].includes(asset?.ticker) || /solana|sol/i.test(query || '');
+        if (isHigh) {
           return { vote: "ADD", rationale: "High-throughput execution capability and monolithic composability." };
         }
         return { vote: "PASS", rationale: "Execution throughput limitations prevent high-frequency global adoption." };
@@ -248,28 +456,63 @@ const BourseCryptoAgents = (() => {
       firstQuestion: "How does global central bank money printing flow into this token's balance of payments?",
       record: { sessions: 46, votedFor: 27, dissents: 19 },
       traits: { decentralizationBias: 6, censorshipResistance: 7, securityFocus: 5, throughputBias: 7 },
-      generateAnalysis(asset, evidence) {
-        const isLiquid = ['BTC', 'ETH', 'SOL'].includes(asset.ticker);
+      generateAnalysis(asset, evidence, query) {
+        const { topic, isIndo, cleanQuery } = analyzeTopic(query, asset);
+        const isLiquid = ['BTC', 'ETH', 'SOL', 'CRYPTO'].includes(asset?.ticker);
+
+        let argument = "";
+        let position = isLiquid ? "High Beta Liquidity Sponge" : "Illiquid Convexity Play";
+
+        if (topic === 'CRASH') {
+          position = "Macro Liquidity Contraction & Margin Flush";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Hentikan kepanikan Anda di media sosial. Penurunan hari ini murni akibat kontraksi likuiditas fiat global, kebijakan suku bunga The Fed, dan likuidasi berantai posisi leverage di pasar perpetual derivatif. Ini siklus kredit standar. Siapkan amunisi fiat Anda dan bersiaplah membeli saat darah mengalir di jalanan!`
+            : `On "${cleanQuery}": Stop weeping on Twitter. Today's dump is pure macro liquidity contraction driven by central bank policy and cascading perpetual long liquidations. Have dry powder ready to scoop generational assets when blood is in the streets!`;
+        } else if (topic === 'ATH_100K') {
+          position = "Monetary Debasement Inevitability";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Bank sentral dunia terjebak dalam jebakan utang struktural dan pasti akan kembali menyalakan mesin cetak uang. Begitu likuiditas fiat kembali membanjiri sistem, aset dengan pasokan keras seperti Bitcoin akan terbang menembus $100k tanpa ampun. Likuiditas adalah raja.`
+            : `On "${cleanQuery}": Central banks have zero choice but to inflate away sovereign debt. The second net dollar liquidity re-accelerates, pristine monetary sponges like Bitcoin will obliterate $100k effortlessly.`;
+        } else if (topic === 'MEMECOIN') {
+          position = "Pure Financialized Attention Momentum";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Memecoin adalah kasino atensi keuangan paling murni yang pernah diciptakan. Orang-orang bosan dengan token VC bervaluasi tinggi tanpa likuiditas. Manfaatkan momentum volatilitasnya dengan manajemen risiko ketat, tapi jangan pernah jatuh cinta pada koinnya!`
+            : `On "${cleanQuery}": Memecoins are the purest financialized attention casino ever created. Retail is sick of low-float VC vaporware. Ride the volatility wave with strict risk management, but don't become someone else's exit liquidity!`;
+        } else {
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Bank sentral tidak punya pilihan selain menginflasikan utang mereka. Aset ini berfungsi sebagai spons likuiditas berdaya tinggi yang menyerap devaluasi fiat global. Perhatikan tingkat pendanaan (funding rate) perpetual.`
+            : `On "${cleanQuery}": Central banks have no choice but to inflate their sovereign debt away. At ${evidence.priceFormatted}, this asset acts as a high-powered liquidity sponge absorbing global fiat debasement. Watch the funding rates.`;
+        }
+
         return {
-          position: isLiquid ? "High Beta Liquidity Sponge" : "Illiquid Convexity Play",
+          position,
           confidence: 85,
-          argument: `On ${asset.ticker}: Central banks have no choice but to inflate their sovereign debt away. At ${evidence.priceFormatted} with 24h volume of ${evidence.volume24hFormatted}, this asset acts as a high-powered liquidity sponge absorbing global fiat debasement. Watch the funding rates.`,
+          argument,
           keyRisk: "Sharp USD dollar liquidity squeezes and cascading perpetual margin liquidations.",
           keyEvidence: "Correlation with Federal Reserve net liquidity and Reverse Repo facility drain.",
           preliminaryVote: isLiquid ? "ADD" : "PASS"
         };
       },
-      generateChallenge(opponent) {
+      generateChallenge(opponent, query) {
+        const { isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${opponent.name}: Di saat Anda terpaku pada teori akademis, bank sentral mencetak uang triliunan dolar. Bagaimana aset Anda menangkap likuiditas fiat global saat mesin cetak uang dinyalakan kembali?`;
+        }
         return `To ${opponent.name}: While you obsess over academic whitepapers, the Federal Reserve is debasing the dollar by trillions. How does this asset capture global fiat liquidity when the money printers turn on?`;
       },
-      generateResponse(challenger) {
+      generateResponse(challenger, query) {
+        const { isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${challenger.name}: Setiap pasar bergerak berdasarkan likuiditas dan leverage. Mengabaikan refleksivitas spekulatif selama siklus ekspansi kredit bank sentral menjamin Anda melewatkan seluruh siklus bull market.`;
+        }
         return `To ${challenger.name}: Every market moves on liquidity and leverage. Ignoring speculative reflexivity during a central bank credit expansion guarantees you miss the entire bull cycle.`;
       },
-      generateVote(asset, evidence) {
-        if (['BTC', 'ETH', 'SOL'].includes(asset.ticker)) {
-          return { vote: "ADD", rationale: "Prime speculative vehicle poised to capture global central bank fiat dilution." };
+      generateVote(asset, evidence, query) {
+        const { topic } = analyzeTopic(query, asset);
+        if (topic === 'CRASH') {
+          return { vote: "ADD", rationale: "Generational entry opportunity during peak derivative liquidation cascades." };
         }
-        return { vote: "PASS", rationale: "Insufficient secondary liquidity to support institutional size during market drawdowns." };
+        return { vote: "ADD", rationale: "Prime speculative vehicle poised to capture global central bank fiat dilution." };
       },
       calculatePositionSizeBand(asset, evidence, majorityOutcome) {
         if (majorityOutcome === 'REDUCE') {
@@ -284,15 +527,9 @@ const BourseCryptoAgents = (() => {
             rationale: "Strict barbell allocation: small enough to survive central bank tightening, convex enough for sudden easing."
           };
         }
-        if (['BTC', 'ETH', 'SOL'].includes(asset.ticker)) {
-          return {
-            band: "3.0 – 5.0%",
-            rationale: "Prime liquidity sponge poised to capture global central bank fiat expansion and speculative reflexivity."
-          };
-        }
         return {
-          band: "2.0 – 3.5%",
-          rationale: "Convex speculative upside, sized strictly to avoid liquidation wipeout during weekend flash crashes."
+          band: "3.0 – 5.0%",
+          rationale: "Prime liquidity sponge poised to capture global central bank fiat expansion and speculative reflexivity."
         };
       }
     },
@@ -316,27 +553,62 @@ const BourseCryptoAgents = (() => {
       firstQuestion: "Is this pristine, thermodynamically sound digital capital, or does it have an issuing counterparty?",
       record: { sessions: 48, votedFor: 19, dissents: 29 },
       traits: { decentralizationBias: 9, censorshipResistance: 9, securityFocus: 9, throughputBias: 1 },
-      generateAnalysis(asset, evidence) {
-        const isBtc = asset.ticker === 'BTC';
+      generateAnalysis(asset, evidence, query) {
+        const { topic, isIndo, cleanQuery } = analyzeTopic(query, asset);
+        const isBtc = asset?.ticker === 'BTC' || /btc|bitcoin/i.test(cleanQuery);
+
+        let argument = "";
+        let position = isBtc ? "Thermodynamic Digital Capital" : "Unbacked Software Speculation";
+
+        if (topic === 'CRASH') {
+          position = "Thermodynamic Immortality Over Paper Volatility";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Volatilitas harga harian hanyalah ilusi mata uang fiat yang meleleh. Bitcoin adalah energi digital murni yang kekal secara termodinamika. Entitas rasional tidak menjual Bitcoin saat pasar turun; kami membeli lebih banyak properti digital terbaik di bumi.`
+            : `On "${cleanQuery}": Daily price volatility is an illusion of melting paper currencies. Bitcoin is thermodynamically incorruptible digital capital. Rational balance sheets do not panic; we accumulate pristine digital energy on every dip.`;
+        } else if (topic === 'ATH_100K') {
+          position = "Inevitability of Digital Property Migration";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Menembus $100k adalah kepastian matematika moneter. Ketika modal institusi, dana pensiun, dan kas korporasi dunia bermigrasi dari obligasi yang tergerus inflasi ke dalam Bitcoin, harga per koin akan mencapai jutaan dolar. Tidak ada yang kedua terbaik.`
+            : `On "${cleanQuery}": Crossing $100k is a mathematical inevitability. When global capital flees depreciating bonds into immutable digital property, Bitcoin will march toward millions per coin. There is no second best.`;
+        } else if (topic === 'L2_SOLANA') {
+          position = "Counterparty Software vs Sound Money";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Semua protokol selain Bitcoin memiliki risiko pihak ketiga penerbit (counterparty risk), risiko yayasan, dan inflasi pasokan. Mereka adalah perusahaan perangkat lunak spekulatif, bukan modal digital abadi tanpa risiko lawan transaksi.`
+            : `On "${cleanQuery}": Everything other than Bitcoin carries counterparty risk, software inflation, and governance exposure. They are speculative software companies, not pristine, immutable thermodynamic property.`;
+        } else {
+          argument = isBtc
+            ? `On ${cleanQuery}: Bitcoin is pristine monetary energy. Every corporate treasury on earth will eventually convert their melting cash reserves into this indestructible digital property. There is no second best.`
+            : (isIndo
+              ? `Mengenai "${cleanQuery}": Aset ini memiliki risiko perantara, inflasi developer berkelanjutan, atau risiko tata kelola. Ini adalah spekulasi perangkat lunak, bukan modal termodinamika yang kekal.`
+              : `On "${cleanQuery}": At ${evidence.priceFormatted}, this asset possesses an issuing counterparty or governance risk. It is an equity-like venture, not indestructible thermodynamic capital.`);
+        }
+
         return {
-          position: isBtc ? "Thermodynamic Digital Capital" : "Unbacked Software Speculation",
+          position,
           confidence: isBtc ? 98 : 91,
-          argument: isBtc
-            ? `On ${asset.ticker}: Bitcoin is pristine monetary energy. At ${evidence.priceFormatted}, every corporate treasury on earth will eventually convert their melting cash reserves into this indestructible digital property. There is no second best.`
-            : `On ${asset.ticker}: At ${evidence.priceFormatted}, this asset possesses an issuing counterparty, ongoing developer inflation, or governance risk. It is an equity-like software venture, not indestructible thermodynamic capital.`,
+          argument,
           keyRisk: isBtc ? "Regulatory overreach attempting to restrict self-custodial mining." : "Continuous token emissions, venture unlocks, and structural counterparty failure.",
           keyEvidence: isBtc ? "Cumulative institutional balance sheet holdings and fixed 21 million supply schedule." : "Token supply is not permanently hardcapped against future administrative dilution.",
           preliminaryVote: isBtc ? "ADD" : "REDUCE"
         };
       },
-      generateChallenge(opponent) {
+      generateChallenge(opponent, query) {
+        const { isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${opponent.name}: Setiap token yang memiliki yayasan aktif memiliki risiko lawan transaksi (counterparty risk). Mengapa mempertaruhkan modal institusi pada sesuatu yang bisa diubah atau diencerkan oleh manusia?`;
+        }
         return `To ${opponent.name}: Every software token with an active foundation has an issuer counterparty. Why risk institutional balance sheet capital on something that can be re-engineered or diluted?`;
       },
-      generateResponse(challenger) {
+      generateResponse(challenger, query) {
+        const { isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${challenger.name}: Uang fiat adalah balok es yang mencair 10-15% per tahun. Bitcoin adalah termodinamika moneter murni—energi yang tersimpan melintasi waktu dan ruang dengan nol entropi.`;
+        }
         return `To ${challenger.name}: Cash is a melting ice cube losing 10-15% purchasing power annually. Bitcoin is pure monetary thermodynamics—capital stored across time and space with zero entropy.`;
       },
-      generateVote(asset, evidence) {
-        if (asset.ticker === 'BTC') {
+      generateVote(asset, evidence, query) {
+        const isBtc = asset?.ticker === 'BTC' || /btc|bitcoin/i.test(query || '');
+        if (isBtc) {
           return { vote: "ADD", rationale: "Pristine digital energy and incorruptible treasury reserve asset. There is no second best." };
         }
         return { vote: "REDUCE", rationale: "Possesses issuing counterparty risk and lacks thermodynamic supply permanence." };
@@ -362,28 +634,54 @@ const BourseCryptoAgents = (() => {
       firstQuestion: "Can a hundred million ordinary users use this tomorrow morning without reading a tutorial?",
       record: { sessions: 50, votedFor: 31, dissents: 19 },
       traits: { decentralizationBias: 4, censorshipResistance: 5, securityFocus: 7, throughputBias: 9 },
-      generateAnalysis(asset, evidence) {
-        const hasHighVolume = evidence.volume24h > 50000000;
+      generateAnalysis(asset, evidence, query) {
+        const { topic, isIndo, cleanQuery } = analyzeTopic(query, asset);
+        const hasHighVolume = evidence?.volume24h > 50000000;
+
+        let argument = "";
+        let position = hasHighVolume ? "Deep Market Liquidity" : "Orderbook Liquidity Evaluation";
+
+        if (topic === 'CRASH') {
+          position = "Market Cycle Normalization";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Koreksi pasar adalah bagian alami dari siklus industri kripto. Kami telah melihat volatilitas serupa di 2017, 2020, dan 2022. Kuncinya sederhana: kelola risiko portofolio Anda, jangan terbawa FUD spekulatif, dan fokuslah membangun infrastruktur adopsi pengguna jangka panjang.`
+            : `On "${cleanQuery}": Market corrections are natural market cycles. We survived the downturns of 2017, 2020, and 2022. Keep your leverage low, ignore speculative FUD, and focus on building durable user infrastructure.`;
+        } else if (topic === 'MEMECOIN') {
+          position = "Retail Liquidity & Community Sentiment";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Memecoin mencerminkan minat komunitas ritel yang otentik. Sebagai platform pertukaran, kami tidak menghakimi preferensi pengguna, tetapi kami wajib menyediakan likuiditas buku pesanan yang dalam, transparansi, dan edukasi risiko yang jelas.`
+            : `On "${cleanQuery}": Memecoins reflect genuine grassroots retail demand. While we don't judge user enthusiasm, our priority is deep orderbook liquidity, consumer asset safety, and transparent risk disclosure.`;
+        } else {
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Mengevaluasi kedalaman orderbook dan kecepatan transaksi ritel. Utilitas produk yang mudah dan friksi yang rendah selalu mengalahkan kemurnian ideologis yang sulit digunakan oleh pengguna biasa.`
+            : `On "${cleanQuery}": Evaluating orderbook depth and retail velocity. Product utility and low friction always defeat ideological purity that ordinary people cannot navigate.`;
+        }
+
         return {
-          position: hasHighVolume ? "Deep Market Liquidity" : "Orderbook Liquidity Deficit",
+          position,
           confidence: 87,
-          argument: `On ${asset.ticker}: Evaluating orderbook depth and retail velocity. At ${evidence.priceFormatted} with volume of ${evidence.volume24hFormatted}, if market makers cannot provide tight bid-ask spreads, retail users get front-run. Product utility and low friction always defeat ideological purity.`,
+          argument,
           keyRisk: "Exchange liquidity dry-ups and punitive slippage during market panics.",
           keyEvidence: "24-hour exchange volume and cross-pair market depth across major spot orderbooks.",
           preliminaryVote: hasHighVolume ? "ADD" : "PASS"
         };
       },
-      generateChallenge(opponent) {
+      generateChallenge(opponent, query) {
+        const { isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${opponent.name}: Whitepaper akademis Anda mungkin elegan, tetapi di mana penggunanya? Jaringan terdesentralisasi tanpa pengguna aktif hanyalah kota hantu digital, bukan ekonomi nyata.`;
+        }
         return `To ${opponent.name}: Your theoretical whitepaper is elegant, but where are the users? A decentralized network with 20 active wallets is a digital ghost town, not an economy.`;
       },
-      generateResponse(challenger) {
+      generateResponse(challenger, query) {
+        const { isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${challenger.name}: Anda tidak bisa membangun kebebasan ekonomi jika tidak ada orang yang mampu memahami atau membayar biaya antarmuka Anda. Adopsi massal membutuhkan distribusi yang mudah diakses.`;
+        }
         return `To ${challenger.name}: You cannot build economic freedom if nobody can understand or afford the user interface. Mass adoption requires accessible, lightning-fast distribution.`;
       },
-      generateVote(asset, evidence) {
-        if (evidence.volume24h > 100000000) {
-          return { vote: "ADD", rationale: "Vibrant trading volume, deep exchange liquidity, and demonstrable retail engagement." };
-        }
-        return { vote: "PASS", rationale: "Secondary market depth is insufficient to accommodate high-volume order flow." };
+      generateVote(asset, evidence, query) {
+        return { vote: "ADD", rationale: "Vibrant trading volume, deep exchange liquidity, and demonstrable retail engagement." };
       }
     },
     {
@@ -406,25 +704,55 @@ const BourseCryptoAgents = (() => {
       firstQuestion: "Will this protocol withstand a formal SEC review and qualify for institutional custody?",
       record: { sessions: 43, votedFor: 22, dissents: 21 },
       traits: { decentralizationBias: 5, censorshipResistance: 5, securityFocus: 8, throughputBias: 6 },
-      generateAnalysis(asset, evidence) {
-        const isCompliant = ['BTC', 'ETH'].includes(asset.ticker);
+      generateAnalysis(asset, evidence, query) {
+        const { topic, isIndo, cleanQuery } = analyzeTopic(query, asset);
+        const isCompliant = ['BTC', 'ETH', 'CRYPTO'].includes(asset?.ticker) || /bitcoin|btc|eth|ethereum/i.test(cleanQuery);
+
+        let argument = "";
+        let position = isCompliant ? "Institutional Custody Standard" : "Regulatory Scrutiny Risk";
+
+        if (topic === 'CRASH') {
+          position = "Institutional Flight to Quality";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Penurunan pasar menyaring proyek spekulatif tanpa utilitas. Arus modal institusi jangka panjang melalui kustodi teregulasi dan ETF spot tetap solid karena mereka membutuhkan kepastian hukum dan tata kelola yang transparan, bukan skema spekulasi liar.`
+            : `On "${cleanQuery}": Market drawdowns wash out superficial speculative schemes. Long-term institutional allocators use market pullbacks to build positions through compliant custodial and ETF channels.`;
+        } else if (topic === 'REGULATION') {
+          position = "Statutory Regulatory Bridgehead";
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Kunci kebebasan ekonomi yang bertahan lama adalah kejelasan hukum dan regulasi yang masuk akal. Kripto tidak bisa mencapai adopsi institusi triliunan dolar jika tetap berada di zona abu-abu tanpa jalur kustodi yang diaudit secara resmi.`
+            : `On "${cleanQuery}": True economic freedom requires statutory legal clarity. By pursuing transparent regulatory frameworks and public market standards, we protect users and solidify crypto as foundational global infrastructure.`;
+        } else {
+          argument = isIndo
+            ? `Mengenai "${cleanQuery}": Jembatan sejati menuju pertumbuhan eksponensial adalah modal institusional. Aset ini harus dapat disimpan oleh kustodian teregulasi, dana pensiun, dan ETF tanpa melanggar undang-undang sekuritas.`
+            : `On "${cleanQuery}": The real bridge to escape velocity is institutional capital. Can this asset be held by regulated custodians, sovereign wealth funds, and exchange-traded funds without statutory securities violations?`;
+        }
+
         return {
-          position: isCompliant ? "Institutional Custody Standard" : "Regulatory Scrutiny Risk",
+          position,
           confidence: 88,
-          argument: `On ${asset.ticker}: The real bridge to escape velocity is institutional capital. At ${evidence.priceFormatted}, can this asset be held by regulated custodians, sovereign wealth funds, and exchange-traded funds without statutory securities violations?`,
+          argument,
           keyRisk: "Statutory regulatory enforcement actions and banking rail de-platforming.",
           keyEvidence: "Clear regulatory classification and cold-storage custody compliance records.",
           preliminaryVote: isCompliant ? "ADD" : "PASS"
         };
       },
-      generateChallenge(opponent) {
+      generateChallenge(opponent, query) {
+        const { isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${opponent.name}: Tanpa kepatuhan regulasi dan kustodi institusi berlisensi, 99% kekayaan institusi dunia tidak dapat menyentuh aset ini. Bagaimana Anda menjembatani dana pensiun global tanpa jalur hukum resmi?`;
+        }
         return `To ${opponent.name}: Without regulatory compliance and institutional custody, 99% of global institutional wealth cannot touch this asset. How do you bridge to sovereign pension capital without legal rails?`;
       },
-      generateResponse(challenger) {
+      generateResponse(challenger, query) {
+        const { isIndo } = analyzeTopic(query);
+        if (isIndo) {
+          return `Kepada ${challenger.name}: Bekerja melalui kerangka hukum dan preseden pengadilan adalah satu-satunya cara untuk menegakkan hak kepemilikan permanen dan melindungi konsumen dari pelaku penipuan.`;
+        }
         return `To ${challenger.name}: Working through legal frameworks and court precedent is the only way to establish permanent property rights and protect everyday retail consumers from illicit operators.`;
       },
-      generateVote(asset, evidence) {
-        if (['BTC', 'ETH'].includes(asset.ticker)) {
+      generateVote(asset, evidence, query) {
+        const isCompliant = ['BTC', 'ETH'].includes(asset?.ticker) || /bitcoin|btc|eth|ethereum/i.test(query || '');
+        if (isCompliant) {
           return { vote: "ADD", rationale: "Approved for spot ETF vehicles, compliant custodial rails, and institutional balance sheets." };
         }
         return { vote: "PASS", rationale: "Requires further regulatory classification clarity before institutional endorsement." };
@@ -461,7 +789,8 @@ const BourseCryptoAgents = (() => {
     getAgents,
     getAgentBySeat,
     getAgentsBySchool,
-    getAgentByName
+    getAgentByName,
+    analyzeTopic
   };
 })();
 

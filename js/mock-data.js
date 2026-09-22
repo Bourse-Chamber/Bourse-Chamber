@@ -70,7 +70,34 @@ const BourseMockData = (() => {
       macroContext: 'SWIFT and DTCC tokenization pilot partner; fee accrual mechanism via Chainlink Build and Staking v0.2.',
       stakingApy: 4.10,
       revenuePDR: 16.5
+    },
+    'CRYPTO': {
+      ticker: 'CRYPTO',
+      name: 'Pasar Kripto Global (Market Context)',
+      price: 64280,
+      change24h: -2.45,
+      marketCap: 2380000000000,
+      volume24h: 78500000000,
+      networkActivity: 'Aggregate multi-chain settlement: $14.2B / 24h across major L1/L2 networks',
+      supply: 'Global liquid index (BTC 56% dominance, ETH 14%, Altcoins 30%)',
+      macroContext: 'Global digital asset liquidity beta, macro policy stance, and cross-exchange open interest.',
+      stakingApy: 4.80,
+      revenuePDR: 26.5
     }
+  };
+
+  const COIN_SYNONYMS = {
+    'BITCOIN': 'BTC', 'BTC': 'BTC',
+    'ETHEREUM': 'ETH', 'ETH': 'ETH', 'ETHER': 'ETH',
+    'SOLANA': 'SOL', 'SOL': 'SOL',
+    'AVALANCHE': 'AVAX', 'AVAX': 'AVAX',
+    'CHAINLINK': 'LINK', 'LINK': 'LINK',
+    'RIPPLE': 'XRP', 'XRP': 'XRP',
+    'CARDANO': 'ADA', 'ADA': 'ADA',
+    'BINANCE': 'BNB', 'BNB': 'BNB',
+    'DOGECOIN': 'DOGE', 'DOGE': 'DOGE',
+    'PEPE': 'PEPE', 'SHIBA': 'SHIB', 'SHIB': 'SHIB',
+    'SUI': 'SUI', 'NEAR': 'NEAR'
   };
 
   /**
@@ -80,7 +107,25 @@ const BourseMockData = (() => {
   async function getMarketData(query) {
     const clean = query.trim().toUpperCase();
     const words = clean.split(/[^A-Z0-9]/).filter(w => w.length > 0);
-    const matchedTicker = Object.keys(KNOWN_ASSETS).find(t => words.includes(t) || clean.includes(t)) || (words[0] && words[0].length <= 8 ? words[0] : 'BTC');
+
+    // 1. Detect direct coin mentions
+    let matchedTicker = null;
+    for (const w of words) {
+      if (COIN_SYNONYMS[w]) {
+        matchedTicker = COIN_SYNONYMS[w];
+        break;
+      }
+    }
+
+    // 2. If general question about crypto, market, or conceptual thesis
+    if (!matchedTicker) {
+      const isGeneral = /\b(CRYPTO|KRIPTO|MARKET|PASAR|TURUN|NAIK|CRASH|DUMP|PUMP|MEME|MEMECOIN|DEFI|L2|LAYER2|WEB3|SEC|REGULASI)\b/i.test(clean);
+      if (isGeneral || words.length > 2) {
+        matchedTicker = 'CRYPTO';
+      } else {
+        matchedTicker = words[0] && words[0].length <= 8 ? words[0] : 'BTC';
+      }
+    }
 
     // Attempt live fetch from /api/market (CoinGecko live integration)
     try {
