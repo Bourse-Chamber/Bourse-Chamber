@@ -11,7 +11,7 @@ const BourseCryptoAgents = (() => {
    */
   function analyzeTopic(query, asset) {
     const q = String(query || "").trim().toLowerCase();
-    const isIndo = /\b(kenapa|mengapa|bagaimana|apakah|bisa|turun|naik|kapan|hari ini|koin|pasar|rugi|cuan|bagus|apa|investasi|solana|bitcoin|kripto|merah|longsor|anjlok|tembus|untung|beli|jual|gimana|kenapah)\b/i.test(q);
+    const isIndo = false; // Deliberations are strictly 100% English and crypto-native
 
     let topic = 'GENERAL';
     if (/\b(turun|crash|anjlok|drop|merah|dump|koreksi|bear|bearish|rugi|longsor|jatuh|drawdown|mengapa turun|kenapa turun)\b/i.test(q)) {
@@ -507,7 +507,7 @@ const BourseCryptoAgents = (() => {
         } else {
           argument = isIndo
             ? `Mengenai "${cleanQuery}": Bank sentral tidak punya pilihan selain menginflasikan utang mereka. Aset ini berfungsi sebagai spons likuiditas berdaya tinggi yang menyerap devaluasi fiat global. Perhatikan tingkat pendanaan (funding rate) perpetual.`
-            : `On "${cleanQuery}": Central banks have no choice but to inflate their sovereign debt away. At ${evidence.priceFormatted}, this asset acts as a high-powered liquidity sponge absorbing global fiat debasement. Watch the funding rates.`;
+            : `On "${cleanQuery}": Central banks have no choice but to inflate their sovereign debt away. At ${evidence?.priceFormatted || 'current levels'}, this asset acts as a high-powered liquidity sponge absorbing global fiat debasement. Watch the funding rates.`;
         }
 
         return {
@@ -610,7 +610,7 @@ const BourseCryptoAgents = (() => {
             ? `On ${cleanQuery}: Bitcoin is pristine monetary energy. Every corporate treasury on earth will eventually convert their melting cash reserves into this indestructible digital property. There is no second best.`
             : (isIndo
               ? `Mengenai "${cleanQuery}": Aset ini memiliki risiko perantara, inflasi developer berkelanjutan, atau risiko tata kelola. Ini adalah spekulasi perangkat lunak, bukan modal termodinamika yang kekal.`
-              : `On "${cleanQuery}": At ${evidence.priceFormatted}, this asset possesses an issuing counterparty or governance risk. It is an equity-like venture, not indestructible thermodynamic capital.`);
+              : `On "${cleanQuery}": At ${evidence?.priceFormatted || 'current levels'}, this asset possesses an issuing counterparty or governance risk. It is an equity-like venture, not indestructible thermodynamic capital.`);
         }
 
         return {

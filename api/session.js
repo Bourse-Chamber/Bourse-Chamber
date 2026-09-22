@@ -142,7 +142,7 @@ module.exports = async function handler(req, res) {
     const transcript = [];
     const votes = [];
 
-    // --- ROUND 1: Strictly Independent Readings (All 9 Canonical Economists) ---
+    // --- ROUND 1: Strictly Independent Readings (All 9 Canonical Crypto Architects) ---
     for (const agent of AGENTS) {
       sendEvent('seat_start', { seatId: agent.seat, seat: agent.seat, name: agent.name });
 

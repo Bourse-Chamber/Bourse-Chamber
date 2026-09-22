@@ -454,6 +454,26 @@
       "email": "analyst@bourse-chamber.internal",
       "status": "ACTIVE",
       "created_at": "2026-09-22T06:36:59.064Z"
+    },
+    {
+      "id": "WATCH-1790088020259-792",
+      "session_id": "BC-0411",
+      "asset": "SOL",
+      "trigger_condition": "Cumulative drawdown exceeding 30–35%",
+      "drawdown_threshold": 30,
+      "email": "analyst@bourse-chamber.internal",
+      "status": "ACTIVE",
+      "created_at": "2026-09-22T14:40:20.260Z"
+    },
+    {
+      "id": "WATCH-1790089330992-103",
+      "session_id": "BC-0411",
+      "asset": "SOL",
+      "trigger_condition": "Cumulative drawdown exceeding 30–35%",
+      "drawdown_threshold": 30,
+      "email": "analyst@bourse-chamber.internal",
+      "status": "ACTIVE",
+      "created_at": "2026-09-22T15:02:10.993Z"
     }
   ]
 }
