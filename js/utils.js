@@ -25,6 +25,9 @@ const BourseUtils = (() => {
     if (/satoshi/i.test(name)) {
       return `<img src="/img/satoshi.png" alt="Satoshi Nakamoto" class="persona-avatar-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:2px;display:block;" onerror="this.onerror=null;this.src='img/satoshi.png';" />`;
     }
+    if (/vitalik/i.test(name)) {
+      return `<img src="/img/vitalik.png" alt="Vitalik Buterin" class="persona-avatar-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:2px;display:block;" onerror="this.onerror=null;this.src='img/vitalik.png';" />`;
+    }
     const hash = hashString(name);
     const gridSize = 8;
     const halfGrid = 4;

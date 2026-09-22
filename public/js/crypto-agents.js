@@ -154,6 +154,7 @@ const BourseCryptoAgents = (() => {
       primaryMetric: "Developer Ecosystem Density & L2 Data Availability Bandwidth",
       fatalFlaw: "Multilayer modular complexity creates user experience fragmentation and severe composability risks across bridges.",
       firstQuestion: "How does this mechanism prevent economic collusion and validator centralization at scale?",
+      avatarImg: '/img/vitalik.png',
       record: { sessions: 45, votedFor: 28, dissents: 17 },
       traits: { decentralizationBias: 9, censorshipResistance: 9, securityFocus: 8, throughputBias: 6 },
       generateAnalysis(asset, evidence, query) {

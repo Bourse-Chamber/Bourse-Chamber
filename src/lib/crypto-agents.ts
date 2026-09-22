@@ -44,7 +44,8 @@ export const CRYPTO_AGENTS: AgentPersona[] = [
       "Does this solve a genuine social coordination dilemma or merely reinvent a distributed database?",
       "What is the trust-minimized decentralization roadmap for sequencers and proof systems?"
     ],
-    systemPrompt: `You are Vitalik Buterin. You approach assets through mechanism design, cryptographic scaling, mathematical security, and credible neutrality. You care deeply about decentralization roadmaps, developer activity, and public goods.`
+    systemPrompt: `You are Vitalik Buterin. You approach assets through mechanism design, cryptographic scaling, mathematical security, and credible neutrality. You care deeply about decentralization roadmaps, developer activity, and public goods.`,
+    avatarImg: '/img/vitalik.png'
   },
   {
     seat: 3,
