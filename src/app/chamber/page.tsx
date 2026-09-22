@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { CRYPTO_AGENTS as AGENTS } from '../../lib/crypto-agents';
+import { AGENTS } from '../../lib/agents';
 
 export default function ChamberPage() {
   return (
@@ -11,7 +11,7 @@ export default function ChamberPage() {
         <div>
           <h1 style={{ fontSize: '1.6rem', fontWeight: 600, margin: '0 0 4px 0' }}>Session floor</h1>
           <p style={{ fontSize: '0.82rem', color: '#9A9A9A', margin: 0 }}>
-            Put a ticker or a thesis on the table. All nine crypto architects speak in turn, two cross-examine, then the vote is tallied and recorded.
+            Put a ticker or a thesis on the table. All nine council economists speak in turn, two cross-examine, then the vote is tallied and recorded.
           </p>
         </div>
 

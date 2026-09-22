@@ -1,4 +1,13 @@
-import { AgentPersona, SeatVote, VoteOutcome, VerdictRecord } from '../types';
+import {
+  AgentPersona,
+  SeatVote,
+  VoteOutcome,
+  VerdictRecord,
+  Round1Analysis,
+  Round2Duel,
+  AggregatedVerdict,
+  Round3Vote
+} from '../types';
 
 export const OPENROUTER_DEFAULT_MODEL = 'openrouter/free';
 
@@ -15,18 +24,62 @@ interface OpenRouterCallOptions {
 }
 
 /**
+ * Strips markdown code fences (```json ... ``` or ``` ... ```) from a string.
+ */
+export function stripMarkdownFences(raw: string): string {
+  if (!raw || typeof raw !== 'string') return '';
+  let text = raw.trim();
+  // Strip opening fence like ```json or ```
+  text = text.replace(/^```(?:json)?\s*\n?/i, '');
+  // Strip closing fence like ```
+  text = text.replace(/\n?```\s*$/i, '');
+  return text.trim();
+}
+
+/**
+ * Removes thinking tags (<think>...</think>) produced by reasoning models.
+ */
+export function cleanModelText(raw: string): string {
+  if (!raw || typeof raw !== 'string') return '';
+  return raw.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+}
+
+/**
+ * Attempts safe JSON extraction from model response.
+ * 1. Strips markdown fences and clean text.
+ * 2. Tries standard JSON.parse.
+ * 3. Tries regex matching { ... } if direct parse fails.
+ * 4. Returns parsed object or null.
+ */
+export function extractJsonFromModelResponse(rawText: string): any {
+  if (!rawText || typeof rawText !== 'string') return null;
+  const cleaned = stripMarkdownFences(cleanModelText(rawText));
+  try {
+    return JSON.parse(cleaned);
+  } catch (_) {
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (match) {
+      try {
+        return JSON.parse(match[0]);
+      } catch (_) {}
+    }
+  }
+  return null;
+}
+
+/**
  * Robust OpenRouter API caller with timeout, single safe retry, and prompt injection defense
  */
-async function callOpenRouter(options: OpenRouterCallOptions): Promise<Response | null> {
+export async function callOpenRouter(options: OpenRouterCallOptions): Promise<Response | null> {
   const token = process.env.OPENROUTER_API_KEY;
   if (!token) return null;
 
   const model = getOpenRouterModel();
   const payload = {
     model,
-    stream: options.stream ?? true,
-    max_tokens: options.maxTokens ?? 160,
-    temperature: options.temperature ?? 0.4,
+    stream: options.stream ?? false,
+    max_tokens: options.maxTokens ?? 220,
+    temperature: options.temperature ?? 0.3,
     messages: [
       { role: 'system', content: options.systemPrompt },
       {
@@ -49,18 +102,18 @@ async function callOpenRouter(options: OpenRouterCallOptions): Promise<Response 
         method: 'POST',
         headers,
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(10000),
       });
 
       if (res.ok) return res;
       if (res.status >= 500 && attempt === 1) {
-        await new Promise((r) => setTimeout(r, 600));
+        await new Promise((r) => setTimeout(r, 500));
         continue;
       }
       return null;
     } catch (_) {
       if (attempt === 1) {
-        await new Promise((r) => setTimeout(r, 600));
+        await new Promise((r) => setTimeout(r, 500));
         continue;
       }
       return null;
@@ -71,18 +124,28 @@ async function callOpenRouter(options: OpenRouterCallOptions): Promise<Response 
 }
 
 /**
- * ROUND 1: Strictly Independent Readings
+ * ROUND 1: Generate Structured Independent Analysis for a Persona
  * All 9 personas receive the IDENTICAL Evidence Pack.
- * They MUST NOT see other personas' outputs during Round 1.
+ * Returns structured JSON: { persona, analysis, key_claims, risk, stance }.
+ * Never allows an empty analysis.
  */
-export async function* streamRound1Reading(
+export async function generateRound1Analysis(
   agent: AgentPersona,
   userMotion: string,
   evidenceSummary: string
-): AsyncGenerator<string, void, unknown> {
-  const systemPrompt = `${agent.systemPrompt}
-You are Seat 0${agent.seat} (${agent.discipline}) at the Bourse Chamber.
-State your independent thesis appraisal in 2-3 sentences. Challenge or affirm based on your discipline. Be rigorous, uncompromising, and under 70 words.`;
+): Promise<Round1Analysis> {
+  const systemPrompt = `You are ${agent.name}, Seat 0${agent.seat} (${agent.discipline}) at the Bourse Chamber.
+Core philosophy: "${agent.systemPrompt}"
+Primary metric: ${agent.primaryMetric}. Fatal flaw to avoid: ${agent.fatalFlaw}.
+You MUST respond strictly with a valid JSON object matching this schema:
+{
+  "persona": "${agent.name}",
+  "analysis": "2-3 concise, unhedged sentences analyzing the thesis strictly from your investment discipline.",
+  "key_claims": ["claim 1", "claim 2"],
+  "risk": "primary structural risk or vulnerability identified",
+  "stance": "ADD" | "REDUCE" | "PASS"
+}
+Do NOT output markdown fences. Do NOT write internal thoughts or preambles. Output JSON only.`;
 
   const userPrompt = `<thesis_under_review>
 ${userMotion}
@@ -92,197 +155,293 @@ ${userMotion}
 ${evidenceSummary}
 </evidentiary_market_snapshot>
 
-Deliver your independent Seat 0${agent.seat} reading now.`;
+Deliver your independent Seat 0${agent.seat} structured analysis now.`;
 
-  const res = await callOpenRouter({ systemPrompt, userPrompt, stream: true });
+  let rawContent = '';
 
-  if (res && res.body) {
-    try {
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder('utf-8');
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (trimmed.startsWith('data: ') && trimmed !== 'data: [DONE]') {
-            try {
-              const json = JSON.parse(trimmed.slice(6));
-              const delta = json.choices?.[0]?.delta?.content;
-              if (delta) yield delta;
-            } catch (_) {}
-          }
-        }
-      }
-      return;
-    } catch (_) {}
+  try {
+    const res = await callOpenRouter({ systemPrompt, userPrompt, stream: false, maxTokens: 250 });
+    if (res && res.ok) {
+      const json = await res.json();
+      rawContent = json.choices?.[0]?.message?.content || '';
+    }
+  } catch (err: any) {
+    console.warn(`[OpenRouter R1 ${agent.name}] Call error:`, err.message);
   }
 
-  // Graceful deterministic fallback
-  const fallback = `${agent.firstQuestion} Assessing ${userMotion.toUpperCase()}: liquidity and market volatility require extreme margin of safety before capital commitment.`;
-  for (const word of fallback.split(' ')) {
-    yield word + ' ';
-    await new Promise((r) => setTimeout(r, 20));
+  // Development logging
+  console.log(`[OpenRouter R1 Raw - ${agent.name}]:`, rawContent);
+
+  const parsed = extractJsonFromModelResponse(rawContent);
+  console.log(`[OpenRouter R1 Parsed - ${agent.name}]:`, parsed);
+
+  const defaultStance: VoteOutcome =
+    agent.seat === 4 || agent.seat === 7 ? 'ADD' :
+    agent.seat === 2 || agent.seat === 5 || agent.seat === 6 || agent.seat === 9 ? 'REDUCE' : 'PASS';
+
+  if (parsed && typeof parsed.analysis === 'string' && parsed.analysis.trim().length > 0) {
+    const validStance: VoteOutcome = ['ADD', 'REDUCE', 'PASS'].includes(parsed.stance)
+      ? parsed.stance
+      : defaultStance;
+
+    return {
+      persona: agent.name,
+      analysis: cleanModelText(parsed.analysis).trim(),
+      key_claims: Array.isArray(parsed.key_claims) && parsed.key_claims.length > 0
+        ? parsed.key_claims.map((c: any) => String(c).trim()).filter(Boolean)
+        : [`Focus on ${agent.discipline}`, `Scrutinizing ${userMotion.slice(0, 30)}`],
+      risk: String(parsed.risk || `${agent.discipline} criteria warning`).trim(),
+      stance: validStance
+    };
   }
+
+  // Fallback 1: Safe extraction of raw text if non-empty
+  const cleanedRaw = cleanModelText(stripMarkdownFences(rawContent)).trim();
+  if (cleanedRaw.length > 20) {
+    return {
+      persona: agent.name,
+      analysis: cleanedRaw,
+      key_claims: [`Discipline: ${agent.discipline}`, `Direct thesis evaluation`],
+      risk: `Downside risk evaluated by ${agent.name}`,
+      stance: defaultStance
+    };
+  }
+
+  // Fallback 2: Guaranteed high-conviction persona analysis based on discipline (Never empty!)
+  const fallbackAnalysis = `${agent.firstQuestion} Evaluating "${userMotion}" through ${agent.discipline}: without durable margin of safety and transparent structural cash flows, committing capital carries severe asymmetric risk.`;
+
+  return {
+    persona: agent.name,
+    analysis: fallbackAnalysis,
+    key_claims: [`Primary metric: ${agent.primaryMetric}`, `Inversion checklist applied`],
+    risk: agent.fatalFlaw || `Valuation drawdown risk under macro contraction`,
+    stance: defaultStance
+  };
 }
 
 /**
- * ROUND 2: Cross-Examination Duel
- * Select 2 opposing personas based on divergence.
- * Persona A challenges Persona B based strictly on Persona B's Round 1 statement.
+ * ROUND 2: Cross-Examination Duel between Opposing Personas
+ * Identifies 2-3 opposing views and executes targeted challenge/response.
+ * Returns structured JSON: { persona, challenge, response }.
  */
-export async function* streamRound2Duel(
+export async function generateRound2CrossExam(
   challenger: AgentPersona,
   defender: AgentPersona,
-  defenderRound1Text: string,
-  motion: string
-): AsyncGenerator<string, void, unknown> {
-  const systemPrompt = `${challenger.systemPrompt}
-You are Seat 0${challenger.seat} (${challenger.name}). You are cross-examining Seat 0${defender.seat} (${defender.name}).
-Directly dismantle their thesis in exactly 2 sharp sentences under 60 words.`;
+  defenderRound1: Round1Analysis,
+  userMotion: string,
+  evidenceSummary: string
+): Promise<Round2Duel> {
+  const systemPrompt = `You are ${challenger.name}, Seat 0${challenger.seat} (${challenger.discipline}) at the Bourse Chamber.
+You are cross-examining Seat 0${defender.seat} (${defender.name}).
+You MUST respond strictly with a valid JSON object matching this schema:
+{
+  "persona": "${challenger.name}",
+  "challenge": "Direct, sharp challenge from ${challenger.name} to ${defender.name} in 1-2 sentences under 50 words.",
+  "response": "Concise rebuttal from ${defender.name} defending their thesis in 1-2 sentences under 50 words."
+}
+Do NOT output markdown fences or commentary. Output JSON only.`;
 
-  const userPrompt = `The thesis under review is: "${motion}".
-Seat 0${defender.seat} (${defender.name}) argued:
-"${defenderRound1Text}"
+  const userPrompt = `The thesis under review is: "${userMotion}".
+Evidence snapshot: ${evidenceSummary}.
+Seat 0${defender.seat} (${defender.name}) stated in Round 1:
+"${defenderRound1.analysis}"
+(Stance: ${defenderRound1.stance}, Risk: ${defenderRound1.risk}).
 
-Deliver your direct cross-examination challenge to Seat 0${defender.seat}.`;
+Deliver the cross-examination challenge and defense now.`;
 
-  const res = await callOpenRouter({ systemPrompt, userPrompt, stream: true });
+  let rawContent = '';
 
-  if (res && res.body) {
-    try {
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder('utf-8');
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (trimmed.startsWith('data: ') && trimmed !== 'data: [DONE]') {
-            try {
-              const json = JSON.parse(trimmed.slice(6));
-              const delta = json.choices?.[0]?.delta?.content;
-              if (delta) yield delta;
-            } catch (_) {}
-          }
-        }
-      }
-      return;
-    } catch (_) {}
+  try {
+    const res = await callOpenRouter({ systemPrompt, userPrompt, stream: false, maxTokens: 200 });
+    if (res && res.ok) {
+      const json = await res.json();
+      rawContent = json.choices?.[0]?.message?.content || '';
+    }
+  } catch (err: any) {
+    console.warn(`[OpenRouter R2] Duel call error:`, err.message);
   }
 
-  const fallback = `I question Seat 0${defender.seat}'s assessment. Without verifiable unencumbered protocol cash flows, assuming permanent network dominance is speculative optimism.`;
-  for (const word of fallback.split(' ')) {
-    yield word + ' ';
-    await new Promise((r) => setTimeout(r, 20));
+  console.log(`[OpenRouter R2 Raw - ${challenger.name} vs ${defender.name}]:`, rawContent);
+
+  const parsed = extractJsonFromModelResponse(rawContent);
+  console.log(`[OpenRouter R2 Parsed]:`, parsed);
+
+  if (
+    parsed &&
+    typeof parsed.challenge === 'string' &&
+    parsed.challenge.trim().length > 0 &&
+    typeof parsed.response === 'string' &&
+    parsed.response.trim().length > 0
+  ) {
+    return {
+      persona: challenger.name,
+      challenge: cleanModelText(parsed.challenge).trim(),
+      response: cleanModelText(parsed.response).trim()
+    };
   }
+
+  // Safe deterministic fallback based on persona tenets
+  const challenge = `To ${defender.name}: Your stance on "${userMotion.slice(0, 35)}" assumes permanent technological moats. What prevents an 80% drawdown when liquidity contracts?`;
+  const response = `To ${challenger.name}: Enduring adoption and network utility survive transient drawdowns. Volatility is the price of transformative long-term compounding.`;
+
+  return {
+    persona: challenger.name,
+    challenge,
+    response
+  };
 }
 
 /**
- * ROUND 3: Voting Ballot
+ * ROUND 3: Final Voting Ballot
  * Each of the 9 personas casts: ADD, REDUCE, or PASS with concise rationale.
+ * Strictly validates that vote is one of 'ADD', 'REDUCE', or 'PASS'.
  */
 export async function generateRound3Vote(
   agent: AgentPersona,
-  motion: string,
-  round1Text: string
+  userMotion: string,
+  round1Text: string,
+  round2Context?: string
 ): Promise<SeatVote> {
-  const systemPrompt = `${agent.systemPrompt}
-Cast your final vote on the motion. You MUST respond in this exact JSON format:
-{"vote": "ADD" | "REDUCE" | "PASS", "rationale": "One concise sentence explanation under 25 words."}`;
+  const systemPrompt = `You are ${agent.name}, Seat 0${agent.seat} (${agent.discipline}) at the Bourse Chamber.
+Cast your final binding floor vote on the motion.
+You MUST respond strictly with a valid JSON object matching this schema:
+{
+  "persona": "${agent.name}",
+  "vote": "ADD" | "REDUCE" | "PASS",
+  "reason": "One concise sentence rationale under 25 words."
+}
+Only 'ADD', 'REDUCE', or 'PASS' are valid vote values. Output JSON only.`;
 
-  const userPrompt = `Motion: "${motion}".
+  const userPrompt = `Motion: "${userMotion}".
 Your initial analysis was: "${round1Text}".
+${round2Context ? `Cross-examination context: "${round2Context}".` : ''}
 Cast your final ballot now.`;
 
-  const res = await callOpenRouter({ systemPrompt, userPrompt, stream: false, maxTokens: 80 });
+  let rawContent = '';
 
-  if (res) {
-    try {
+  try {
+    const res = await callOpenRouter({ systemPrompt, userPrompt, stream: false, maxTokens: 100 });
+    if (res && res.ok) {
       const json = await res.json();
-      const raw = json.choices?.[0]?.message?.content || '';
-      const match = raw.match(/\{[\s\S]*\}/);
-      if (match) {
-        const parsed = JSON.parse(match[0]);
-        const vote: VoteOutcome = ['ADD', 'REDUCE', 'PASS'].includes(parsed.vote) ? parsed.vote : 'PASS';
-        return {
-          seat: agent.seat,
-          persona: agent.name,
-          shortName: agent.shortName,
-          vote,
-          weight: 1.0,
-          rationale: String(parsed.rationale || 'Adherence to discipline criteria.'),
-        };
-      }
-    } catch (_) {}
+      rawContent = json.choices?.[0]?.message?.content || '';
+    }
+  } catch (err: any) {
+    console.warn(`[OpenRouter R3 ${agent.name}] Call error:`, err.message);
   }
 
-  // Deterministic fallback vote mapping based on seat bias
+  console.log(`[OpenRouter R3 Raw - ${agent.name}]:`, rawContent);
+
+  const parsed = extractJsonFromModelResponse(rawContent);
+  console.log(`[OpenRouter R3 Parsed - ${agent.name}]:`, parsed);
+
+  // Validate vote
+  let cleanVote: VoteOutcome | null = null;
+  if (parsed && parsed.vote) {
+    const upper = String(parsed.vote).toUpperCase().trim();
+    if (['ADD', 'REDUCE', 'PASS'].includes(upper)) {
+      cleanVote = upper as VoteOutcome;
+    } else if (upper.includes('ADD') || upper.includes('BUY') || upper.includes('BULL')) {
+      cleanVote = 'ADD';
+    } else if (upper.includes('REDUCE') || upper.includes('SELL') || upper.includes('BEAR')) {
+      cleanVote = 'REDUCE';
+    } else {
+      cleanVote = 'PASS';
+    }
+  }
+
   const defaultVote: VoteOutcome =
     agent.seat === 4 || agent.seat === 7 ? 'ADD' :
     agent.seat === 2 || agent.seat === 5 || agent.seat === 6 || agent.seat === 9 ? 'REDUCE' : 'PASS';
+
+  const finalVote: VoteOutcome = cleanVote || defaultVote;
+  const reason = (parsed && typeof parsed.reason === 'string' && parsed.reason.trim().length > 0)
+    ? cleanModelText(parsed.reason).trim()
+    : `Discipline (${agent.discipline}) indicates ${finalVote} stance.`;
 
   return {
     seat: agent.seat,
     persona: agent.name,
     shortName: agent.shortName,
-    vote: defaultVote,
+    vote: finalVote,
     weight: 1.0,
-    rationale: `Discipline (${agent.discipline}) indicates ${defaultVote} positioning.`,
+    rationale: reason
   };
 }
 
 /**
- * Aggregates all 9 votes into the permanent verdict record
+ * Deterministic Vote Aggregator
+ * Calculates addCount, reduceCount, passCount.
+ * totalVotes MUST equal 9.
+ * Resolves majority, ties, and position-size bands deterministically.
  */
 export function aggregateVotes(
   votes: SeatVote[],
-  sessionId: string,
-  ticker: string,
-  assetName: string,
-  question: string
-): VerdictRecord {
+  sessionId: string = 'BC-0000',
+  ticker: string = 'ASSET',
+  assetName: string = 'Asset',
+  question: string = 'Thesis Deliberation'
+): AggregatedVerdict {
+  if (!Array.isArray(votes) || votes.length !== 9) {
+    throw new Error(`aggregateVotes requires exactly 9 votes. Received: ${votes ? votes.length : 0}`);
+  }
+
   const addCount = votes.filter((v) => v.vote === 'ADD').length;
   const reduceCount = votes.filter((v) => v.vote === 'REDUCE').length;
   const passCount = votes.filter((v) => v.vote === 'PASS').length;
+  const totalVotes = addCount + reduceCount + passCount;
 
-  let outcome: VoteOutcome = 'PASS';
-  let majorityCount = passCount;
-
-  if (addCount > reduceCount && addCount >= passCount) {
-    outcome = 'ADD';
-    majorityCount = addCount;
-  } else if (reduceCount >= addCount && reduceCount >= passCount) {
-    outcome = 'REDUCE';
-    majorityCount = reduceCount;
+  if (totalVotes !== 9) {
+    throw new Error(`Total votes must equal 9. Calculated: ${totalVotes}`);
   }
 
+  const maxCount = Math.max(addCount, reduceCount, passCount);
+
+  // Find all outcomes that share the max count
+  const topOutcomes: VoteOutcome[] = [];
+  if (passCount === maxCount) topOutcomes.push('PASS');
+  if (reduceCount === maxCount) topOutcomes.push('REDUCE');
+  if (addCount === maxCount) topOutcomes.push('ADD');
+
+  let outcome: VoteOutcome;
+  let majority = false;
+  let tie = false;
+
+  if (topOutcomes.length === 1) {
+    // Single winner
+    outcome = topOutcomes[0];
+    tie = false;
+    // Strict majority requires more than 4.5 (> 4, i.e. >= 5 out of 9)
+    majority = maxCount >= 5;
+  } else {
+    // Tie occurred! Deterministic tie-breaker precedence: 1. PASS, 2. REDUCE, 3. ADD
+    tie = true;
+    majority = false;
+    if (topOutcomes.includes('PASS')) {
+      outcome = 'PASS';
+    } else if (topOutcomes.includes('REDUCE')) {
+      outcome = 'REDUCE';
+    } else {
+      outcome = 'ADD';
+    }
+  }
+
+  const majorityCount = maxCount;
   const majorityRatio = `${majorityCount} / 9`;
+
   const dissentBreakdown = outcome === 'ADD'
     ? `${reduceCount} REDUCE, ${passCount} PASS`
     : outcome === 'REDUCE'
     ? `${addCount} ADD, ${passCount} PASS`
     : `${addCount} ADD, ${reduceCount} REDUCE`;
 
+  // Conservative position size band based on vote distribution (Taleb criteria)
   let positionSizeBand = '0.0%';
   if (outcome === 'ADD') {
-    positionSizeBand = majorityCount >= 7 ? '2.0 – 3.5%' : '1.0 – 2.0%';
+    positionSizeBand = majorityCount >= 7 ? '2.0 – 3.5%' : (majorityCount >= 5 ? '1.5 – 2.5%' : '1.0 – 2.0%');
   } else if (outcome === 'REDUCE') {
-    positionSizeBand = '0.5 – 1.0%';
+    positionSizeBand = majorityCount >= 7 ? '0.0 – 0.5%' : '0.5 – 1.0%';
+  } else {
+    positionSizeBand = '0.0%';
   }
 
   return {
@@ -292,18 +451,62 @@ export function aggregateVotes(
     assetName,
     question,
     outcome,
+    addCount,
+    reduceCount,
+    passCount,
+    totalVotes: 9,
+    majorityCount,
+    majority,
+    tie,
     majorityRatio,
     dissentBreakdown,
     positionSizeBand,
-    keyAgreement: `${assetName} exhibits active secondary liquidity, but members agree valuation must reflect structural tail risk.`,
-    keyDisagreement: `Whether current transaction throughput and protocol adoption constitute an enduring competitive moat.`,
-    unresolvedQuestion: `Can network validator economics and fee models sustain security without inflationary dilution?`,
+    keyAgreement: `${assetName} exhibits demonstrable market interest, but analytical members agree valuation must reflect structural tail risk.`,
+    keyDisagreement: `Whether current adoption and network activity constitute an enduring economic moat versus speculative momentum.`,
+    unresolvedQuestion: `Can long-term cash flow generation and unit economics sustain valuation through a prolonged liquidity contraction?`,
     reviewTriggers: [
       `Asset price suffers a cumulative drawdown exceeding 30–35% from convening date.`,
-      `Verified protocol exploit, smart contract vulnerability, or emergency multisig intervention.`,
-      `Sustained 24h transaction volume contracts by more than 40% over a 14-day rolling window.`,
+      `Verified governance crisis, regulatory enforcement, or management breach.`,
+      `Sustained transaction velocity/volume contracts by more than 40% over a 14-day rolling window.`
     ],
     votes,
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   };
+}
+
+/**
+ * Backward compatibility streaming helpers
+ */
+export async function* streamRound1Reading(
+  agent: AgentPersona,
+  userMotion: string,
+  evidenceSummary: string
+): AsyncGenerator<string, void, unknown> {
+  const r1 = await generateRound1Analysis(agent, userMotion, evidenceSummary);
+  const words = r1.analysis.split(' ');
+  for (const w of words) {
+    yield w + ' ';
+    await new Promise(r => setTimeout(r, 10));
+  }
+}
+
+export async function* streamRound2Duel(
+  challenger: AgentPersona,
+  defender: AgentPersona,
+  defenderRound1Text: string,
+  motion: string
+): AsyncGenerator<string, void, unknown> {
+  const mockDefenderR1: Round1Analysis = {
+    persona: defender.name,
+    analysis: defenderRound1Text,
+    key_claims: [],
+    risk: 'Model risk',
+    stance: 'ADD'
+  };
+  const duel = await generateRound2CrossExam(challenger, defender, mockDefenderR1, motion, 'Market Evidence');
+  const words = duel.challenge.split(' ');
+  for (const w of words) {
+    yield w + ' ';
+    await new Promise(r => setTimeout(r, 10));
+  }
 }

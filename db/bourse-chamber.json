@@ -384,6 +384,66 @@
       "email": "analyst@bourse-chamber.internal",
       "status": "ACTIVE",
       "created_at": "2026-09-21T05:34:33.786Z"
+    },
+    {
+      "id": "WATCH-1790053215347-419",
+      "session_id": "BC-0411",
+      "asset": "SOL",
+      "trigger_condition": "Cumulative drawdown exceeding 30–35%",
+      "drawdown_threshold": 30,
+      "email": "analyst@bourse-chamber.internal",
+      "status": "ACTIVE",
+      "created_at": "2026-09-22T05:00:15.348Z"
+    },
+    {
+      "id": "WATCH-1790053960246-701",
+      "session_id": "BC-0411",
+      "asset": "SOL",
+      "trigger_condition": "Cumulative drawdown exceeding 30–35%",
+      "drawdown_threshold": 30,
+      "email": "analyst@bourse-chamber.internal",
+      "status": "ACTIVE",
+      "created_at": "2026-09-22T05:12:40.247Z"
+    },
+    {
+      "id": "WATCH-1790054516795-484",
+      "session_id": "BC-0411",
+      "asset": "SOL",
+      "trigger_condition": "Cumulative drawdown exceeding 30–35%",
+      "drawdown_threshold": 30,
+      "email": "analyst@bourse-chamber.internal",
+      "status": "ACTIVE",
+      "created_at": "2026-09-22T05:21:56.796Z"
+    },
+    {
+      "id": "WATCH-1790054535542-31",
+      "session_id": "BC-0411",
+      "asset": "SOL",
+      "trigger_condition": "Cumulative drawdown exceeding 30–35%",
+      "drawdown_threshold": 30,
+      "email": "analyst@bourse-chamber.internal",
+      "status": "ACTIVE",
+      "created_at": "2026-09-22T05:22:15.543Z"
+    },
+    {
+      "id": "WATCH-1790056804734-757",
+      "session_id": "BC-0411",
+      "asset": "SOL",
+      "trigger_condition": "Cumulative drawdown exceeding 30–35%",
+      "drawdown_threshold": 30,
+      "email": "analyst@bourse-chamber.internal",
+      "status": "ACTIVE",
+      "created_at": "2026-09-22T06:00:04.735Z"
+    },
+    {
+      "id": "WATCH-1790058379500-11",
+      "session_id": "BC-0411",
+      "asset": "SOL",
+      "trigger_condition": "Cumulative drawdown exceeding 30–35%",
+      "drawdown_threshold": 30,
+      "email": "analyst@bourse-chamber.internal",
+      "status": "ACTIVE",
+      "created_at": "2026-09-22T06:26:19.501Z"
     }
   ]
 }

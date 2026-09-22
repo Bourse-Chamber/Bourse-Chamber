@@ -36,13 +36,31 @@ const BourseVerdict = (() => {
     setupWatcherForm();
   }
 
-  function loadSession(id) {
+  async function loadSession(id) {
     if (!id) {
       const all = (typeof BourseStorage !== 'undefined') ? BourseStorage.getSessions() : [];
       id = (all && all.length > 0) ? all[0].id : 'BC-0411';
     }
 
     session = BourseStorage.getSessionById(id);
+
+    // If not found in localStorage or votes are missing, fetch from server API
+    if (!session || !Array.isArray(session.votes) || session.votes.length === 0) {
+      try {
+        const res = await fetch(`/api/session?id=${encodeURIComponent(id)}`);
+        if (res.ok) {
+          const apiSession = await res.json();
+          if (apiSession && apiSession.id) {
+            session = apiSession;
+            if (typeof BourseStorage !== 'undefined') {
+              BourseStorage.saveSession(apiSession);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch session from API:', err);
+      }
+    }
 
     // If still null, try finding any session in storage
     if (!session) {
@@ -151,10 +169,10 @@ const BourseVerdict = (() => {
       const row = document.createElement('div');
       row.className = 'vote-item-row';
 
-      const council = (typeof BourseCryptoAgents !== 'undefined') ? BourseCryptoAgents : BourseAgents;
+      const council = (typeof BourseAgents !== 'undefined') ? BourseAgents : (typeof BourseCryptoAgents !== 'undefined' ? BourseCryptoAgents : null);
       const agent = (council && typeof council.getAgentByName === 'function')
         ? council.getAgentByName(item.name)
-        : ((typeof BourseAgents !== 'undefined') ? BourseAgents.getAgentByName(item.name) : null);
+        : null;
       const avatarSvg = BourseUtils.generatePixelAvatarSVG(item.name, 32);
       const voteClass = item.vote ? item.vote.toLowerCase() : 'pass';
 

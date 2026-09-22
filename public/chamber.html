@@ -60,7 +60,7 @@
     <div class="floor-header">
       <div>
         <h1>Session Floor</h1>
-        <p>Put a ticker or a thesis on the table. All nine crypto architects speak in turn, two cross-examine, then the vote is tallied and recorded.</p>
+        <p>Put a ticker or a thesis on the table. All nine council members speak in turn, two cross-examine, then the vote is tallied and recorded.</p>
       </div>
       <div class="session-metadata-bar">
         <div class="state-pill" id="chamber-state-pill">
@@ -190,16 +190,14 @@
       </div>
 
       <form class="composer-form" onsubmit="event.preventDefault();">
-        <input class="composer-input" id="composer-input" type="text" placeholder="Submit a thesis or question (e.g. Why is crypto dropping today?, or Can BTC break $100k?)" autocomplete="off">
+        <input class="composer-input" id="composer-input" type="text" placeholder="Submit a ticker or thesis for the 9 council economists to deliberate (e.g. BTC, ETH, NVDA)" autocomplete="off">
         <button class="composer-btn" id="convene-btn" type="button">Ask the full bench (9)</button>
       </form>
       <div class="hint-chips-row">
         <span class="hint-chip-label">Examples:</span>
-        <button class="hint-chip" data-thesis="Why is the crypto market dropping today?" type="button">Why is crypto down?</button>
-        <button class="hint-chip" data-thesis="Can Bitcoin break $100,000 this year?" type="button">BTC to 100k?</button>
-        <button class="hint-chip" data-thesis="Solana vs Ethereum: which architecture wins long-term scaling?" type="button">SOL vs ETH scaling</button>
-        <button class="hint-chip" data-thesis="Are memecoins harmful to retail crypto participants?" type="button">Are memecoins harmful?</button>
-        <button class="hint-chip" data-thesis="Is throughput a moat, or a commodity waiting to be priced?" type="button">Throughput moat?</button>
+        <button class="hint-chip" data-thesis="Is Bitcoin still fundamentally strong enough to justify long-term adoption, or is its value increasingly driven by speculation?" type="button">Bitcoin Fundamental Thesis</button>
+        <button class="hint-chip" data-thesis="Does Ethereum have an enduring economic moat as a decentralized settlement layer, or will layer-1 competitors commoditize execution?" type="button">Ethereum Settlement Moat</button>
+        <button class="hint-chip" data-thesis="Can high-throughput networks generate sustainable cash flows without continuous inflationary token emissions?" type="button">Throughput Cash Flows</button>
       </div>
     </div>
   </main>
@@ -209,9 +207,9 @@
   <aside class="dossier-drawer" id="dossier-drawer" aria-hidden="true">
     <button class="dossier-close" id="dossier-close" aria-label="Close dossier">✕</button>
     <div class="dossier-avatar-wrap" id="dossier-avatar"></div>
-    <div class="dossier-seat-tag" id="dossier-seat">SEAT 01 · CYPHERPUNK</div>
-    <h3 class="dossier-name" id="dossier-name">Satoshi Nakamoto</h3>
-    <div class="dossier-discipline" id="dossier-discipline">Sound money & Cypherpunk PoW</div>
+    <div class="dossier-seat-tag" id="dossier-seat">SEAT 01 · DEEP VALUE</div>
+    <h3 class="dossier-name" id="dossier-name">Benjamin Graham</h3>
+    <div class="dossier-discipline" id="dossier-discipline">Margin of Safety & Intrinsic Value</div>
     
     <div class="dossier-section-title">CORE PHILOSOPHY</div>
     <p class="dossier-bio" id="dossier-bio"></p>
@@ -263,7 +261,7 @@
       </div>
       <div class="ai-config-body">
         <p style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:14px;line-height:1.4;">
-          Select deliberation mode for the 9 Crypto Architects. Live AI streams dynamic, character-accurate arguments directly via OpenRouter.
+          Select deliberation mode for the 9 Council Members. Live AI streams dynamic, character-accurate arguments directly via OpenRouter.
         </p>
         <div style="margin-bottom:12px;">
           <label style="font-family:var(--font-mono);font-size:0.68rem;color:var(--text-muted);display:block;margin-bottom:4px;">ENGINE MODE</label>
@@ -293,7 +291,6 @@
 
   <script src="js/utils.js"></script>
   <script src="js/agents.js"></script>
-  <script src="js/crypto-agents.js"></script>
   <script src="js/mock-data.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/budget.js"></script>

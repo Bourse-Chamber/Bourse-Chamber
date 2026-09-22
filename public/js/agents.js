@@ -393,7 +393,17 @@ const BourseAgents = (() => {
   };
 })();
 
-// Export for Node/CommonJS if applicable
+// Export for Browser, Global, and Node/CommonJS
+if (typeof window !== 'undefined') {
+  window.BourseAgents = BourseAgents;
+}
+if (typeof globalThis !== 'undefined') {
+  globalThis.BourseAgents = BourseAgents;
+}
+if (typeof global !== 'undefined') {
+  global.BourseAgents = BourseAgents;
+}
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = BourseAgents;
 }
+

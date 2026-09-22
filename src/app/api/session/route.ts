@@ -1,10 +1,15 @@
 import { NextRequest } from 'next/server';
 import { AGENTS } from '../../../lib/agents';
-import { streamRound1Reading, streamRound2Duel, generateRound3Vote, aggregateVotes } from '../../../lib/openrouter';
+import {
+  generateRound1Analysis,
+  generateRound2CrossExam,
+  generateRound3Vote,
+  aggregateVotes
+} from '../../../lib/openrouter';
 import { fetchCryptoEvidence } from '../../../lib/coingecko';
 import { db } from '../../../lib/db';
 import { redis } from '../../../lib/redis';
-import { SeatVote, TranscriptMessage } from '../../../types';
+import { SeatVote, TranscriptMessage, Round1Analysis } from '../../../types';
 
 export const runtime = 'nodejs';
 
@@ -49,83 +54,151 @@ export async function POST(req: NextRequest) {
       async start(controller) {
         const encoder = new TextEncoder();
         const transcript: TranscriptMessage[] = [];
-        const round1Readings: Map<number, string> = new Map();
+        const round1Analyses = new Map<number, Round1Analysis>();
         const votes: SeatVote[] = [];
 
         function emit(event: string, data: unknown) {
-          controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
+          try {
+            controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
+          } catch (_) {}
         }
 
-        // --- PHASE 1: Motion Filing & Evidentiary Snapshot ---
-        emit('motion', {
-          sessionId,
-          asset: ticker,
-          motion: query,
-          llmProvider: process.env.OPENROUTER_API_KEY ? 'OpenRouter Real LLM Engine' : 'Deterministic Cognitive Simulator',
-        });
-
-        emit('evidence', evidence);
-
-        // --- ROUND 1: Strictly Independent Readings (All 9 Personas) ---
-        // Personas receive identical evidence and do NOT see peer outputs
-        for (const agent of AGENTS) {
-          emit('seat_start', { seat: agent.seat, name: agent.name });
-
-          let readingText = '';
-          for await (const chunk of streamRound1Reading(agent, query, `${evidence.name} ($${evidence.priceFormatted})`)) {
-            readingText += chunk;
-            emit('token', { seat: agent.seat, chunk });
-          }
-
-          round1Readings.set(agent.seat, readingText);
-          transcript.push({
-            type: 'speaking',
-            who: agent.name,
-            seat: agent.seat,
-            time: new Date().toLocaleTimeString('en-US', { hour12: false }),
-            text: readingText,
+        try {
+          // --- PHASE 1: Motion Filing & Evidentiary Snapshot ---
+          emit('motion', {
+            sessionId,
+            asset: ticker,
+            motion: query,
+            llmProvider: process.env.OPENROUTER_API_KEY ? 'OpenRouter Real LLM Engine' : 'Deterministic Cognitive Simulator',
           });
 
-          emit('speech', { seat: agent.seat, who: agent.name, text: readingText });
-        }
+          emit('evidence', evidence);
 
-        // --- ROUND 2: Cross-Examination Duel ---
-        // Select Cathie Wood (Seat 4 - Growth) vs Taleb (Seat 6 - Tail Risk) or Munger (Seat 2)
-        const challenger = AGENTS.find((a) => a.seat === 6) || AGENTS[5]; // Taleb
-        const defender = AGENTS.find((a) => a.seat === 4) || AGENTS[3];   // Wood
-        const defenderRound1 = round1Readings.get(defender.seat) || 'Promising technological adoption curve.';
+          const evidenceSummary = `${evidence.name} ($${evidence.priceFormatted || evidence.price}), 24h Change: ${evidence.change24h}%, MCap: $${evidence.marketCapFormatted || evidence.marketCap}`;
 
-        emit('duel_start', { seatA: challenger.seat, seatB: defender.seat });
+          // --- ROUND 1: Strictly Independent Readings (All 9 Personas) ---
+          // All 9 personas receive the IDENTICAL Evidence Pack.
+          // Never allows empty analysis.
+          for (const agent of AGENTS) {
+            emit('seat_start', { seat: agent.seat, seatId: agent.seat, name: agent.name });
 
-        let challengeText = '';
-        for await (const chunk of streamRound2Duel(challenger, defender, defenderRound1, query)) {
-          challengeText += chunk;
-          emit('duel_token', { seat: challenger.seat, chunk });
-        }
+            const r1 = await generateRound1Analysis(agent, query, evidenceSummary);
+            round1Analyses.set(agent.seat, r1);
 
-        transcript.push({
-          type: 'challenge',
-          who: `${challenger.name} (CHALLENGE TO SEAT 0${defender.seat})`,
-          seat: challenger.seat,
-          time: new Date().toLocaleTimeString('en-US', { hour12: false }),
-          text: challengeText,
-        });
+            // Stream words progressively to frontend
+            const words = r1.analysis.split(' ');
+            for (const w of words) {
+              emit('seat_token', { seat: agent.seat, seatId: agent.seat, text: w + ' ', chunk: w + ' ' });
+              emit('token', { seat: agent.seat, chunk: w + ' ' });
+            }
 
-        emit('speech', { seat: challenger.seat, who: `${challenger.name} [CROSS-EXAM]`, text: challengeText });
+            emit('seat_end', {
+              type: 'seat_end',
+              seat: agent.seat,
+              seatId: agent.seat,
+              persona: agent.name,
+              name: agent.name,
+              stance: r1.stance,
+              analysis: r1.analysis,
+              key_claims: r1.key_claims,
+              risk: r1.risk,
+            });
 
-        // --- ROUND 3: Voting Ballot & Aggregation ---
-        for (const agent of AGENTS) {
-          const r1 = round1Readings.get(agent.seat) || '';
-          const ballot = await generateRound3Vote(agent, query, r1);
-          votes.push(ballot);
-          emit('vote_cast', ballot);
-        }
+            transcript.push({
+              type: 'speaking',
+              who: agent.name,
+              seat: agent.seat,
+              time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+              text: r1.analysis,
+            });
 
-        const verdict = aggregateVotes(votes, sessionId, ticker, evidence.name, query);
-        emit('verdict', verdict);
+            emit('speech', { seat: agent.seat, who: agent.name, text: r1.analysis });
+          }
 
-        // --- PERSISTENCE: Save completed session to Database ---
-        try {
+          if (round1Analyses.size !== 9) {
+            throw new Error(`Round 1 incomplete: ${round1Analyses.size}/9 analyses recorded.`);
+          }
+
+          // --- ROUND 2: Cross-Examination Duel ---
+          // Identify opposing personas based on Round 1 stances
+          const addAgent = AGENTS.find((a) => round1Analyses.get(a.seat)?.stance === 'ADD') || AGENTS.find((a) => a.seat === 4) || AGENTS[3];
+          const reduceAgent = AGENTS.find((a) => round1Analyses.get(a.seat)?.stance === 'REDUCE' && a.seat !== addAgent.seat) || AGENTS.find((a) => a.seat === 6) || AGENTS[5];
+
+          const challenger = reduceAgent;
+          const defender = addAgent;
+          const defenderR1 = round1Analyses.get(defender.seat)!;
+
+          emit('duel_start', { seatA: challenger.seat, seatB: defender.seat });
+
+          const duel = await generateRound2CrossExam(
+            challenger,
+            defender,
+            defenderR1,
+            query,
+            evidenceSummary
+          );
+
+          emit('rebuttal', {
+            type: 'rebuttal',
+            seatId: challenger.seat,
+            targetSeatId: defender.seat,
+            seatA: challenger.seat,
+            seatB: defender.seat,
+            persona: challenger.name,
+            challenger: challenger.name,
+            defender: defender.name,
+            challenge: duel.challenge,
+            response: duel.response,
+          });
+
+          transcript.push({
+            type: 'challenge',
+            who: `${challenger.name} (CHALLENGE TO SEAT 0${defender.seat})`,
+            seat: challenger.seat,
+            time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+            text: duel.challenge,
+          });
+
+          transcript.push({
+            type: 'response',
+            who: `${defender.name} (RESPONSE TO SEAT 0${challenger.seat})`,
+            seat: defender.seat,
+            time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+            text: duel.response,
+          });
+
+          emit('speech', { seat: challenger.seat, who: `${challenger.name} [CROSS-EXAM]`, text: duel.challenge });
+          emit('speech', { seat: defender.seat, who: `${defender.name} [REBUTTAL]`, text: duel.response });
+
+          // --- ROUND 3: Voting Ballot & Aggregation ---
+          // Ask ALL 9 personas to cast ADD / REDUCE / PASS
+          for (const agent of AGENTS) {
+            const r1 = round1Analyses.get(agent.seat)?.analysis || '';
+            const ballot = await generateRound3Vote(agent, query, r1, duel.challenge);
+            votes.push(ballot);
+
+            emit('vote', {
+              type: 'vote',
+              seat: agent.seat,
+              seatId: agent.seat,
+              name: agent.name,
+              persona: agent.name,
+              shortName: agent.shortName,
+              vote: ballot.vote,
+              reason: ballot.rationale,
+              rationale: ballot.rationale,
+            });
+          }
+
+          if (votes.length !== 9) {
+            throw new Error(`Round 3 incomplete: received ${votes.length}/9 votes.`);
+          }
+
+          // Deterministic Aggregator
+          const verdict = aggregateVotes(votes, sessionId, ticker, evidence.name, query);
+          emit('verdict', verdict);
+
+          // --- PERSISTENCE: Save completed session to Database ---
           await db.saveSession({
             id: sessionId,
             question: query,
@@ -142,12 +215,15 @@ export async function POST(req: NextRequest) {
             verdict,
             transcript,
           });
-        } catch (dbErr) {
-          console.error('Failed to persist session to database:', dbErr);
-        }
 
-        emit('complete', { sessionId, verdictId: verdict.id });
-        controller.close();
+          emit('done', { sessionId, completed: true, savedToDb: true, verdictId: verdict.id, outcome: verdict.outcome });
+          emit('complete', { sessionId, completed: true, savedToDb: true, verdictId: verdict.id, outcome: verdict.outcome });
+          controller.close();
+        } catch (execErr: any) {
+          console.error('[Session Deliberation Error]:', execErr);
+          emit('error', { message: execErr.message || 'Chamber deliberation encountered an error.' });
+          controller.close();
+        }
       },
     });
 
@@ -159,7 +235,7 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: 'Failed to process session deliberation.', details: err.message }), {
+    return new Response(JSON.stringify({ error: err.message || 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -167,108 +243,75 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-    const aggregate = searchParams.get('aggregate');
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50', 10)));
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get('id');
+  const aggregate = searchParams.get('aggregate');
+  const limit = parseInt(searchParams.get('limit') || '50', 10);
 
-    if (id) {
-      const session = await db.getSession(id);
-      if (!session) {
-        return new Response(JSON.stringify({ error: `Session '${id}' not found.` }), {
-          status: 404,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }
-      return new Response(JSON.stringify(session), {
+  if (id) {
+    const session = await db.getSession(id);
+    if (!session) {
+      return new Response(JSON.stringify({ error: `Session '${id}' not found.` }), {
+        status: 404,
         headers: { 'Content-Type': 'application/json' },
       });
     }
-
-    const sessions = await db.listSessions(limit);
-
-    if (aggregate === 'bench' || aggregate === 'agents') {
-      const records = AGENTS.map((agent) => {
-        let participated = 0;
-        let votedFor = 0;
-        let dissents = 0;
-        const recentVotes: Array<{
-          sessionId: string;
-          ticker: string;
-          vote: string;
-          rationale: string;
-          timestamp: string;
-        }> = [];
-
-        for (const s of sessions) {
-          const v = s.votes?.find(
-            (vote) =>
-              vote.seat === agent.seat ||
-              vote.shortName?.toLowerCase() === agent.shortName.toLowerCase() ||
-              vote.persona?.toLowerCase() === agent.name.toLowerCase()
-          );
-
-          if (v) {
-            participated++;
-            const voteUpper = (v.vote || '').toUpperCase();
-            if (voteUpper === 'ADD') {
-              votedFor++;
-            } else if (voteUpper === 'REDUCE') {
-              dissents++;
-            } else {
-              // PASS ballot: counts as dissent if verdict outcome was ADD
-              if (s.verdict && s.verdict.outcome === 'ADD') {
-                dissents++;
-              }
-            }
-
-            recentVotes.push({
-              sessionId: s.id,
-              ticker: s.ticker,
-              vote: voteUpper,
-              rationale: v.rationale || '',
-              timestamp: s.createdAt,
-            });
-          }
-        }
-
-        return {
-          seat: agent.seat,
-          name: agent.name,
-          shortName: agent.shortName,
-          discipline: agent.discipline,
-          school: 'VALUE', // or agent school
-          record: {
-            sessions: participated,
-            votedFor,
-            dissents,
-          },
-          recentVotes: recentVotes.slice(0, 5),
-        };
-      });
-
-      return new Response(
-        JSON.stringify({
-          agents: records,
-          totalSessions: sessions.length,
-        }),
-        {
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
-    }
-
-    return new Response(JSON.stringify(sessions), {
+    return new Response(JSON.stringify(session), {
+      status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (err: any) {
-    return new Response(
-      JSON.stringify({ error: 'Failed to retrieve sessions.', details: err.message }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
   }
+
+  const sessions = await db.listSessions(limit);
+  if (aggregate === 'bench' || aggregate === 'agents') {
+    const records = AGENTS.map((agent) => {
+      let participated = 0;
+      let votedFor = 0;
+      let dissents = 0;
+      const recentVotes: Array<{ sessionId: string; vote: string; ticker: string; rationale: string }> = [];
+
+      for (const s of sessions) {
+        if (Array.isArray(s.votes)) {
+          const v = s.votes.find((item: any) => item.seat === agent.seat || item.name === agent.name || item.persona === agent.name);
+          if (v) {
+            participated++;
+            if (s.verdict && v.vote === s.verdict.outcome) {
+              votedFor++;
+            } else if (s.verdict) {
+              dissents++;
+            }
+            if (recentVotes.length < 5) {
+              recentVotes.push({
+                sessionId: s.id,
+                vote: v.vote,
+                ticker: s.ticker || 'ASSET',
+                rationale: v.rationale || (v as any).reason || '',
+              });
+            }
+          }
+        }
+      }
+
+      return {
+        seat: agent.seat,
+        name: agent.name,
+        shortName: agent.shortName,
+        discipline: agent.discipline,
+        participated,
+        votedFor,
+        dissents,
+        recentVotes,
+      };
+    });
+
+    return new Response(JSON.stringify({ agents: records, totalSessions: sessions.length }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  return new Response(JSON.stringify(sessions), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }

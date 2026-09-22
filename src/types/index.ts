@@ -122,3 +122,34 @@ export interface BudgetHudState {
   dailyCap: number;
   resetIsoTimestamp: string;
 }
+
+export interface Round1Analysis {
+  persona: string;
+  analysis: string;
+  key_claims: string[];
+  risk: string;
+  stance: VoteOutcome;
+}
+
+export interface Round2Duel {
+  persona: string;
+  challenge: string;
+  response: string;
+}
+
+export interface Round3Vote {
+  persona: string;
+  vote: VoteOutcome;
+  reason: string;
+}
+
+export interface AggregatedVerdict extends VerdictRecord {
+  addCount: number;
+  reduceCount: number;
+  passCount: number;
+  totalVotes: number;
+  majorityCount: number;
+  majority: boolean;
+  tie: boolean;
+}
+
