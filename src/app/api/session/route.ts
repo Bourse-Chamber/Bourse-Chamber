@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const query = String(body.input || '').trim().slice(0, 500);
+    const query = String(body.input || '').trim().slice(0, 4000);
 
     // 2. Input Validation
     if (!query) {

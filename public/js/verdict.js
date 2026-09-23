@@ -151,10 +151,18 @@ const BourseVerdict = (() => {
       stampCard.classList.add(v.outcome.toLowerCase());
     }
     if (sizeBandEl) {
-      sizeBandEl.innerHTML = `
-        <strong>POSITION SIZE BAND: ${v.positionSizeBand}</strong>
-        <small>Illustrative reasoning output — not personalized financial advice.</small>
-      `;
+      const isSizingQuery = /\b(size|sizing|position|allocation|allocate|portfolio|weight|percentage|percent|how much|risk budget)\b/i.test(session.question || '');
+      if (isSizingQuery) {
+        sizeBandEl.innerHTML = `
+          <strong>POSITION SIZE BAND: ${v.positionSizeBand}</strong>
+          <small>Calibrated against tail risk for requested allocation sizing.</small>
+        `;
+      } else {
+        sizeBandEl.innerHTML = `
+          <strong>QUESTION EVALUATION: ${v.outcome === 'ADD' ? 'AFFIRMATIVE / BULLISH CONSENSUS' : v.outcome === 'REDUCE' ? 'SKEPTICAL / RISK-OFF CONSENSUS' : 'DIVIDED / NEUTRAL BENCH'}</strong>
+          <small>${session.question ? `Directly answering: "${session.question}"` : 'Deliberation concluded by bench majority.'}</small>
+        `;
+      }
     }
   }
 
@@ -243,11 +251,13 @@ const BourseVerdict = (() => {
     }
 
     if (s.verdict) {
+      const isSizingQ = /\b(size|sizing|position|allocation|allocate|portfolio|weight|percentage|percent|how much|risk budget)\b/i.test(s.question || '');
+      const sizingText = isSizingQ ? ` Position Size Band: ${s.verdict.positionSizeBand}.` : '';
       list.push({
         type: 'chair',
         who: 'CHAIR',
         time: tTime,
-        text: `Floor balloting completed. Certified Outcome: ${s.verdict.outcome} (${s.verdict.majorityRatio} Majority). Dissent: ${s.verdict.dissentBreakdown || '--'}. Taleb Position Size Band: ${s.verdict.positionSizeBand}. Record officially closed.`
+        text: `Floor balloting completed on: "${s.question || 'Floor Question'}". Certified Outcome: ${s.verdict.outcome} (${s.verdict.majorityRatio} Majority). Dissent: ${s.verdict.dissentBreakdown || '--'}.${sizingText} Record officially closed.`
       });
     }
 

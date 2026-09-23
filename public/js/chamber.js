@@ -777,10 +777,15 @@ const BourseChamber = (() => {
 
     triggerVerdictImpact(outcome);
 
+    const isSizingQuery = /\b(size|sizing|position|allocation|allocate|portfolio|weight|percentage|percent|how much|risk budget)\b/i.test(currentSession?.question || '');
+    const sizingLine = isSizingQuery
+      ? `\nPOSITION SIZE BAND: ${sizingBand} (Fixed by Seat 06 ${sizingSeat.shortName || sizingSeat.name} — ${sizingRationale})`
+      : '';
+
     await streamTranscriptMsg({
       type: 'verdict-announcement',
       who: `VERDICT RECORD · SESSION ${sessionId}`,
-      text: `OUTCOME: ${outcome} (${verdictObj.majorityRatio} Majority)\nDISSENT: ${dissentBreakdown}\nPOSITION SIZE BAND: ${sizingBand} (Fixed by Seat 06 ${sizingSeat.shortName || sizingSeat.name} — ${sizingRationale})\nRecord officially closed and committed to the permanent Verdict Ledger.`
+      text: `QUESTION: "${currentSession?.question || ''}"\nOUTCOME: ${outcome} (${verdictObj.majorityRatio} Majority)\nDISSENT: ${dissentBreakdown}${sizingLine}\nRecord officially closed and committed to the permanent Verdict Ledger.`
     });
 
     if (currentSession && typeof BourseStorage !== 'undefined') {

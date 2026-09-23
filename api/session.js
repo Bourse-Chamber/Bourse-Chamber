@@ -73,7 +73,7 @@ module.exports = async function handler(req, res) {
   }
 
   const { input } = req.body || {};
-  const query = String(input || "").trim().slice(0, 500);
+  const query = String(input || "").trim().slice(0, 4000);
 
   if (!query) {
     return res.status(400).json({ error: 'Input thesis or asset is required.' });

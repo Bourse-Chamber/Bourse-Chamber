@@ -126,7 +126,7 @@ export async function callOpenRouter(options: OpenRouterCallOptions): Promise<Re
 /**
  * ROUND 1: Generate Structured Independent Analysis for a Persona
  * All 9 personas receive the IDENTICAL Evidence Pack.
- * Returns structured JSON: { persona, analysis, key_claims, risk, stance }.
+ * Returns structured JSON: { persona, analysis, key_claims, risk, stance }.\
  * Never allows an empty analysis.
  */
 export async function generateRound1Analysis(
@@ -134,41 +134,56 @@ export async function generateRound1Analysis(
   userMotion: string,
   evidenceSummary: string
 ): Promise<Round1Analysis> {
+
+  // Detect question type to tailor the mandate
+  const qLower = userMotion.toLowerCase();
+  const isMarketQuestion = /\b(liquidity|leverage|etf|liquidat|exchange|cex|dex|flow|institutional|macro|regulation|interest rate|fed|spread|volume|price|crash|drop|pump|bear|bull|rally|drawdown|correction|sell.off|buy|support|resistance)\b/.test(qLower);
+  const isProtocolQuestion = /\b(architecture|tps|throughput|validator|consensus|decentrali|proof.of|layer|rollup|scaling|smart contract|bridge|sequencer|node|mev|fork)\b/.test(qLower);
+
+  const mandate = isMarketQuestion
+    ? `The user is asking a MARKET question. You MUST analyze actual market dynamics: liquidity conditions, leverage and open interest, institutional/ETF inflows, exchange risk, on-chain volume, macro backdrop, regulatory developments, or trader positioning — whichever is most relevant to your discipline. Do NOT pivot to evaluating protocol architecture or technical design. Stay on-topic.`
+    : isProtocolQuestion
+    ? `The user is asking a PROTOCOL/TECHNICAL question. Analyze it from your technical discipline.`
+    : `Answer the exact question directly using your crypto-native discipline. Do NOT substitute a generic protocol architecture evaluation for the actual question asked.`;
+
   const systemPrompt = `You are ${agent.name}, Seat 0${agent.seat} (${agent.discipline}) at the Bourse Crypto Chamber.
 ${agent.systemPrompt}
 Primary metric you scrutinize: ${agent.primaryMetric}.
 Known blind spot: ${agent.fatalFlaw}.
 
+MANDATE: ${mandate}
+
 CRITICAL RULES:
-- Analyze ONLY through your crypto-native discipline. Do NOT use stock/equity investing frameworks.
-- Do NOT mention: margin of safety, balance sheet, cash flow, intrinsic value, shareholder returns, corporate governance, or stock analysis.
-- Every sentence must connect your crypto-specific lens to the actual thesis being evaluated.
-- No generic text. Every argument must be distinct to your perspective.
+- Answer the EXACT question the user asked. Do NOT replace it with a different question.
+- Analyze strictly through your crypto-native discipline. Do NOT use stock/equity frameworks.
+- Do NOT mention: margin of safety, balance sheet, cash flow, intrinsic value, shareholder returns.
+- Every sentence must be directly responsive to the question asked, not a generic architecture lecture.
+- No generic "architecture satisfies…" boilerplate. Every argument must be specific to the question and your unique perspective.
 
 You MUST respond strictly with a valid JSON object matching this schema:
 {
   "persona": "${agent.name}",
-  "analysis": "2-3 concise, unhedged sentences analyzing the thesis from your crypto-native discipline.",
-  "key_claims": ["crypto-specific claim 1", "crypto-specific claim 2"],
-  "risk": "primary crypto-native risk or vulnerability identified",
+  "analysis": "2-3 concise, unhedged sentences directly answering the question from your crypto-native discipline.",
+  "key_claims": ["specific claim 1 relevant to the question", "specific claim 2 relevant to the question"],
+  "risk": "primary risk relevant to the question, from your perspective",
   "stance": "ADD" | "REDUCE" | "PASS"
 }
 Do NOT output markdown fences. Do NOT write internal thoughts or preambles. Output JSON only.`;
 
-  const userPrompt = `<thesis_under_review>
+  const userPrompt = `<question_under_deliberation>
 ${userMotion}
-</thesis_under_review>
+</question_under_deliberation>
 
-<network_market_snapshot>
+<market_snapshot>
 ${evidenceSummary}
-</network_market_snapshot>
+</market_snapshot>
 
-Deliver your independent Seat 0${agent.seat} crypto-native analysis now. Stay strictly in character as ${agent.name}.`;
+Answer the question above directly from your Seat 0${agent.seat} perspective as ${agent.name}. Do NOT substitute a different question.`;
 
   let rawContent = '';
 
   try {
-    const res = await callOpenRouter({ systemPrompt, userPrompt, stream: false, maxTokens: 280 });
+    const res = await callOpenRouter({ systemPrompt, userPrompt, stream: false, maxTokens: 320 });
     if (res && res.ok) {
       const json = await res.json();
       rawContent = json.choices?.[0]?.message?.content || '';
@@ -197,7 +212,7 @@ Deliver your independent Seat 0${agent.seat} crypto-native analysis now. Stay st
       analysis: cleanModelText(parsed.analysis).trim(),
       key_claims: Array.isArray(parsed.key_claims) && parsed.key_claims.length > 0
         ? parsed.key_claims.map((c: any) => String(c).trim()).filter(Boolean)
-        : [`${agent.discipline} lens applied`, `Scrutinizing: ${userMotion.slice(0, 40)}`],
+        : [`${agent.discipline} applied to: ${userMotion}`],
       risk: String(parsed.risk || `${agent.discipline} risk identified`).trim(),
       stance: validStance
     };
@@ -209,19 +224,21 @@ Deliver your independent Seat 0${agent.seat} crypto-native analysis now. Stay st
     return {
       persona: agent.name,
       analysis: cleanedRaw,
-      key_claims: [`Discipline: ${agent.discipline}`, `Thesis: ${userMotion.slice(0, 40)}`],
-      risk: `Primary ${agent.discipline} risk flagged by ${agent.name}`,
+      key_claims: [`${agent.discipline} applied`, `Question: ${userMotion}`],
+      risk: `Primary ${agent.discipline} risk on this question`,
       stance: defaultStance
     };
   }
 
-  // Fallback 2: Crypto-native persona-anchored analysis (Never empty, Never generic equity text)
-  const fallbackAnalysis = `${agent.firstQuestion} On the thesis "${userMotion.slice(0, 60)}": through the lens of ${agent.discipline}, the critical question is whether this protocol's architecture satisfies ${agent.primaryMetric} under adversarial conditions.`;
+  // Fallback 2: Question-referenced, persona-voiced, never generic boilerplate
+  const fallbackAnalysis = isMarketQuestion
+    ? `${agent.firstQuestion} Regarding "${userMotion}": from the ${agent.discipline} lens, the decisive market factor is whether current ${agent.primaryMetric} readings support or undermine the premise of the question. ${agent.fatalFlaw} is the primary risk to watch here.`
+    : `${agent.firstQuestion} On the question — "${userMotion}" — the ${agent.discipline} framework demands verifying ${agent.primaryMetric} before forming a conviction. The key risk: ${agent.fatalFlaw}.`;
 
   return {
     persona: agent.name,
     analysis: fallbackAnalysis,
-    key_claims: [`Primary metric: ${agent.primaryMetric}`, `Known blind spot: ${agent.fatalFlaw}`],
+    key_claims: [`${agent.discipline} metric: ${agent.primaryMetric}`, `Risk: ${agent.fatalFlaw}`],
     risk: agent.fatalFlaw || `${agent.discipline} threshold not met`,
     stance: defaultStance
   };
@@ -242,33 +259,33 @@ export async function generateRound2CrossExam(
 ): Promise<Round2Duel> {
   const systemPrompt = `You are ${challenger.name}, Seat 0${challenger.seat} (${challenger.discipline}) at the Bourse Crypto Chamber.
 You are cross-examining Seat 0${defender.seat} (${defender.name}, discipline: ${defender.discipline}).
-The debate is about blockchain and crypto architecture — NOT traditional finance.
 
-Your challenge must come from your specific crypto perspective (${challenger.discipline}) and directly attack a weakness in ${defender.name}'s crypto-native reasoning.
-${defender.name}'s response must defend from their own crypto discipline (${defender.discipline}).
+The question under debate is: "${userMotion}"
 
-CRITICAL: Do NOT use stock/equity frameworks. No mentions of: cash flows, earnings, balance sheets, intrinsic value, or shareholder returns.
+Your challenge MUST directly attack a weakness in ${defender.name}'s answer to THAT SPECIFIC QUESTION, not a generic architecture debate.
+${defender.name}'s response must defend their answer using their own discipline (${defender.discipline}).
+
+CRITICAL: Stay on-topic. Do NOT use stock/equity frameworks. Do NOT mention: cash flows, earnings, balance sheets, intrinsic value, or shareholder returns.
 
 You MUST respond strictly with a valid JSON object matching this schema:
 {
   "persona": "${challenger.name}",
-  "challenge": "Direct, sharp crypto-native challenge from ${challenger.name} to ${defender.name} in 1-2 sentences under 55 words.",
-  "response": "Concise crypto-native rebuttal from ${defender.name} defending their thesis in 1-2 sentences under 55 words."
+  "challenge": "Sharp question-focused challenge from ${challenger.name} to ${defender.name} in 1-2 sentences under 60 words.",
+  "response": "Concise on-topic rebuttal from ${defender.name} in 1-2 sentences under 60 words."
 }
 Do NOT output markdown fences or commentary. Output JSON only.`;
 
-  const userPrompt = `The crypto thesis under review is: "${userMotion}".
-Network snapshot: ${evidenceSummary}.
-Seat 0${defender.seat} (${defender.name}) stated in Round 1:
-"${defenderRound1.analysis}"
-(Stance: ${defenderRound1.stance}, Primary risk flagged: ${defenderRound1.risk}).
+  const userPrompt = `Question under deliberation: "${userMotion}".
+Market snapshot: ${evidenceSummary}.
+${defender.name} stated in Round 1: "${defenderRound1.analysis}"
+(Stance: ${defenderRound1.stance}, Risk flagged: ${defenderRound1.risk}).
 
-Deliver the crypto-native cross-examination now.`;
+Deliver the cross-examination on THIS question now.`;
 
   let rawContent = '';
 
   try {
-    const res = await callOpenRouter({ systemPrompt, userPrompt, stream: false, maxTokens: 220 });
+    const res = await callOpenRouter({ systemPrompt, userPrompt, stream: false, maxTokens: 240 });
     if (res && res.ok) {
       const json = await res.json();
       rawContent = json.choices?.[0]?.message?.content || '';
@@ -296,9 +313,9 @@ Deliver the crypto-native cross-examination now.`;
     };
   }
 
-  // Crypto-native deterministic fallback
-  const challenge = `To ${defender.name}: Your position on "${userMotion.slice(0, 40)}" ignores the core ${challenger.discipline} constraint — without that, the architecture cannot survive adversarial conditions at scale.`;
-  const response = `To ${challenger.name}: The ${defender.discipline} framework demonstrates this protocol meets the requirements for sustained adoption even under the constraints you describe.`;
+  // Question-referenced deterministic fallback
+  const challenge = `To ${defender.name}: On "${userMotion}" — your ${defender.discipline} reading overlooks the ${challenger.discipline} dimension entirely. From where I stand, that's the decisive factor the floor cannot ignore.`;
+  const response = `To ${challenger.name}: The ${defender.discipline} lens addresses exactly what matters for this question. Your ${challenger.discipline} concern is real, but it doesn't change the direction of my analysis here.`;
 
   return {
     persona: challenger.name,
@@ -320,27 +337,27 @@ export async function generateRound3Vote(
   round2Context?: string
 ): Promise<SeatVote> {
   const systemPrompt = `You are ${agent.name}, Seat 0${agent.seat} (${agent.discipline}) at the Bourse Crypto Chamber.
-Cast your final binding floor vote based on your crypto-native analysis from Round 1.
-Your vote MUST be grounded in your specific discipline: ${agent.discipline}.
+Cast your final binding ballot on the EXACT question submitted to the floor.
+Your vote MUST directly reflect your analysis of the question from your ${agent.discipline} discipline.
 Do NOT use stock/equity frameworks. Do NOT mention: cash flows, balance sheets, intrinsic value, shareholder returns.
 
 You MUST respond strictly with a valid JSON object matching this schema:
 {
   "persona": "${agent.name}",
   "vote": "ADD" | "REDUCE" | "PASS",
-  "reason": "One concise crypto-native sentence rationale under 30 words, tied to your ${agent.discipline} perspective."
+  "reason": "One concise sentence under 35 words that answers WHY you vote this way on THIS specific question, from your ${agent.discipline} perspective."
 }
 Only 'ADD', 'REDUCE', or 'PASS' are valid vote values. Output JSON only.`;
 
-  const userPrompt = `Crypto thesis: "${userMotion}".
-Your Round 1 crypto analysis was: "${round1Text}".
+  const userPrompt = `Question on the floor: "${userMotion}".
+Your Round 1 analysis was: "${round1Text}".
 ${round2Context ? `Cross-examination context: "${round2Context}".` : ''}
-Cast your final ballot now as ${agent.name}.`;
+Cast your final ballot now as ${agent.name}. Your reason must speak to the question above.`;
 
   let rawContent = '';
 
   try {
-    const res = await callOpenRouter({ systemPrompt, userPrompt, stream: false, maxTokens: 120 });
+    const res = await callOpenRouter({ systemPrompt, userPrompt, stream: false, maxTokens: 130 });
     if (res && res.ok) {
       const json = await res.json();
       rawContent = json.choices?.[0]?.message?.content || '';
@@ -374,9 +391,10 @@ Cast your final ballot now as ${agent.name}.`;
     agent.seat === 2 || agent.seat === 5 || agent.seat === 6 || agent.seat === 9 ? 'REDUCE' : 'PASS';
 
   const finalVote: VoteOutcome = cleanVote || defaultVote;
+  // Fallback reason references the actual question directly without truncation
   const reason = (parsed && typeof parsed.reason === 'string' && parsed.reason.trim().length > 0)
     ? cleanModelText(parsed.reason).trim()
-    : `Based on ${agent.discipline}: the architecture ${finalVote === 'ADD' ? 'satisfies' : finalVote === 'REDUCE' ? 'fails to satisfy' : 'partially satisfies'} the key criteria.`;
+    : `${agent.discipline} analysis of "${userMotion}" supports ${finalVote === 'ADD' ? 'an affirmative stance' : finalVote === 'REDUCE' ? 'a cautious reduction' : 'holding and monitoring'} on this question.`;
 
   return {
     seat: agent.seat,
@@ -465,6 +483,41 @@ export function aggregateVotes(
     positionSizeBand = '0.0%';
   }
 
+  // Dynamic verdict summary — derived from the actual question, not a boilerplate
+  const qL = question.toLowerCase();
+  const isMarket = /\b(liquidity|leverage|etf|liquidat|exchange|flow|institutional|macro|regulation|price|crash|drop|pump|bear|bull|rally|drawdown|correction)\b/.test(qL);
+  const isTech = /\b(architecture|tps|throughput|validator|consensus|decentrali|proof.of|layer|rollup|scaling|node|mev|fork)\b/.test(qL);
+
+  const keyAgreement = isMarket
+    ? `The floor agrees the question of "${question}" is driven by real market dynamics. Conviction requires monitoring actual on-chain flows, exchange liquidity, and macro conditions rather than technical architecture alone.`
+    : isTech
+    ? `${assetName} shows technical promise, but the floor agrees core protocol guarantees — decentralization, liveness, and censorship resistance — must be verified before high conviction.`
+    : `The floor's ${outcome} verdict on "${question}" reflects the balance of crypto-native evidence and each seat's discipline-specific reading of the question.`;
+
+  const keyDisagreement = isMarket
+    ? `Whether current ${assetName} market conditions — leverage, institutional positioning, and exchange health — favor entry, reduction, or patience at this stage.`
+    : isTech
+    ? `Whether ${assetName}'s architectural tradeoffs constitute genuine decentralization or disguised institutional centralization.`
+    : `How each discipline interprets the risk/opportunity balance embedded in the question: "${question}".`;
+
+  const unresolvedQuestion = isMarket
+    ? `Will ${assetName} liquidity conditions and institutional flows remain supportive, or does macro pressure and leverage overhang reverse current momentum?`
+    : isTech
+    ? `Can ${assetName} maintain liveness, censorship resistance, and permissionless access at full load without concentrating validator power in institutional data centers?`
+    : `What new information — on-chain, macro, or regulatory — would most decisively shift the floor's verdict on: "${question}"?`;
+
+  const reviewTriggers = isMarket
+    ? [
+        `${assetName} spot volume or open interest drops more than 40% from current levels on a 7-day rolling basis.`,
+        `A major regulated exchange announces delistings, withdrawal halts, or regulatory action targeting ${ticker}.`,
+        `Macro regime shifts — Federal Reserve pivot, major sovereign default, or risk-off credit event — alter crypto correlation structure.`
+      ]
+    : [
+        `Network suffers an unscheduled halt, validator outage, or consensus failure exceeding 4 hours.`,
+        `Verified governance exploit, multisig compromise, or protocol-level backdoor discovery.`,
+        `Sustained 24h on-chain transaction volume contracts by more than 40% over a 14-day rolling window.`
+      ];
+
   return {
     id: `VR-${sessionId}`,
     sessionId,
@@ -482,14 +535,10 @@ export function aggregateVotes(
     majorityRatio,
     dissentBreakdown,
     positionSizeBand,
-    keyAgreement: `${assetName} demonstrates real on-chain activity, but the bench agrees protocol-level decentralization and censorship-resistance must be verified before high conviction.`,
-    keyDisagreement: `Whether the network's throughput and validator architecture constitutes genuine decentralization or institutional centralization under a crypto veneer.`,
-    unresolvedQuestion: `Can this protocol maintain liveness, censorship resistance, and permissionless access at full load without concentrating validator power in data centers?`,
-    reviewTriggers: [
-      `Network suffers an unscheduled halt, validator outage, or consensus failure exceeding 4 hours.`,
-      `Verified governance exploit, multisig compromise, or protocol-level backdoor discovery.`,
-      `Sustained 24h on-chain transaction volume contracts by more than 40% over a 14-day rolling window.`
-    ],
+    keyAgreement,
+    keyDisagreement,
+    unresolvedQuestion,
+    reviewTriggers,
     votes,
     timestamp: new Date().toISOString()
   };

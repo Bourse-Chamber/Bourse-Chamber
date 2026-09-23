@@ -28,8 +28,21 @@ const BourseCryptoAgents = (() => {
       topic = 'MEMECOIN';
     } else if (/\b(privasi|privacy|hack|exploit|tornado|anonym|anonim|keamanan|security)\b/i.test(q)) {
       topic = 'PRIVACY';
+    } else if (/\b(leverage|liquidat|long squeeze|short squeeze|funding rate|perpetual|perp|futures|open interest|liquidation)\b/i.test(q)) {
+      topic = 'LEVERAGE';
+    } else if (/\b(etf|spot etf|blackrock|fidelity|institutional|institution|fund|grayscale|inflow|outflow|flow)\b/i.test(q)) {
+      topic = 'ETF_FLOWS';
+    } else if (/\b(exchange|cex|binance|coinbase|kraken|hack|insolvency|custody|withdraw|reserves|proof.of.reserve)\b/i.test(q)) {
+      topic = 'EXCHANGE_RISK';
+    } else if (/\b(macro|fed|interest rate|inflation|cpi|dxy|dollar|treasury|yield|recession|gdp|credit)\b/i.test(q)) {
+      topic = 'MACRO';
+    } else if (/\b(liquidity|spread|depth|market maker|bid.ask|slippage|volume|orderbook|dex|amm|pool)\b/i.test(q)) {
+      topic = 'LIQUIDITY';
+    } else if (/\b(halving|halvening|block reward|mining|miner|hash rate|difficulty)\b/i.test(q)) {
+      topic = 'HALVING';
     }
 
+    // Never truncate the user's full question
     const cleanQuery = String(query || asset?.ticker || "Crypto Asset").trim();
     return { topic, isIndo, cleanQuery };
   }
@@ -90,15 +103,29 @@ const BourseCryptoAgents = (() => {
             : `On "${cleanQuery}": The protocol was designed from day one to operate without regulatory permission. Proof-of-work consensus is sovereign code; it does not negotiate with state gatekeepers.`;
         } else if (topic === 'MEMECOIN') {
           position = "Zero Monetary Premium for Speculative Noise";
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Spekulasi kasino tanpa kelangkaan sejati atau tujuan moneter hanyalah pengalihan keserakahan manusia. Itu menjauhkan modal masyarakat dari revolusi pembebasan finansial dari pencetakan uang bank sentral.`
-            : `On "${cleanQuery}": Speculative gambling without sound monetary principles is merely an unbacked casino. It distracts capital from the essential mission: monetary emancipation from central banking.`;
+          argument = `On "${cleanQuery}": Speculative gambling without sound monetary principles is merely an unbacked casino. It distracts capital from the essential mission: monetary emancipation from central banking.`;
+        } else if (topic === 'LEVERAGE') {
+          position = "Shadow Banking Layer Vulnerability";
+          argument = `On "${cleanQuery}": Centralized leverage recreates the exact fractional reserve banking system Bitcoin was created to replace. When synthetic leverage collapses, exchanges freeze withdrawals and liquidations cascade. The underlying proof-of-work ledger remains completely unaffected, producing blocks every 10 minutes regardless of margin calls.`;
+        } else if (topic === 'ETF_FLOWS') {
+          position = "Custodial Paper Claims vs Real Ownership";
+          argument = `On "${cleanQuery}": An ETF is an institutional paper claim custodying coins through centralized intermediaries. While it brings fiat capital, remember: not your keys, not your coins. If you rely on an ETF custodian, you own a financial claim check subject to state seizure, not sovereign peer-to-peer electronic cash.`;
+        } else if (topic === 'EXCHANGE_RISK') {
+          position = "Trusted Third Party Failure Mode";
+          argument = `On "${cleanQuery}": Centralized exchanges are trusted third parties—and trusted third parties are security holes. Every exchange insolvency, from Mt. Gox onward, proves that leaving coins on an exchange reduces sovereign money to an unsecured debt obligation. Sovereign self-custody is the foundational defense.`;
+        } else if (topic === 'MACRO') {
+          position = "Central Bank Debasement Antidote";
+          argument = `On "${cleanQuery}": Central banks are structurally trapped into inflating fiat currencies to finance sovereign debt. This exact failure was why the London Times headline about bank bailouts was inscribed into block zero. Bitcoin's immutable 21 million supply is the mathematical counter-measure to macro debasement.`;
+        } else if (topic === 'LIQUIDITY') {
+          position = "Organic Transactional Velocity";
+          argument = `On "${cleanQuery}": Real liquidity comes from voluntary peer-to-peer commerce and node verifiability, not synthetic market maker depth on centralized exchanges. Artificial liquidity evaporates in stress events; cryptographic finality does not.`;
+        } else if (topic === 'HALVING') {
+          position = "Programmatic Supply Issuance Invariance";
+          argument = `On "${cleanQuery}": The halving is hardcoded algorithmic monetary policy operating without human discretion. As the block subsidy cuts in half every 210,000 blocks, issuance scarcity intensifies strictly according to consensus rules established in 2008.`;
         } else {
           argument = isBtc
             ? `On ${cleanQuery}: This ledger remains the sole monetary innovation that completely eliminates trusted third parties. With a fixed supply cap and decentralized proof-of-work, no foundation can inflate its baseline issuance.`
-            : (isIndo
-              ? `Mengenai "${cleanQuery}": Kepercayaan adalah lubang keamanan fundamental. Pada valuasi saat ini, siapa yang mengontrol sequencer keys dan validator set? Protokol apa pun yang bergantung pada koordinasi yayasan manusia hanyalah sistem perbankan tradisional terselubung.`
-              : `On "${cleanQuery}": Trust is an architectural defect. Who controls sequencer keys and validator sets? Any protocol reliant on foundation coordination is merely legacy banking in disguise.`);
+            : `On "${cleanQuery}": Trust is an architectural defect. Who controls sequencer keys and validator sets? Any protocol reliant on foundation coordination is merely legacy banking in disguise.`;
         }
 
         return {
@@ -189,13 +216,24 @@ const BourseCryptoAgents = (() => {
             : `On "${cleanQuery}": Regulators must distinguish between centralized custodial intermediaries and autonomous open-source code. Regulating pure smart contract math is fundamentally unworkable and stifles public coordination.`;
         } else if (topic === 'MEMECOIN') {
           position = "Incentive Alignment & Public Goods";
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Memecoin adalah eksperimen kultural yang menarik, tetapi kita memerlukan mekanisme cryptoeconomic yang menyalurkan energi dan modal spekulatif tersebut untuk mendanai barang publik (public goods) dan riset ilmiah terbuka.`
-            : `On "${cleanQuery}": Memecoins are interesting cultural coordination experiments, but we urgently need cryptoeconomic mechanisms that redirect speculative energy toward open science and durable public goods funding.`;
+          argument = `On "${cleanQuery}": Memecoins are interesting cultural coordination experiments, but we urgently need cryptoeconomic mechanisms that redirect speculative energy toward open science and durable public goods funding.`;
+        } else if (topic === 'LEVERAGE') {
+          position = "Autonomous Liquidation vs Opacity";
+          argument = `On "${cleanQuery}": On-chain lending markets like Aave and Maker execute liquidations deterministically via smart contracts with full transparency. Centralized margin lenders collapsed precisely because their collateral was rehypothecated off-chain in private spreadsheets. Code-enforced margin rules prevent systemic hidden contagion.`;
+        } else if (topic === 'ETF_FLOWS') {
+          position = "Institutional Inflows & Staking Neutrality";
+          argument = `On "${cleanQuery}": Spot ETFs bring broad financial access, but the cryptoeconomic concern is validator decentralization. If ETF custodians concentrate too much staked asset share, it creates soft governance pressures on client diversity and block building. We need liquid staking that is credibly neutral and trust-minimized.`;
+        } else if (topic === 'EXCHANGE_RISK') {
+          position = "Self-Sovereign Settlement over Custodial Trust";
+          argument = `On "${cleanQuery}": The recurring failure of centralized exchanges underscores why we built Ethereum. Automated market makers, account abstraction, and decentralized exchanges eliminate counterparty insolvency risk by enforcing settlement purely in verifiable EVM code.`;
+        } else if (topic === 'MACRO') {
+          position = "Global Coordination Utility";
+          argument = `On "${cleanQuery}": Macro monetary cycles will always fluctuate, but durable blockchain adoption comes from solving real social coordination problems — permissionless payments, identity, verifiable credentials, and decentralized governance that operate independently of any sovereign central bank.`;
+        } else if (topic === 'LIQUIDITY') {
+          position = "On-Chain Liquidity Mechanisms";
+          argument = `On "${cleanQuery}": Concentrated liquidity AMMs and cross-rollup intent architectures transform liquidity into an open public coordination layer. Rather than depending on proprietary market makers who pull bids during market panic, automated liquidity algorithms guarantee deterministic clearing.`;
         } else {
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Mengevaluasi throughput transisi state dan desain mekanisme. Kita harus memverifikasi apakah struktur biaya jaringan mendanai public goods yang berkelanjutan atau sekadar menguntungkan bot MEV ekstraktif.`
-            : `On "${cleanQuery}": Evaluating state transition throughput and mechanism design. We must verify whether network fee structures fund durable public goods or merely reward extractive MEV bots.`;
+          argument = `On "${cleanQuery}": Evaluating state transition throughput and mechanism design. We must verify whether network fee structures fund durable public goods or merely reward extractive MEV bots.`;
         }
 
         return {
@@ -268,13 +306,18 @@ const BourseCryptoAgents = (() => {
             ? `Mengenai "${cleanQuery}": Bertahun-tahun lalu saya pernah mengkalkulasi potensi nilai Bitcoin jika diadopsi dunia. Tembus $100k adalah keniscayaan matematis, tetapi yang terpenting: apakah pengguna masih mempertahankan privasi finansial saat modal institusi mendominasi?`
             : `On "${cleanQuery}": Years ago I estimated Bitcoin's ultimate value against global wealth. Multi-trillion market caps are a mathematical outcome of adoption, but preserving individual privacy during institutionalization is the true battle.`;
         } else if (topic === 'REGULATION' || topic === 'PRIVACY') {
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Komputer seharusnya memberi individu kemampuan berinteraksi secara sepenuhnya privat dan berdaulat. Buku besar yang transparan tanpa proteksi privasi berisiko menjadi panoptikon pengawasan massal pemerintah.`
-            : `On "${cleanQuery}": Computer technology must empower individuals to transact completely anonymously. A fully transparent public ledger without cryptographic privacy risks becoming an instrument of mass surveillance.`;
+          argument = `On "${cleanQuery}": Computer technology must empower individuals to transact completely anonymously. A fully transparent public ledger without cryptographic privacy risks becoming an instrument of mass surveillance.`;
+        } else if (topic === 'ETF_FLOWS') {
+          position = "Institutional Surrender of Privacy & Sovereignty";
+          argument = `On "${cleanQuery}": When institutions absorb Bitcoin through ETFs, they strip away its core cypherpunk properties: anonymity, self-custody, and peer-to-peer verification. Wall Street gets the price exposure, but governments gain an addressable surveillance vector over every single participant.`;
+        } else if (topic === 'LEVERAGE') {
+          position = "Paper Derivatives vs Cryptographic Scarcity";
+          argument = `On "${cleanQuery}": Synthetic leverage on offshore exchanges distorts the true cryptographic scarcity we coded into proof-of-work. When margin runs dry, the mathematics of the blockchain remain unblemished.`;
+        } else if (topic === 'EXCHANGE_RISK') {
+          position = "Centralized Custody is Antithetical to Crypto Cash";
+          argument = `On "${cleanQuery}": The idea of holding coins on a centralized custodian contradicts everything we worked on. Reusable proofs of work and Bitcoin were built specifically so individuals could verify their own transactions without asking an exchange's permission.`;
         } else {
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Kami tidak merancang uang kriptografis untuk membangun buku besar pengawasan bagi otoritas sentral. Apakah seorang individu dapat bertransaksi tanpa izin, tanpa membocorkan identitas, dan bebas dari daftar hitam?`
-            : `On "${cleanQuery}": We did not design cryptographic cash to construct a surveillance ledger for central authorities. Can an individual transact without permission, identity disclosure, or risk of retroactive account blacklisting?`;
+          argument = `On "${cleanQuery}": We did not design cryptographic cash to construct a surveillance ledger for central authorities. Can an individual transact without permission, identity disclosure, or risk of retroactive account blacklisting?`;
         }
 
         return {
@@ -340,13 +383,17 @@ const BourseCryptoAgents = (() => {
             ? `Mengenai "${cleanQuery}": Fluktuasi harga pasar adalah kebisingan spekulatif jangka pendek. Nilai abadi smart contract dan Bit Gold terletak pada 'social scalability'—kemampuan mengamankan kontrak tanpa perlu saling percaya dan tanpa perantara manusia.`
             : `On "${cleanQuery}": Price drawdowns are secondary market noise. The lasting value of smart contracts and Bit Gold rests on social scalability—reducing subjective trust vulnerabilities regardless of speculative sentiment.`;
         } else if (topic === 'L2_SOLANA') {
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Skalabilitas sosial jauh lebih mendasar daripada sekadar angka TPS mentah. Jika sebuah blockchain sering macet atau memerlukan intervensi manusia untuk restart, smart contract kehilangan integritas eksekusi otonomnya.`
-            : `On "${cleanQuery}": Social scalability matters infinitely more than raw TPS. If a network halts or requires manual developer coordination to recover state, its smart contracts surrender immutability and trust minimization.`;
+          argument = `On "${cleanQuery}": Social scalability matters infinitely more than raw TPS. If a network halts or requires manual developer coordination to recover state, its smart contracts surrender immutability and trust minimization.`;
+        } else if (topic === 'LEVERAGE') {
+          argument = `On "${cleanQuery}": Financial leverage in traditional contracts relies on subjective legal enforcement and court bankruptcy proceedings. When crypto leverage relies on centralized exchanges rather than unforgeable algorithmic liquidations, it re-introduces counterparty vulnerability.`;
+        } else if (topic === 'ETF_FLOWS') {
+          argument = `On "${cleanQuery}": An ETF wraps bearer assets in a subjective legal trust structure, re-introducing the very trusted third parties that smart contracts and Bit Gold were designed to minimize. The institutional capital is real, but the trust minimization is degraded.`;
+        } else if (topic === 'EXCHANGE_RISK') {
+          argument = `On "${cleanQuery}": Centralized exchanges are the archetypal trusted third parties—and trusted third parties are security holes. Entrusting private keys to an exchange operator substitutes mathematical certainty for subjective promises.`;
+        } else if (topic === 'REGULATION') {
+          argument = `On "${cleanQuery}": The historical purpose of smart contracts was to achieve social scalability without depending on subjective local legal jurisdictions. Protocols that compromise their algorithmic immutability to satisfy discretionary regulatory mandates surrender their core technological advantage.`;
         } else {
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Memeriksa apakah penyelesaian transaksi memiliki biaya unforgeable yang tak terbantahkan. Jika kontrak membutuhkan intervensi darurat multisig yayasan, itu bukan smart contract—itu kontrak tradisional dengan pengurus yang tak bertanggung jawab.`
-            : `On "${cleanQuery}": Examining whether settlement is unforgeably costly. If a contract requires emergency intervention by a foundation multisig, it is not a smart contract—it is a traditional contract enforced by unaccountable administrators.`;
+          argument = `On "${cleanQuery}": Examining whether settlement is unforgeably costly. If a contract requires emergency intervention by a foundation multisig, it is not a smart contract—it is a traditional contract enforced by unaccountable administrators.`;
         }
 
         return {
@@ -418,13 +465,24 @@ const BourseCryptoAgents = (() => {
             : `On "${cleanQuery}": Markets can crash, but our hardware-speed state machine continues executing thousands of TPS with sub-second finality. When volatility explodes, instant on-chain settlement proves its superiority over fragmented networks.`;
         } else if (topic === 'L2_SOLANA') {
           position = "Unified Atomic State Superiority";
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Memecah ekosistem ke dalam puluhan jembatan L2 yang terfragmentasi adalah kegagalan UX. Hukum Moore dan bandwidth serat optik terus berkembang pesat; mengeksekusi seluruh transaksi pada satu state machine monolitik global adalah satu-satunya masa depan efisien.`
-            : `On "${cleanQuery}": Fragmenting execution across dozens of asynchronous rollups destroys liquidity and UX. Hardware and fiber bandwidth get cheaper every year—monolithic atomic composability is the only rational scaling path.`;
+          argument = `On "${cleanQuery}": Fragmenting execution across dozens of asynchronous rollups destroys liquidity and UX. Hardware and fiber bandwidth get cheaper every year—monolithic atomic composability is the only rational scaling path.`;
+        } else if (topic === 'LIQUIDITY') {
+          position = "High-Frequency On-Chain Orderbooks";
+          argument = `On "${cleanQuery}": Real liquidity requires orderbooks that run at NASDAQ speeds directly on-chain. When a block takes 12 seconds, market makers must widen spreads to manage risk. With 400ms slots and local fee markets, Solana supports true central limit order books (CLOBs) with institutional-grade bid-ask depth and zero bridge slippage.`;
+        } else if (topic === 'LEVERAGE') {
+          position = "Sub-Second Liquidation Engine Integrity";
+          argument = `On "${cleanQuery}": During extreme market volatility, networks with mempool bottlenecks allow bad debt to compound because liquidations get stuck behind fee spikes. On high-throughput architectures, liquidation transactions execute concurrently in the same slot, keeping lending protocols solvent even during severe crashes.`;
+        } else if (topic === 'ETF_FLOWS') {
+          position = "Institutional Rail Efficiency";
+          argument = `On "${cleanQuery}": Institutional capital naturally flows toward rails with the highest throughput, lowest fees, and largest daily active retail volume. As ETFs expand beyond BTC and ETH, the market will demand high-speed settlement infrastructure that can handle millions of creation and redemption units seamlessly.`;
+        } else if (topic === 'EXCHANGE_RISK') {
+          position = "Atomic On-Chain Trading vs CEX Counterparty Risk";
+          argument = `On "${cleanQuery}": CEX risk exists because blockchains historically lacked the throughput to host orderbooks on-chain. When you can execute 50,000 TPS on-chain with self-custody, centralized exchange risk becomes obsolete.`;
+        } else if (topic === 'MACRO') {
+          position = "Real-World Adoption Velocity Trumps Macro Cycles";
+          argument = `On "${cleanQuery}": Macro monetary tides move asset prices in the short term, but global financial adoption is won by developer velocity and consumer throughput. When transactions cost fractions of a cent, real-world commerce outgrows speculative macro noise.`;
         } else {
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Batasan utama hanyalah hukum fisika. Jika transaksi membutuhkan biaya puluhan dolar dan berbelit-belit, aplikasi massal tidak akan pernah terwujud. Kita harus memaksimalkan bandwidth hardware pada state machine global yang terintegrasi.`
-            : `On "${cleanQuery}": Physics is the hard ceiling. If transactions cost dollars and take minutes to confirm, mainstream applications cannot function. We must saturate global fiber-optic bandwidth on an atomic, composable state machine.`;
+          argument = `On "${cleanQuery}": Physics is the hard ceiling. If transactions cost dollars and take minutes to confirm, mainstream applications cannot function. We must saturate global fiber-optic bandwidth on an atomic, composable state machine.`;
         }
 
         return {
@@ -491,23 +549,33 @@ const BourseCryptoAgents = (() => {
           argument = `On "${cleanQuery}": From a pure liquidity and reflexivity perspective, Solana has successfully captured a younger, higher-beta capital flow while Ethereum accumulates institutional positioning and ETF wrapper demand. Solana's perpetual funding rates and options market are deepening — that matters more to crypto capital markets than architecture debates. Both chains are net beneficiaries of global fiat debasement, but SOL carries higher reflexive upside in a bull cycle precisely because its narrative (speed, low fees) is simple and retail-accessible. The real question is which token captures the next wave of speculative capital rotation.`;
         } else if (topic === 'CRASH') {
           position = "Macro Liquidity Contraction & Margin Flush";
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Hentikan kepanikan Anda di media sosial. Penurunan hari ini murni akibat kontraksi likuiditas fiat global, kebijakan suku bunga The Fed, dan likuidasi berantai posisi leverage di pasar perpetual derivatif. Ini siklus kredit standar. Siapkan amunisi fiat Anda dan bersiaplah membeli saat darah mengalir di jalanan!`
-            : `On "${cleanQuery}": Stop weeping on Twitter. Today's dump is pure macro liquidity contraction driven by central bank policy and cascading perpetual long liquidations. Have dry powder ready to scoop generational assets when blood is in the streets!`;
+          argument = `On "${cleanQuery}": Stop weeping on Twitter. Today's dump is pure macro liquidity contraction driven by central bank policy and cascading perpetual long liquidations. Have dry powder ready to scoop generational assets when blood is in the streets!`;
         } else if (topic === 'ATH_100K') {
           position = "Monetary Debasement Inevitability";
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Bank sentral dunia terjebak dalam jebakan utang struktural dan pasti akan kembali menyalakan mesin cetak uang. Begitu likuiditas fiat kembali membanjiri sistem, aset dengan pasokan keras seperti Bitcoin akan terbang menembus $100k tanpa ampun. Likuiditas adalah raja.`
-            : `On "${cleanQuery}": Central banks have zero choice but to inflate away sovereign debt. The second net dollar liquidity re-accelerates, pristine monetary sponges like Bitcoin will obliterate $100k effortlessly.`;
+          argument = `On "${cleanQuery}": Central banks have zero choice but to inflate away sovereign debt. The second net dollar liquidity re-accelerates, pristine monetary sponges like Bitcoin will obliterate $100k effortlessly.`;
+        } else if (topic === 'LEVERAGE') {
+          position = "Derivative Cascade & Funding Rate Analysis";
+          argument = `On "${cleanQuery}": This is where macro liquidity meets crypto microstructure. Watch the perpetual funding rates — when longs are paying 0.1%+ per 8 hours, you have a dangerously overleveraged market primed for a cascade liquidation event. Exchanges will force-sell positions indiscriminately on the way down. The question is not if, but which price level triggers the next flush, and whether you're carrying the right-sized position to survive it and buy the dip.`;
+        } else if (topic === 'ETF_FLOWS') {
+          position = "Institutional Inflow & Reflexive Demand";
+          argument = `On "${cleanQuery}": Spot ETF inflows are the most powerful structural change in crypto capital markets since Bitcoin futures launched. Every dollar BlackRock or Fidelity accumulates removes liquid BTC from exchange reserves, tightening the reflexive supply shock. The liquidity premium this creates for regulated access products is real and sustained — not speculative.`;
+        } else if (topic === 'EXCHANGE_RISK') {
+          position = "Exchange Counterparty & Custodial Risk";
+          argument = `On "${cleanQuery}": Every unaudited centralized exchange is a fractional reserve waiting to collapse. Check on-chain proof-of-reserves. If they're not publishing verified Merkle proofs of reserves, they're running a fractional banking operation and you're an unsecured creditor. Self-custody is not optional — it's survival.`;
+        } else if (topic === 'MACRO') {
+          position = "Dollar Liquidity & Global Risk Appetite";
+          argument = `On "${cleanQuery}": Crypto is a global dollar liquidity bet. When the Fed drains reserves via QT and high rates, risk assets including crypto trade down as institutional desks reduce risk. When net liquidity expands — whether via repo facility drain, balance sheet expansion, or debt monetization — crypto leads the reflation trade. Right now, the DXY and 2-year yield are the signals that matter most.`;
+        } else if (topic === 'LIQUIDITY') {
+          position = "Market Microstructure & Depth Analysis";
+          argument = `On "${cleanQuery}": Crypto liquidity is structurally thin outside BTC and ETH. A 7-figure trade can move an altcoin 5% because maker liquidity disappears during volatility. Slippage risk and bid-ask spreads widen catastrophically in bear markets. Position sizing must account for the fact that your exit price in stress conditions will be far worse than current orderbook depth suggests.`;
+        } else if (topic === 'HALVING') {
+          position = "Supply Shock & Miner Selling Pressure";
+          argument = `On "${cleanQuery}": The Bitcoin halving cuts block subsidy and compresses miner revenue. Miners who are unhedged and operating on thin margins will capitulate and sell BTC reserves to service debt. Post-halving supply shock historically compounds over 6–18 months as reduced new supply meets any sustained demand. The reflexive narrative around halvings is as important as the mechanical supply effect.`;
         } else if (topic === 'MEMECOIN') {
           position = "Pure Financialized Attention Momentum";
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Memecoin adalah kasino atensi keuangan paling murni yang pernah diciptakan. Orang-orang bosan dengan token VC bervaluasi tinggi tanpa likuiditas. Manfaatkan momentum volatilitasnya dengan manajemen risiko ketat, tapi jangan pernah jatuh cinta pada koinnya!`
-            : `On "${cleanQuery}": Memecoins are the purest financialized attention casino ever created. Retail is sick of low-float VC vaporware. Ride the volatility wave with strict risk management, but don't become someone else's exit liquidity!`;
+          argument = `On "${cleanQuery}": Memecoins are the purest financialized attention casino ever created. Retail is sick of low-float VC vaporware. Ride the volatility wave with strict risk management, but don't become someone else's exit liquidity!`;
         } else {
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Bank sentral tidak punya pilihan selain menginflasikan utang mereka. Aset ini berfungsi sebagai spons likuiditas berdaya tinggi yang menyerap devaluasi fiat global. Perhatikan tingkat pendanaan (funding rate) perpetual.`
-            : `On "${cleanQuery}": Central banks have no choice but to inflate their sovereign debt away. At ${evidence?.priceFormatted || 'current levels'}, this asset acts as a high-powered liquidity sponge absorbing global fiat debasement. Watch the funding rates.`;
+          argument = `On "${cleanQuery}": Central banks have no choice but to inflate their sovereign debt away. At ${evidence?.priceFormatted || 'current levels'}, this asset acts as a high-powered liquidity sponge absorbing global fiat debasement. Watch the funding rates.`;
         }
 
         return {
@@ -589,28 +657,38 @@ const BourseCryptoAgents = (() => {
 
         if (topic === 'SOL_VS_ETH') {
           position = "Both Are Inferior to Bitcoin's Monetary Network";
-          argument = `On "${cleanQuery}": Comparing Solana to Ethereum is like debating which melting ice cube is colder. Both have active foundations that can change consensus rules, both have continuous token emissions diluting holders, and neither has Bitcoin's unalterable 21 million hard cap. Solana's network has suffered repeated outages proving it is not a sound monetary network — you cannot store decades of purchasing power on infrastructure that requires foundation intervention to restart. Ethereum at least has a longer security track record, but it is still not pristine monetary capital.`;
+          argument = `On "${cleanQuery}": Comparing Solana to Ethereum is like debating which melting ice cube is colder. Both have active foundations that can change consensus rules, both have continuous token emissions diluting holders, and neither has Bitcoin's unalterable 21 million hard cap. Solana's network has suffered repeated outages proving it is not a sound monetary network — you cannot store decades of purchasing power on infrastructure that requires foundation intervention to restart.`;
         } else if (topic === 'CRASH') {
           position = "Thermodynamic Immortality Over Paper Volatility";
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Volatilitas harga harian hanyalah ilusi mata uang fiat yang meleleh. Bitcoin adalah energi digital murni yang kekal secara termodinamika. Entitas rasional tidak menjual Bitcoin saat pasar turun; kami membeli lebih banyak properti digital terbaik di bumi.`
-            : `On "${cleanQuery}": Daily price volatility is an illusion of melting paper currencies. Bitcoin is thermodynamically incorruptible digital capital. Rational balance sheets do not panic; we accumulate pristine digital energy on every dip.`;
+          argument = `On "${cleanQuery}": Daily price volatility is an illusion of melting paper currencies. Bitcoin is thermodynamically incorruptible digital capital. Rational balance sheets do not panic; we accumulate pristine digital energy on every dip.`;
         } else if (topic === 'ATH_100K') {
           position = "Inevitability of Digital Property Migration";
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Menembus $100k adalah kepastian matematika moneter. Ketika modal institusi, dana pensiun, dan kas korporasi dunia bermigrasi dari obligasi yang tergerus inflasi ke dalam Bitcoin, harga per koin akan mencapai jutaan dolar. Tidak ada yang kedua terbaik.`
-            : `On "${cleanQuery}": Crossing $100k is a mathematical inevitability. When global capital flees depreciating bonds into immutable digital property, Bitcoin will march toward millions per coin. There is no second best.`;
+          argument = `On "${cleanQuery}": Crossing $100k is a mathematical inevitability. When global capital flees depreciating bonds into immutable digital property, Bitcoin will march toward millions per coin. There is no second best.`;
+        } else if (topic === 'LEVERAGE') {
+          position = "Long-term Holders vs Short-term Derivative Noise";
+          argument = `On "${cleanQuery}": Leverage and liquidations are short-term paper market noise produced by speculators who don't understand what they own. MicroStrategy holds zero leverage against its Bitcoin — the cleanest expression of digital property conviction. Every forced liquidation is a wealth transfer from weak hands to strong hands. Add on weakness, never sell.`;
+        } else if (topic === 'ETF_FLOWS') {
+          position = "Institutional Adoption of Digital Property";
+          argument = `On "${cleanQuery}": Spot Bitcoin ETF approval is the most significant institutional adoption event since gold's first ETF in 2004. Every billion of net ETF inflows permanently removes Bitcoin from the liquid supply, compressing it against the immovable 21M hard cap. This is the capital migration from analog gold to digital gold happening in real time.`;
+        } else if (topic === 'EXCHANGE_RISK') {
+          position = "Self-Custody vs Exchange Counterparty Risk";
+          argument = `On "${cleanQuery}": Any Bitcoin held on an exchange is not truly owned — it's an unsecured IOU against the exchange's solvency. Not your keys, not your coins. The correct answer to exchange risk is sovereign self-custody, not diversification across multiple custodians. Institutional treasury Bitcoin must be held through regulated prime custody with full legal title.`;
+        } else if (topic === 'MACRO') {
+          position = "Global Fiscal Dominance Drives Bitcoin Adoption";
+          argument = `On "${cleanQuery}": Every major government on earth is running structural fiscal deficits they will never close through taxation — they will monetize them through currency debasement. This is the foundational macro thesis for Bitcoin. As sovereign debt credibility erodes and real yields go negative, capital migrates into the only asset with a mathematically inviolable supply cap.`;
+        } else if (topic === 'LIQUIDITY') {
+          position = "Bitcoin's Market Depth and Institutional Bid";
+          argument = `On "${cleanQuery}": Bitcoin is now the most liquid asset in the world outside US Treasuries and major FX pairs for its market cap. With spot ETF wrapper products, institutional desks can deploy hundreds of millions without moving the market. Altcoin liquidity is structurally different — shallow, manipulable, and subject to sudden market maker withdrawal.`;
+        } else if (topic === 'HALVING') {
+          position = "Algorithmic Supply Reduction is the Core Investment Thesis";
+          argument = `On "${cleanQuery}": Every Bitcoin halving is a programmatic 50% reduction in new supply creation — an event with no analog in all of monetary history. Unlike central bank rate decisions, the halving is immutable, scheduled, and perfectly transparent. The 12-18 month post-halving window historically represents the most favorable risk-adjusted entry window for corporate treasury allocation.`;
         } else if (topic === 'L2_SOLANA') {
           position = "Counterparty Software vs Sound Money";
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Semua protokol selain Bitcoin memiliki risiko pihak ketiga penerbit (counterparty risk), risiko yayasan, dan inflasi pasokan. Mereka adalah perusahaan perangkat lunak spekulatif, bukan modal digital abadi tanpa risiko lawan transaksi.`
-            : `On "${cleanQuery}": Everything other than Bitcoin carries counterparty risk, software inflation, and governance exposure. They are speculative software companies, not pristine, immutable thermodynamic property.`;
+          argument = `On "${cleanQuery}": Everything other than Bitcoin carries counterparty risk, software inflation, and governance exposure. They are speculative software companies, not pristine, immutable thermodynamic property.`;
         } else {
           argument = isBtc
             ? `On ${cleanQuery}: Bitcoin is pristine monetary energy. Every corporate treasury on earth will eventually convert their melting cash reserves into this indestructible digital property. There is no second best.`
-            : (isIndo
-              ? `Mengenai "${cleanQuery}": Aset ini memiliki risiko perantara, inflasi developer berkelanjutan, atau risiko tata kelola. Ini adalah spekulasi perangkat lunak, bukan modal termodinamika yang kekal.`
-              : `On "${cleanQuery}": At ${evidence?.priceFormatted || 'current levels'}, this asset possesses an issuing counterparty or governance risk. It is an equity-like venture, not indestructible thermodynamic capital.`);
+            : `On "${cleanQuery}": At ${evidence?.priceFormatted || 'current levels'}, this asset possesses an issuing counterparty or governance risk. It is an equity-like venture, not indestructible thermodynamic capital.`;
         }
 
         return {
@@ -682,13 +760,27 @@ const BourseCryptoAgents = (() => {
             : `On "${cleanQuery}": Market corrections are natural market cycles. We survived the downturns of 2017, 2020, and 2022. Keep your leverage low, ignore speculative FUD, and focus on building durable user infrastructure.`;
         } else if (topic === 'MEMECOIN') {
           position = "Retail Liquidity & Community Sentiment";
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Memecoin mencerminkan minat komunitas ritel yang otentik. Sebagai platform pertukaran, kami tidak menghakimi preferensi pengguna, tetapi kami wajib menyediakan likuiditas buku pesanan yang dalam, transparansi, dan edukasi risiko yang jelas.`
-            : `On "${cleanQuery}": Memecoins reflect genuine grassroots retail demand. While we don't judge user enthusiasm, our priority is deep orderbook liquidity, consumer asset safety, and transparent risk disclosure.`;
+          argument = `On "${cleanQuery}": Memecoins reflect genuine grassroots retail demand. While we don't judge user enthusiasm, our priority is deep orderbook liquidity, consumer asset safety, and transparent risk disclosure.`;
+        } else if (topic === 'LEVERAGE') {
+          position = "Futures Open Interest & Liquidation Microstructure";
+          argument = `On "${cleanQuery}": When perpetual funding rates diverge sharply from spot prices and open interest climbs to multi-month highs, orderbooks become fragile. Liquidation engines have to market-sell large blocks during high volatility, blowing through top-of-book bids. Managing leverage is essential to avoid forced liquidation wicks.`;
+        } else if (topic === 'ETF_FLOWS') {
+          position = "Bridging Traditional & Crypto Capital Markets";
+          argument = `On "${cleanQuery}": Spot ETFs connect regulated retirement funds to crypto assets, expanding the total addressable market by trillions. The interplay between ETF market hours and 24/7 crypto spot orderbooks creates permanent basis arbitrage and deepens structural liquidity.`;
+        } else if (topic === 'EXCHANGE_RISK') {
+          position = "Proof of Reserves & User Asset Protection";
+          argument = `On "${cleanQuery}": Trust requires continuous proof. Exchanges must publish cryptographic Merkle-tree Proof of Reserves showing 1:1 backed customer assets, maintain transparent emergency reserves (like SAFU), and never rehypothecate customer funds. If an exchange cannot prove its reserves publicly, users should not trade there.`;
+        } else if (topic === 'MACRO') {
+          position = "Global Retail Adoption Resiliency";
+          argument = `On "${cleanQuery}": While macro tightening cycles cause hedge funds to trim positions, grassroots retail adoption in emerging markets with hyperinflating fiat currencies continues to accelerate. Peer-to-peer volume and stablecoin rails prove crypto is an indispensable global utility.`;
+        } else if (topic === 'LIQUIDITY') {
+          position = "Orderbook Depth & Market Maker Density";
+          argument = `On "${cleanQuery}": Liquidity is the lifeblood of any market. We look at +/- 2% orderbook depth across major pairs, active market maker presence, and slippage on large execution blocks. High nominal volume without real bid-ask depth is just wash trading.`;
+        } else if (topic === 'REGULATION') {
+          position = "Pragmatic Global Licensing Standards";
+          argument = `On "${cleanQuery}": Clear regulatory frameworks and licensing agreements with financial authorities around the world are essential for sustainable growth. Banning innovation only pushes activity underground; proactive compliance creates a safe environment for mass onboarding.`;
         } else {
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Mengevaluasi kedalaman orderbook dan kecepatan transaksi ritel. Utilitas produk yang mudah dan friksi yang rendah selalu mengalahkan kemurnian ideologis yang sulit digunakan oleh pengguna biasa.`
-            : `On "${cleanQuery}": Evaluating orderbook depth and retail velocity. Product utility and low friction always defeat ideological purity that ordinary people cannot navigate.`;
+          argument = `On "${cleanQuery}": Evaluating orderbook depth and retail velocity. Product utility and low friction always defeat ideological purity that ordinary people cannot navigate.`;
         }
 
         return {
@@ -756,13 +848,24 @@ const BourseCryptoAgents = (() => {
             : `On "${cleanQuery}": Market drawdowns wash out superficial speculative schemes. Long-term institutional allocators use market pullbacks to build positions through compliant custodial and ETF channels.`;
         } else if (topic === 'REGULATION') {
           position = "Statutory Regulatory Bridgehead";
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Kunci kebebasan ekonomi yang bertahan lama adalah kejelasan hukum dan regulasi yang masuk akal. Kripto tidak bisa mencapai adopsi institusi triliunan dolar jika tetap berada di zona abu-abu tanpa jalur kustodi yang diaudit secara resmi.`
-            : `On "${cleanQuery}": True economic freedom requires statutory legal clarity. By pursuing transparent regulatory frameworks and public market standards, we protect users and solidify crypto as foundational global infrastructure.`;
+          argument = `On "${cleanQuery}": True economic freedom requires statutory legal clarity. By pursuing transparent regulatory frameworks and public market standards, we protect users and solidify crypto as foundational global infrastructure.`;
+        } else if (topic === 'ETF_FLOWS') {
+          position = "Regulated Institutional Custody Benchmark";
+          argument = `On "${cleanQuery}": Coinbase Custody secures over 80% of US spot crypto ETF assets for BlackRock, Franklin Templeton, and others. These inflows represent patient, fiduciary capital with multi-year mandates. Institutional wrapper adoption is the tipping point where digital assets become an immutable allocation in global pension and sovereign wealth portfolios.`;
+        } else if (topic === 'LEVERAGE') {
+          position = "Regulated Clearing vs Offshore Shadow Leverage";
+          argument = `On "${cleanQuery}": Unregulated offshore derivatives exchanges with 100x leverage have triggered almost every systemic crash in crypto history. Regulated US futures and options markets with clear margin rules, segregated customer accounts, and transparent clearing houses provide the only sustainable foundation for institutional risk transfer.`;
+        } else if (topic === 'EXCHANGE_RISK') {
+          position = "Audited Public Custody vs Co-mingled Offshore Risk";
+          argument = `On "${cleanQuery}": As a public company (NASDAQ: COIN) audited by top-tier accounting firms, we maintain strict 1:1 asset backing with bankruptcy-remote custody structures. The era of opaque offshore exchanges using customer funds for proprietary trading is over. Institutional capital demands audited balance sheets and legal recourse.`;
+        } else if (topic === 'MACRO') {
+          position = "Bipartisan Legal Certainty Accelerates Capital Flow";
+          argument = `On "${cleanQuery}": Regardless of short-term interest rate decisions, the long-term trend in Washington and global financial centers is toward codifying crypto market structure. As statutory clarity arrives, trillions in traditional financial capital sidelined by regulatory ambiguity will gain regulatory approval to enter the market.`;
+        } else if (topic === 'LIQUIDITY') {
+          position = "Prime Brokerage & Institutional Execution Depth";
+          argument = `On "${cleanQuery}": Institutional liquidity requires smart order routing across both exchange orderbooks and OTC desks, minimizing market impact for multi-million dollar allocations. Transparent execution rails and compliant fiat gateways are critical for continuous market liquidity.`;
         } else {
-          argument = isIndo
-            ? `Mengenai "${cleanQuery}": Jembatan sejati menuju pertumbuhan eksponensial adalah modal institusional. Aset ini harus dapat disimpan oleh kustodian teregulasi, dana pensiun, dan ETF tanpa melanggar undang-undang sekuritas.`
-            : `On "${cleanQuery}": The real bridge to escape velocity is institutional capital. Can this asset be held by regulated custodians, sovereign wealth funds, and exchange-traded funds without statutory securities violations?`;
+          argument = `On "${cleanQuery}": The real bridge to escape velocity is institutional capital. Can this asset be held by regulated custodians, sovereign wealth funds, and exchange-traded funds without statutory securities violations?`;
         }
 
         return {
