@@ -1,4 +1,3 @@
-import './env';
 import {
   AgentPersona,
   SeatVote,
