@@ -72,6 +72,9 @@ const BourseUtils = (() => {
       // Already tight face portrait — gentle zoom
       return faceZoom('/img/ackman.png', 'Bill Ackman', 'img/ackman.png');
     }
+    if (/\bwood\b|cathie/i.test(name)) {
+      return faceZoom('/img/wood.png', 'Cathie Wood', 'img/wood.png');
+    }
     const hash = hashString(name);
     const gridSize = 8;
     const halfGrid = 4;
