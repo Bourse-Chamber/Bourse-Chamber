@@ -23,6 +23,11 @@ const COIN_MAP: Record<string, string> = {
 };
 
 export function extractTickerFromQuery(query: string): string {
+  const caMatch = (query || '').match(/0x[a-fA-F0-9]{40}/i);
+  if (caMatch) {
+    return `${caMatch[0].slice(0, 6)}...${caMatch[0].slice(-4)}`;
+  }
+
   const clean = String(query || '').trim().toUpperCase();
   const words = clean.split(/[^A-Z0-9]/).filter(w => w.length > 0);
 

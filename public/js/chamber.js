@@ -1044,6 +1044,7 @@ const BourseChamber = (() => {
                 if (data.synthesis && currentSession) currentSession.synthesis = data.synthesis;
                 if (currentSession) currentSession.votes = recordedVotes;
               } else if (currentEvent === 'done' || currentEvent === 'complete') {
+                if (sessionCompletedSuccessfully) return;
                 if (currentSession) currentSession.votes = recordedVotes;
                 const dbSaved = Boolean(data.savedToDb || data.completed);
 

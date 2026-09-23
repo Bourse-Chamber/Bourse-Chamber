@@ -1,3 +1,4 @@
+process.env.NODE_ENV = 'test';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const sessionHandler = require('../api/session');
@@ -5,8 +6,10 @@ const {
   detectQuestionTopic,
   asksForInvestmentSizing,
   aggregateVotes,
-  generateFinalSynthesis
+  generateFinalSynthesis,
+  extractJsonFromModelResponse
 } = require('../src/lib/openrouter');
+const { extractTickerFromQuery } = require('../src/lib/coingecko');
 const { AGENTS } = require('../src/lib/agents');
 
 function createMockRes() {
@@ -311,3 +314,43 @@ test('TEST J: Long question un-truncated in input, transcript, and synthesis', a
   assert.ok(verdictEvt, 'Verdict event must be present');
   assert.strictEqual(verdictEvt.data.question, longQuestion, 'Question in verdict must not be truncated');
 });
+
+// TEST K: Contract address (CA) topic detection and ticker extraction
+test('TEST K: Contract address (CA) topic detection and ticker extraction', () => {
+  const caQuery = 'Can this CA 0x63Ee32Ac3077d1fbd8a77eBBA2a6ed4b8e9c1e18 raise 100K?';
+  const topic = detectQuestionTopic(caQuery);
+  assert.strictEqual(topic, 'TOKEN_CA');
+
+  const ticker = extractTickerFromQuery(caQuery);
+  assert.strictEqual(ticker, '0x63Ee...1e18');
+});
+
+// TEST L: Resilient JSON partial extraction when trailing brace is cut off
+test('TEST L: Resilient JSON partial extraction when trailing brace is cut off', () => {
+  const truncatedJson = '{\n  "persona": "Satoshi Nakamoto",\n  "analysis": "This token lacks proof-of-work validation.",\n  "stance": "REDUCE",\n  "risk": "Deployer backdo';
+  const parsed = extractJsonFromModelResponse(truncatedJson);
+  assert.ok(parsed, 'Parsed object should not be null');
+  assert.strictEqual(parsed.analysis, 'This token lacks proof-of-work validation.');
+  assert.strictEqual(parsed.stance, 'REDUCE');
+});
+
+// TEST M: Single done event emitted without duplicate complete event
+test('TEST M: Single done event emitted without duplicate complete event', async () => {
+  const req = {
+    method: 'POST',
+    body: {
+      input: 'Can this CA 0x63Ee32Ac3077d1fbd8a77eBBA2a6ed4b8e9c1e18 raise 100K?',
+      selectedSeats: [1]
+    }
+  };
+  const res = createMockRes();
+  await sessionHandler(req, res);
+
+  const events = parseSseEvents(res.body);
+  const doneEvents = events.filter(e => e.event === 'done');
+  const completeEvents = events.filter(e => e.event === 'complete');
+
+  assert.strictEqual(doneEvents.length, 1, 'Exactly one done event must be emitted');
+  assert.strictEqual(completeEvents.length, 0, 'No redundant complete events should be emitted');
+});
+

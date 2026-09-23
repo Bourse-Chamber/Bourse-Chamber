@@ -262,7 +262,6 @@ export async function POST(req: NextRequest) {
           }
 
           emit('done', { sessionId, completed: true, savedToDb: true, verdictId: verdict.id, outcome: verdict.outcome });
-          emit('complete', { sessionId, completed: true, savedToDb: true, verdictId: verdict.id, outcome: verdict.outcome });
           controller.close();
         } catch (execErr: any) {
           console.error('[Session Deliberation Error]:', execErr);

@@ -1,3 +1,4 @@
+require("../src/lib/env");
 /**
  * Vercel Serverless Function & Express Route — POST /api/session
  * Multi-Agent SSE Streaming Protocol for Bourse Chamber
@@ -124,9 +125,14 @@ module.exports = async function handler(req, res) {
 
     // 2. Evidence Pack Event (Identical Evidence for all 9 personas)
     const rawEvidence = demoEvidence(query);
+    const caMatch = query.match(/0x[a-fA-F0-9]{40}/i);
+    const evidenceName = caMatch
+      ? `Contract ${caMatch[0].slice(0, 6)}...${caMatch[0].slice(-4)}`
+      : (rawEvidence.name || `${ticker} Asset`);
+
     const evidence = {
       ticker,
-      name: rawEvidence.name || `${ticker} Asset`,
+      name: evidenceName,
       price: rawEvidence.price || 100,
       priceFormatted: `$${Number(rawEvidence.price || 100).toLocaleString()}`,
       change24h: rawEvidence.change24h || 0,
@@ -136,12 +142,14 @@ module.exports = async function handler(req, res) {
       volume24hFormatted: `$${(Number(rawEvidence.volume24h || 50000000) / 1e9).toFixed(2)}B`,
       ath: rawEvidence.ath || rawEvidence.price,
       drawdownFromAthPct: rawEvidence.drawdownFromAthPct || '0.0',
-      networkActivity: 'Verified secondary market liquidity',
-      supply: 'Liquid circulating supply',
+      networkActivity: caMatch ? 'Smart contract address pending audit & on-chain verification' : 'Verified secondary market liquidity',
+      supply: caMatch ? 'Contract-defined tokenomics' : 'Liquid circulating supply',
       macroContext: 'Institutional multi-asset context',
       retrievalDate: new Date().toISOString().split('T')[0],
       isDemoData: false,
-      dataGaps: ['Non-speculative fee accrual metrics pending protocol audit']
+      dataGaps: caMatch
+        ? ['DEX liquidity lock status unverified', 'Deployer mint/tax backdoor inspection required', 'Organic holder distribution audit pending']
+        : ['Non-speculative fee accrual metrics pending protocol audit']
     };
 
     sendEvent('evidence', {
@@ -319,7 +327,6 @@ module.exports = async function handler(req, res) {
     }
 
     sendEvent('done', { sessionId, completed: true, savedToDb: true, verdictId: verdict.id, outcome: verdict.outcome });
-    sendEvent('complete', { sessionId, completed: true, savedToDb: true, verdictId: verdict.id, outcome: verdict.outcome });
     res.end();
 
   } catch (err) {
