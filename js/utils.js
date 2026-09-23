@@ -78,6 +78,9 @@ const BourseUtils = (() => {
     if (/munger/i.test(name)) {
       return faceZoom('/img/munger.png', 'Charlie Munger', 'img/munger.png');
     }
+    if (/burry/i.test(name)) {
+      return faceZoom('/img/burry.png', 'Michael Burry', 'img/burry.png');
+    }
     const hash = hashString(name);
     const gridSize = 8;
     const halfGrid = 4;
