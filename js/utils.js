@@ -64,6 +64,10 @@ const BourseUtils = (() => {
       // Portrait is already face-focused — mild zoom to match others
       return faceZoom('/img/damodaran.png', 'Aswath Damodaran', 'img/damodaran.png');
     }
+    if (/graham/i.test(name)) {
+      // Full suit portrait — zoom to upper face/head area
+      return faceZoom('/img/graham.png', 'Benjamin Graham', 'img/graham.png');
+    }
     const hash = hashString(name);
     const gridSize = 8;
     const halfGrid = 4;
