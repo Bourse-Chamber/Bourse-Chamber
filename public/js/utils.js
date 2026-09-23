@@ -60,6 +60,10 @@ const BourseUtils = (() => {
     if (/changpeng|zhao|\bcz\b/i.test(name)) {
       return faceZoom('/img/cz.png', 'Changpeng Zhao', 'img/cz.png');
     }
+    if (/damodaran/i.test(name)) {
+      // Portrait is already face-focused — mild zoom to match others
+      return faceZoom('/img/damodaran.png', 'Aswath Damodaran', 'img/damodaran.png');
+    }
     const hash = hashString(name);
     const gridSize = 8;
     const halfGrid = 4;
