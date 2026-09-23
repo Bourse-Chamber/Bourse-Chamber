@@ -68,6 +68,10 @@ const BourseUtils = (() => {
       // Full suit portrait — zoom to upper face/head area
       return faceZoom('/img/graham.png', 'Benjamin Graham', 'img/graham.png');
     }
+    if (/ackman/i.test(name)) {
+      // Already tight face portrait — gentle zoom
+      return faceZoom('/img/ackman.png', 'Bill Ackman', 'img/ackman.png');
+    }
     const hash = hashString(name);
     const gridSize = 8;
     const halfGrid = 4;
