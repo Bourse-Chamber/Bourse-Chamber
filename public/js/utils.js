@@ -22,32 +22,43 @@ const BourseUtils = (() => {
    */
   function generatePixelAvatarSVG(nameOrAgent, size = 48) {
     const name = typeof nameOrAgent === 'object' ? (nameOrAgent?.name || '') : String(nameOrAgent || '');
+
+    // Helper: returns a face-zoomed portrait wrapper
+    function faceZoom(src, alt, onerrorSrc) {
+      return `<div style="width:${size}px;height:${size}px;overflow:hidden;border-radius:2px;display:block;flex-shrink:0;background:#111;">` +
+        `<img src="${src}" alt="${alt}" class="persona-avatar-img" style="width:160%;height:160%;object-fit:cover;object-position:top center;margin-left:-30%;margin-top:-5%;display:block;" onerror="this.onerror=null;this.src='${onerrorSrc}';" />` +
+        `</div>`;
+    }
+
     if (/satoshi/i.test(name)) {
-      return `<img src="/img/satoshi.png" alt="Satoshi Nakamoto" class="persona-avatar-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:2px;display:block;" onerror="this.onerror=null;this.src='img/satoshi.png';" />`;
+      // Satoshi: hooded figure, face/hood is upper-center — zoom more aggressively
+      return `<div style="width:${size}px;height:${size}px;overflow:hidden;border-radius:2px;display:block;flex-shrink:0;background:#111;">` +
+        `<img src="/img/satoshi.png" alt="Satoshi Nakamoto" class="persona-avatar-img" style="width:165%;height:165%;object-fit:cover;object-position:center 8%;margin-left:-32%;margin-top:0%;display:block;" onerror="this.onerror=null;this.src='img/satoshi.png';" />` +
+        `</div>`;
     }
     if (/vitalik/i.test(name)) {
-      return `<img src="/img/vitalik.png" alt="Vitalik Buterin" class="persona-avatar-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:2px;display:block;" onerror="this.onerror=null;this.src='img/vitalik.png';" />`;
+      return faceZoom('/img/vitalik.png', 'Vitalik Buterin', 'img/vitalik.png');
     }
     if (/finney/i.test(name)) {
-      return `<img src="/img/finney.png" alt="Hal Finney" class="persona-avatar-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:2px;display:block;" onerror="this.onerror=null;this.src='img/finney.png';" />`;
+      return faceZoom('/img/finney.png', 'Hal Finney', 'img/finney.png');
     }
     if (/anatoly|yakovenko/i.test(name)) {
-      return `<img src="/img/anatoly.png" alt="Anatoly Yakovenko" class="persona-avatar-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:2px;display:block;" onerror="this.onerror=null;this.src='img/anatoly.png';" />`;
+      return faceZoom('/img/anatoly.png', 'Anatoly Yakovenko', 'img/anatoly.png');
     }
     if (/szabo/i.test(name)) {
-      return `<img src="/img/szabo.png" alt="Nick Szabo" class="persona-avatar-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:2px;display:block;" onerror="this.onerror=null;this.src='img/szabo.png';" />`;
+      return faceZoom('/img/szabo.png', 'Nick Szabo', 'img/szabo.png');
     }
     if (/hayes/i.test(name)) {
-      return `<img src="/img/hayes.png" alt="Arthur Hayes" class="persona-avatar-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:2px;display:block;" onerror="this.onerror=null;this.src='img/hayes.png';" />`;
+      return faceZoom('/img/hayes.png', 'Arthur Hayes', 'img/hayes.png');
     }
     if (/saylor/i.test(name)) {
-      return `<img src="/img/saylor.png" alt="Michael Saylor" class="persona-avatar-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:2px;display:block;" onerror="this.onerror=null;this.src='img/saylor.png';" />`;
+      return faceZoom('/img/saylor.png', 'Michael Saylor', 'img/saylor.png');
     }
     if (/armstrong/i.test(name)) {
-      return `<img src="/img/armstrong.png" alt="Brian Armstrong" class="persona-avatar-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:2px;display:block;" onerror="this.onerror=null;this.src='img/armstrong.png';" />`;
+      return faceZoom('/img/armstrong.png', 'Brian Armstrong', 'img/armstrong.png');
     }
     if (/changpeng|zhao|\bcz\b/i.test(name)) {
-      return `<img src="/img/cz.png" alt="Changpeng Zhao" class="persona-avatar-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:2px;display:block;" onerror="this.onerror=null;this.src='img/cz.png';" />`;
+      return faceZoom('/img/cz.png', 'Changpeng Zhao', 'img/cz.png');
     }
     const hash = hashString(name);
     const gridSize = 8;
