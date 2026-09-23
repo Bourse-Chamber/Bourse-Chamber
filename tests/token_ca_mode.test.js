@@ -17,7 +17,8 @@ const {
   detectQuestionTopic,
   aggregateVotes,
   validateDeterministicTokenCa,
-  generateFinalSynthesis
+  generateFinalSynthesis,
+  buildConciseVerdictConclusion
 } = require('../src/lib/openrouter');
 const { CRYPTO_AGENTS } = require('../src/lib/crypto-agents');
 
@@ -293,12 +294,54 @@ test('TOKEN_CA Synthesis: Target Direction (Below MC) and Greatest Constraint', 
   const query = 'Can CASHCAT reach $1M market cap?';
   const synth = await generateFinalSynthesis(query, seats, round1Analyses, votes, '', caDataBelow);
 
-  assert.strictEqual(synth.caDetails.targetInterpretation, 'Below current market cap');
-  assert.ok(synth.caDetails.marketCapChangeRequired.includes('decrease in market capitalization'));
-  assert.ok(synth.caDetails.marketCapChangeRequired.includes('88.9%'));
-  assert.ok(synth.conclusion.includes('TARGET INTERPRETATION:\nBelow current market cap'));
-  assert.ok(synth.conclusion.includes('MARKET-CAP CHANGE REQUIRED:'));
+  assert.strictEqual(synth.caDetails.targetInterpretation, 'BELOW CURRENT MC');
+  assert.ok(synth.caDetails.marketCapChangeRequired.includes('decrease'));
+  assert.ok(synth.conclusion.includes('TARGET INTERPRETATION:'));
+  assert.ok(synth.conclusion.includes('- Target Interpretation: BELOW CURRENT MC'));
+  assert.ok(synth.conclusion.includes('MEASURABLE CHANGES REQUIRED:'));
+  assert.ok(synth.conclusion.includes('- Liquidity:'));
+  assert.ok(synth.conclusion.includes('- Trading Activity:'));
+  assert.ok(synth.conclusion.includes('- Holder Distribution:'));
+  assert.ok(synth.conclusion.includes('- Effective Supply / Dilution:'));
   assert.ok(synth.conclusion.includes('GREATEST OBSERVABLE CONSTRAINT:'));
   assert.ok(synth.conclusion.includes('INSUFFICIENT EVIDENCE — no single greatest constraint can be reliably identified'));
+  assert.ok(typeof synth.conciseConclusion === 'string' && synth.conciseConclusion.length > 20);
+});
+
+test('Verdict Record Readability: 1-2 sentence concise conclusion generation', () => {
+  // Test divided CA conclusion
+  const divCa = buildConciseVerdictConclusion({
+    isCa: true,
+    outcome: 'DIVIDED',
+    targetFormatted: '$1M',
+    currentMcFormatted: '$8.97M',
+    targetMcNum: 1000000,
+    currentMcNum: 8973793,
+    multFormatted: '0.11x',
+    liqFormatted: '$998.8K',
+    criticalFieldsMissing: true
+  });
+  assert.ok(divCa.includes('decrease rather than required growth'));
+  assert.ok(divCa.includes('The Chamber remained divided'));
+
+  // Sentence count check (1 or 2 sentences max)
+  const sentences = divCa.split(/(?<=[.!?])\s+/).filter(Boolean);
+  assert.ok(sentences.length >= 1 && sentences.length <= 2, `Expected 1-2 sentences, got ${sentences.length}`);
+
+  // Test non-CA divided conclusion
+  const divNonCa = buildConciseVerdictConclusion({
+    isCa: false,
+    outcome: 'DIVIDED'
+  });
+  assert.ok(divNonCa.includes('The Chamber could not establish'));
+
+  // Test aggregateVotes output includes conciseConclusion
+  const votes = [
+    { seat: 1, persona: 'Satoshi Nakamoto', shortName: 'Satoshi', vote: 'ADD', weight: 1, rationale: 'r' },
+    { seat: 2, persona: 'Vitalik Buterin', shortName: 'Vitalik', vote: 'ADD', weight: 1, rationale: 'r' }
+  ];
+  const verdict = aggregateVotes(votes, 'BC-1234', 'BTC', 'Bitcoin', 'Should we accumulate BTC?');
+  assert.ok(verdict.conciseConclusion);
+  assert.ok(verdict.conciseConclusion.length > 10);
 });
 

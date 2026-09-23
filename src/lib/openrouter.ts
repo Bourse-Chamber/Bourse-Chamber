@@ -572,6 +572,87 @@ Cast your final ballot now as a JSON object starting directly with {:`;
 }
 
 /**
+ * Builds a strict 1-2 sentence concise conclusion for the white Verdict Record.
+ * Outcome-aware, truthful to evidence, never fabricating thresholds or metrics.
+ */
+export function buildConciseVerdictConclusion(params: {
+  isCa: boolean;
+  outcome: VoteOutcome;
+  questionTopic?: string;
+  targetFormatted?: string;
+  currentMcFormatted?: string;
+  targetMcNum?: number | null;
+  currentMcNum?: number | null;
+  multFormatted?: string;
+  liqFormatted?: string;
+  criticalFieldsMissing?: boolean;
+}): string {
+  const {
+    isCa,
+    outcome,
+    targetFormatted = '$100K',
+    currentMcFormatted = 'DATA UNAVAILABLE',
+    targetMcNum = null,
+    currentMcNum = null,
+    multFormatted = 'DATA UNAVAILABLE',
+    liqFormatted = 'DATA UNAVAILABLE',
+    criticalFieldsMissing = true
+  } = params;
+
+  if (isCa) {
+    const isTargetBelow = targetMcNum !== null && currentMcNum !== null && targetMcNum < currentMcNum;
+    const isTargetAbove = targetMcNum !== null && currentMcNum !== null && targetMcNum > currentMcNum;
+
+    if (isTargetBelow) {
+      const pctDecrease = currentMcNum && targetMcNum
+        ? ((currentMcNum - targetMcNum) / currentMcNum * 100).toFixed(1)
+        : '0';
+
+      if (outcome === 'DIVIDED') {
+        return `The Chamber remained divided as the ${targetFormatted} target is already below the current ${currentMcFormatted} market cap, representing approximately a ${pctDecrease}% decrease rather than required growth. Available evidence does not establish a single dominant constraint because holder concentration and LP lock status remain unavailable.`;
+      }
+      return `The ${targetFormatted} target is already below the current ${currentMcFormatted} market cap, representing approximately a ${pctDecrease}% decrease rather than required growth. Critical LP and holder data remain unavailable, preventing identification of a single dominant constraint.`;
+    }
+
+    if (isTargetAbove) {
+      if (outcome === 'DIVIDED') {
+        return `The Chamber could not establish that the token can sustainably reach the target because critical liquidity and LP evidence remain unavailable. The available evidence does not support identifying a single dominant constraint.`;
+      }
+      if (outcome === 'INSUFFICIENT_EVIDENCE') {
+        return `The Chamber could not establish that the token can reach the ${targetFormatted} target (${multFormatted}) because critical LP lock status, holder concentration, and contract verification remain unavailable. The available evidence does not establish a single dominant constraint.`;
+      }
+      if (outcome === 'NOT_SUPPORTED') {
+        return `The Chamber concluded that reaching the ${targetFormatted} target (${multFormatted}) is not supported due to thin observable DEX liquidity (${liqFormatted}) relative to required market-cap growth. Critical holder concentration and contract verification data remain unavailable.`;
+      }
+      if (outcome === 'SUPPORTED') {
+        return `The Chamber determined that observable trading activity supports pursuing the ${targetFormatted} target (${multFormatted}). However, sustainable feasibility requires proportional liquidity pool expansion beyond current observable levels (${liqFormatted}) alongside verified LP locking.`;
+      }
+    }
+
+    if (outcome === 'DIVIDED') {
+      return `The Chamber could not establish that the token can sustainably reach the target because critical liquidity and LP evidence remain unavailable. The available evidence does not support identifying a single dominant constraint.`;
+    }
+    return `Available evidence does not establish a single dominant constraint because holder concentration, LP lock status, and contract verification remain unavailable.`;
+  }
+
+  // Non-CA Deliberation (MARKET, TECHNICAL, PROTOCOL, GENERAL)
+  if (outcome === 'DIVIDED') {
+    return `The Chamber could not establish a majority consensus on this motion, remaining divided between competing discipline thresholds. Available evidence does not resolve whether current conditions favor execution or capital preservation.`;
+  }
+  if (outcome === 'ADD') {
+    return `The Chamber established a majority consensus in favor of this motion based on observed market and protocol indicators. Participating seats determined that available evidence supports capital allocation within assigned risk parameters.`;
+  }
+  if (outcome === 'REDUCE') {
+    return `The Chamber established a majority consensus to reduce exposure based on elevated risk factors identified across participating disciplines. Observable constraints indicate downside vulnerability outweighs upside potential.`;
+  }
+  if (outcome === 'PASS') {
+    return `The Chamber resolved to pass on this motion due to insufficient evidentiary clarity. Participating seats determined that active allocation is not justified under current conditions.`;
+  }
+
+  return `The Chamber concluded its deliberation with a ${outcome} outcome based on participating disciplines.`;
+}
+
+/**
  * Deterministic Vote Aggregator
  */
 export function aggregateVotes(
@@ -798,6 +879,19 @@ export function aggregateVotes(
         `Sustained 24h on-chain transaction volume contracts by more than 40% over a 14-day rolling window.`
       ];
 
+  const conciseConclusion = buildConciseVerdictConclusion({
+    isCa,
+    outcome,
+    questionTopic: qTopic,
+    targetFormatted: caEvidence?.targetMarketCapFormatted,
+    currentMcFormatted: caEvidence?.marketCapFormatted,
+    targetMcNum: typeof caEvidence?.targetMarketCap === 'number' ? caEvidence.targetMarketCap : null,
+    currentMcNum: typeof caEvidence?.marketCap === 'number' ? caEvidence.marketCap : null,
+    multFormatted: caEvidence?.requiredMultipleFormatted,
+    liqFormatted: caEvidence?.liquidityFormatted,
+    criticalFieldsMissing: true
+  });
+
   return {
     id: `VR-${sessionId}`,
     sessionId,
@@ -823,6 +917,7 @@ export function aggregateVotes(
     totalParticipants: totalVotes,
     isSizingRequested: isSizing,
     questionTopic: qTopic,
+    conciseConclusion,
     timestamp: new Date().toISOString()
   };
 }
@@ -872,6 +967,18 @@ export function validateDeterministicTokenCa(
     verdict.majority = false;
     verdict.tie = true;
   }
+
+  verdict.conciseConclusion = buildConciseVerdictConclusion({
+    isCa: true,
+    outcome: verdict.outcome,
+    targetFormatted: caEvidence.targetMarketCapFormatted,
+    currentMcFormatted: caEvidence.marketCapFormatted,
+    targetMcNum: typeof caEvidence.targetMarketCap === 'number' ? caEvidence.targetMarketCap : null,
+    currentMcNum: typeof caEvidence.marketCap === 'number' ? caEvidence.marketCap : null,
+    multFormatted: caEvidence.requiredMultipleFormatted,
+    liqFormatted: caEvidence.liquidityFormatted,
+    criticalFieldsMissing: true
+  });
 
   if (verdict.tokenCaDetails) {
     verdict.tokenCaDetails.ca = caEvidence.contractAddress;
@@ -944,9 +1051,10 @@ export async function generateFinalSynthesis(
       : (targetParsed.targetMcap ?? null);
 
     let targetInterpretation = 'DATA UNAVAILABLE';
-    let marketCapChangeRequired = 'DATA UNAVAILABLE';
     let targetRatio: number | null = caEvidence?.requiredMultiple ?? null;
     let multFormatted = caEvidence?.requiredMultipleFormatted || 'DATA UNAVAILABLE';
+    let marketCapDiffFormatted = 'DATA UNAVAILABLE';
+    let targetInterpretationText = '';
     let isTargetBelow = false;
     let isTargetAbove = false;
 
@@ -957,23 +1065,49 @@ export async function generateFinalSynthesis(
 
       if (targetMcNum < currentMcNum) {
         isTargetBelow = true;
-        const pctDecrease = ((currentMcNum - targetMcNum) / currentMcNum * 100).toFixed(1);
-        const pctChange = (((targetMcNum - currentMcNum) / currentMcNum) * 100).toFixed(2);
-        targetInterpretation = 'Below current market cap';
-        marketCapChangeRequired = `The ${targetFormatted} target is below the current market cap. Reaching ${targetFormatted} would represent approximately an ${pctDecrease}% decrease in market capitalization from the current level, not a required increase. Required change from current MC to target = approximately ${pctChange}% (Target / Current MC = ${multFormatted}).`;
+        const pctDecrease = ((currentMcNum - targetMcNum) / currentMcNum * 100).toFixed(2);
+        const diff = (((targetMcNum - currentMcNum) / currentMcNum) * 100).toFixed(2);
+        targetInterpretation = 'BELOW CURRENT MC';
+        marketCapDiffFormatted = `${diff}%`;
+        targetInterpretationText = [
+          `- Target Interpretation: BELOW CURRENT MC`,
+          `- Required Multiple: ${multFormatted}`,
+          `- Market-Cap Difference: ${diff}%`,
+          `Interpretation:`,
+          `"The target is below the current market capitalization. Reaching the target represents approximately a ${pctDecrease}% decrease, not required growth."`
+        ].join('\n');
       } else if (targetMcNum > currentMcNum) {
         isTargetAbove = true;
-        const pctIncrease = ((targetMcNum - currentMcNum) / currentMcNum * 100).toFixed(1);
-        const pctChange = (((targetMcNum - currentMcNum) / currentMcNum) * 100).toFixed(2);
-        targetInterpretation = 'Above current market cap';
-        marketCapChangeRequired = `+${pctIncrease}% expansion from current market cap (${caEvidence?.marketCapFormatted || 'DATA UNAVAILABLE'}) to reach ${targetFormatted}. Required change from current MC to target = approximately +${pctChange}% (Target / Current MC = ${multFormatted}).`;
+        const pctIncrease = ((targetMcNum - currentMcNum) / currentMcNum * 100).toFixed(2);
+        targetInterpretation = 'ABOVE CURRENT MC';
+        marketCapDiffFormatted = `+${pctIncrease}%`;
+        targetInterpretationText = [
+          `- Target Interpretation: ABOVE CURRENT MC`,
+          `- Required Multiple: ${multFormatted}`,
+          `- Market-Cap Difference: +${pctIncrease}%`,
+          `Interpretation:`,
+          `"The target is above the current market capitalization. Reaching the target requires approximately a ${pctIncrease}% expansion in market capitalization."`
+        ].join('\n');
       } else {
-        targetInterpretation = 'Equal to current market cap';
-        marketCapChangeRequired = `Current market cap already matches target ${targetFormatted} (Target / Current MC = 1.00x).`;
+        targetInterpretation = 'EQUAL TO CURRENT MC';
+        marketCapDiffFormatted = '0.00%';
+        targetInterpretationText = [
+          `- Target Interpretation: EQUAL TO CURRENT MC`,
+          `- Required Multiple: 1.00x`,
+          `- Market-Cap Difference: 0.00%`,
+          `Interpretation:`,
+          `"The target market capitalization matches the current market capitalization."`
+        ].join('\n');
       }
-    } else if (currentMcNum === null) {
-      targetInterpretation = 'DATA UNAVAILABLE — current market cap not indexed on-chain';
-      marketCapChangeRequired = 'DATA UNAVAILABLE — current MC required to compute required change';
+    } else {
+      targetInterpretation = 'DATA UNAVAILABLE';
+      targetInterpretationText = [
+        `- Target Interpretation: DATA UNAVAILABLE`,
+        `- Required Multiple: DATA UNAVAILABLE`,
+        `- Market-Cap Difference: DATA UNAVAILABLE`,
+        `Interpretation:`,
+        `"Current market cap or target cannot be verified from available evidence."`
+      ].join('\n');
     }
 
     const liqFormatted = caEvidence?.liquidityFormatted || 'DATA UNAVAILABLE';
@@ -982,6 +1116,39 @@ export async function generateFinalSynthesis(
     const txnsFormatted = (txns && typeof txns.buys === 'number')
       ? `${txns.buys} buys / ${txns.sells} sells`
       : 'DATA UNAVAILABLE';
+
+    // ── MEASURABLE CHANGES REQUIRED (Part A Specification) ──────────────────
+    let measurableLiquidity = 'DATA UNAVAILABLE';
+    if (typeof caEvidence?.liquidityUsd === 'number' && caEvidence.liquidityUsd > 0) {
+      if (isTargetBelow) {
+        measurableLiquidity = `Current DEX liquidity: ${liqFormatted}. (Target is below current MC; no liquidity expansion required).`;
+      } else {
+        measurableLiquidity = `Current observable DEX liquidity: ${liqFormatted}. Specific liquidity expansion requirement threshold: DATA UNAVAILABLE (cannot be derived without order-book depth models).`;
+      }
+    }
+
+    let measurableTradingActivity = 'DATA UNAVAILABLE';
+    if (typeof caEvidence?.volume24h === 'number') {
+      measurableTradingActivity = `Current observable 24h volume: ${volFormatted} (${txnsFormatted}, Buy/Sell Ratio: ${caEvidence?.buySellRatio || 'DATA UNAVAILABLE'}). Specific volume requirement threshold: DATA UNAVAILABLE.`;
+    }
+
+    let measurableHolderDistribution = 'DATA UNAVAILABLE';
+    if (caEvidence?.holders && caEvidence.holders !== 'DATA UNAVAILABLE') {
+      measurableHolderDistribution = `Current holders: ${caEvidence.holders}. Top 10 concentration: ${caEvidence.holderConcentration || 'DATA UNAVAILABLE'}.`;
+    }
+
+    let measurableSupplyDilution = 'DATA UNAVAILABLE';
+    if (caEvidence?.fdv && caEvidence.fdv !== 'DATA UNAVAILABLE' && typeof caEvidence.marketCap === 'number') {
+      measurableSupplyDilution = `Current Market Cap: ${caEvidence.marketCapFormatted} · Current FDV: ${caEvidence.fdvFormatted}. Supply expansion / dilution threshold: DATA UNAVAILABLE.`;
+    }
+
+    const measurableChangesRequiredBlock = [
+      `MEASURABLE CHANGES REQUIRED:`,
+      `- Liquidity:\n  ${measurableLiquidity}`,
+      `- Trading Activity:\n  ${measurableTradingActivity}`,
+      `- Holder Distribution:\n  ${measurableHolderDistribution}`,
+      `- Effective Supply / Dilution:\n  ${measurableSupplyDilution}`
+    ].join('\n\n');
 
     // ── GREATEST EVIDENCE-BASED CONSTRAINT ─────────────────────────────────
     const criticalFieldsMissing = caEvidence?.holderConcentration === 'DATA UNAVAILABLE'
@@ -1002,31 +1169,7 @@ export async function generateFinalSynthesis(
       greatestConstraintEvidence = `Observable DEX liquidity is ${liqFormatted}. Note: 24h volume of ${volFormatted} reflects turnover velocity, NOT executable pool depth.`;
     }
 
-    // ── CONCRETE MEASURABLE CONDITIONS (Evidence-Derived) ───────────────────
-    const measurableConditions: string[] = [];
-    if (isTargetBelow) {
-      const pctDecrease = currentMcNum && targetMcNum ? ((currentMcNum - targetMcNum) / currentMcNum * 100).toFixed(1) : '88.9';
-      measurableConditions.push(`1. Market-Cap Change: Reaching ${targetFormatted} from ${caEvidence?.marketCapFormatted || 'current level'} represents a ${pctDecrease}% contraction in market capitalization (-${Math.abs((currentMcNum || 0) - (targetMcNum || 0)).toLocaleString('en-US', { maximumFractionDigits: 0 })} USD). No capital expansion is required because the current market cap already exceeds the stated target.`);
-      measurableConditions.push(`2. Liquidity Pool Conditions: Current observable DEX liquidity of ${liqFormatted} on ${caEvidence?.network || 'network'} must support ongoing order flow without severe slippage or sudden LP drainage.`);
-      measurableConditions.push(`3. Volume & Activity Equilibrium: 24h trading volume of ${volFormatted} (${txnsFormatted}, Buy/Sell Ratio: ${caEvidence?.buySellRatio || 'DATA UNAVAILABLE'}) reflects turnover velocity, NOT executable pool depth. Price stability requires sustained two-way order flow.`);
-      measurableConditions.push(`4. Holder Concentration Requirements: DATA UNAVAILABLE — on-chain holder distribution is not indexed; verifiable non-custodial holder metrics cannot be quantified.`);
-      measurableConditions.push(`5. LP & Contract Requirements: DATA UNAVAILABLE — proof of LP token burn/lock and deployer key renunciation cannot be verified from available on-chain indexer records.`);
-    } else if (isTargetAbove) {
-      const pctIncrease = currentMcNum && targetMcNum ? ((targetMcNum - currentMcNum) / currentMcNum * 100).toFixed(1) : '0';
-      measurableConditions.push(`1. Market-Cap Change: Reaching ${targetFormatted} from ${caEvidence?.marketCapFormatted || 'current level'} requires a +${pctIncrease}% expansion in market capitalization (+${((targetMcNum || 0) - (currentMcNum || 0)).toLocaleString('en-US', { maximumFractionDigits: 0 })} USD, ${multFormatted} multiple).`);
-      measurableConditions.push(`2. Liquidity Pool Expansion: Current DEX liquidity of ${liqFormatted} must expand proportionally with market cap to absorb buy-side order flow without prohibitive price slippage (24h volume of ${volFormatted} reflects turnover, NOT pool depth).`);
-      measurableConditions.push(`3. Volume & Activity Inflow: 24h trading volume of ${volFormatted} (${txnsFormatted}, Buy/Sell Ratio: ${caEvidence?.buySellRatio || 'DATA UNAVAILABLE'}) must sustain net buying demand rather than wash trading or speculative churn.`);
-      measurableConditions.push(`4. Holder Concentration Requirements: DATA UNAVAILABLE — on-chain holder distribution cannot be quantified from available records.`);
-      measurableConditions.push(`5. LP & Contract Requirements: DATA UNAVAILABLE — proof of LP token burn/lock and deployer key renunciation cannot be verified from available on-chain indexer records.`);
-    } else {
-      measurableConditions.push(`1. Market-Cap Change: Current market cap of ${caEvidence?.marketCapFormatted || 'DATA UNAVAILABLE'} already matches target ${targetFormatted}.`);
-      measurableConditions.push(`2. Liquidity Conditions: DEX pool liquidity of ${liqFormatted}.`);
-      measurableConditions.push(`3. Volume & Activity: 24h volume of ${volFormatted} (${txnsFormatted}).`);
-      measurableConditions.push(`4. Holder Concentration Requirements: DATA UNAVAILABLE`);
-      measurableConditions.push(`5. LP & Contract Requirements: DATA UNAVAILABLE`);
-    }
-
-    // ── OUTCOME RATIONALE & CONCLUSION ─────────────────────────────────────
+    // ── OUTCOME RATIONALE & 1-2 SENTENCE CONCLUSION ────────────────────────
     let caReason = '';
     if (isTargetBelow) {
       const pctDecrease = currentMcNum && targetMcNum ? ((currentMcNum - targetMcNum) / currentMcNum * 100).toFixed(1) : '88.9';
@@ -1041,11 +1184,22 @@ export async function generateFinalSynthesis(
       caReason = `The Chamber is deadlocked (${supC} SUPPORTED, ${notSupC} NOT_SUPPORTED, ${insC} INSUFFICIENT_EVIDENCE). Available DEX liquidity of ${liqFormatted} and missing LP lock verification prevent consensus on the ${targetFormatted} target.`;
     }
 
-    const conclusion = `TARGET INTERPRETATION:
-${targetInterpretation}
+    const conciseConclusion = buildConciseVerdictConclusion({
+      isCa: true,
+      outcome,
+      targetFormatted,
+      currentMcFormatted: caEvidence?.marketCapFormatted || 'DATA UNAVAILABLE',
+      targetMcNum,
+      currentMcNum,
+      multFormatted,
+      liqFormatted,
+      criticalFieldsMissing
+    });
 
-MARKET-CAP CHANGE REQUIRED:
-${marketCapChangeRequired}
+    const conclusion = `TARGET INTERPRETATION:
+${targetInterpretationText}
+
+${measurableChangesRequiredBlock}
 
 GREATEST OBSERVABLE CONSTRAINT:
 ${greatestObservableConstraint}
@@ -1082,7 +1236,12 @@ CHAMBER ASSESSMENT: ${outcome === 'DIVIDED' ? 'DIVIDED — NO MAJORITY' : outcom
             'LP lockup / burn audit verification unavailable',
             'Deployer mint authority & contract verification unavailable'
           ],
-      conditionsRequired: measurableConditions,
+      conditionsRequired: [
+        `Liquidity: ${measurableLiquidity}`,
+        `Trading Activity: ${measurableTradingActivity}`,
+        `Holder Distribution: ${measurableHolderDistribution}`,
+        `Effective Supply / Dilution: ${measurableSupplyDilution}`
+      ],
       weakestConditions: [
         greatestObservableConstraint,
         greatestConstraintEvidence
@@ -1094,7 +1253,7 @@ CHAMBER ASSESSMENT: ${outcome === 'DIVIDED' ? 'DIVIDED — NO MAJORITY' : outcom
       reason: caReason,
       confidenceReason: caReason,
       targetInterpretation,
-      marketCapChangeRequired,
+      marketCapChangeRequired: targetInterpretationText,
       greatestObservableConstraint,
       greatestConstraintEvidence
     };
@@ -1106,7 +1265,7 @@ CHAMBER ASSESSMENT: ${outcome === 'DIVIDED' ? 'DIVIDED — NO MAJORITY' : outcom
           `Current Market Cap: ${caDetails.currentMarketCap}`,
           `Target Market Cap: ${caDetails.targetMarketCap}`,
           `Target Interpretation: ${targetInterpretation}`,
-          `Market-Cap Change Required: ${marketCapChangeRequired}`,
+          `Market-Cap Difference: ${marketCapDiffFormatted}`,
           `Required Multiple: ${caDetails.requiredMultipleFormatted}`,
           `DEX Liquidity: ${caDetails.liquidity}`,
           `24h Volume (turnover velocity, NOT pool depth): ${caDetails.volume24h}`,
@@ -1125,7 +1284,7 @@ CHAMBER ASSESSMENT: ${outcome === 'DIVIDED' ? 'DIVIDED — NO MAJORITY' : outcom
       keyEvidence,
       keyFindings: [
         `Target Interpretation: ${targetInterpretation}`,
-        `Market-Cap Change Required: ${marketCapChangeRequired}`,
+        `Market-Cap Difference: ${marketCapDiffFormatted} (Multiple: ${multFormatted})`,
         `DEX Liquidity: ${caDetails.liquidity} available on ${caDetails.network} (24h volume of ${caDetails.volume24h} reflects turnover, NOT pool depth)`,
         `Trading Activity: ${caDetails.buysSells}`,
         `Greatest Observable Constraint: ${greatestObservableConstraint}`,
@@ -1135,6 +1294,7 @@ CHAMBER ASSESSMENT: ${outcome === 'DIVIDED' ? 'DIVIDED — NO MAJORITY' : outcom
       areasOfDisagreement,
       unresolvedIssues,
       conclusion,
+      conciseConclusion,
       caDetails
     };
   }
@@ -1207,6 +1367,12 @@ Deliver the FINAL CHAMBER SYNTHESIS now as a JSON object starting directly with 
           ? 'No clear consensus.'
           : String(parsed.areasOfAgreement || '').trim();
 
+        const conciseConclusion = buildConciseVerdictConclusion({
+          isCa: false,
+          outcome: isDivided ? 'DIVIDED' : (addC === maxCount ? 'ADD' : (redC === maxCount ? 'REDUCE' : 'PASS')),
+          questionTopic: qTopic
+        });
+
         return {
           question,
           keyEvidence: keyEvidence.slice(0, 6),
@@ -1216,7 +1382,8 @@ Deliver the FINAL CHAMBER SYNTHESIS now as a JSON object starting directly with 
           areasOfAgreement: agreementText || (isDivided ? 'No clear consensus.' : 'General consensus on primary metric constraints.'),
           areasOfDisagreement: String(parsed.areasOfDisagreement || '').trim(),
           unresolvedIssues: String(parsed.unresolvedIssues || '').trim(),
-          conclusion: String(parsed.conclusion || '').trim()
+          conclusion: String(parsed.conclusion || '').trim(),
+          conciseConclusion
         };
       }
     }
@@ -1261,6 +1428,12 @@ Deliver the FINAL CHAMBER SYNTHESIS now as a JSON object starting directly with 
     ? `Based strictly on the deliberations of ${personaNames}, the chamber registers ${outcomeLabel} on the question.`
     : `Based strictly on Seat 0${participatingAgents[0]?.seat} (${participatingAgents[0]?.shortName})'s deliberation, the chamber registers a ${votes[0]?.vote} ballot on the question.`;
 
+  const conciseConclusion = buildConciseVerdictConclusion({
+    isCa: false,
+    outcome: isDivided ? 'DIVIDED' : (addC === maxCount ? 'ADD' : (redC === maxCount ? 'REDUCE' : 'PASS')),
+    questionTopic: qTopic
+  });
+
   return {
     question,
     keyEvidence: keyEvidence.slice(0, 6),
@@ -1268,7 +1441,8 @@ Deliver the FINAL CHAMBER SYNTHESIS now as a JSON object starting directly with 
     areasOfAgreement,
     areasOfDisagreement,
     unresolvedIssues,
-    conclusion
+    conclusion,
+    conciseConclusion
   };
 }
 
@@ -1327,6 +1501,7 @@ if (typeof module !== 'undefined' && module.exports) {
     aggregateVotes,
     generateFinalSynthesis,
     validateDeterministicTokenCa,
+    buildConciseVerdictConclusion,
     streamRound1Reading,
     streamRound2Duel
   };

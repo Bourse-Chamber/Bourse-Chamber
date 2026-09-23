@@ -334,11 +334,17 @@ export async function POST(req: NextRequest) {
           // Final Chamber Synthesis
           const synthesis = await generateFinalSynthesis(query, participatingAgents, round1Analyses, votes, evidenceSummary, isCa ? caData : undefined);
           verdict.synthesis = synthesis;
+          if (synthesis.conciseConclusion) {
+            verdict.conciseConclusion = synthesis.conciseConclusion;
+          }
 
           if (isCa && caData) {
             validateDeterministicTokenCa(verdict, caData, participatingAgents.map(a => a.seat));
             verdict.tokenCaDetails = synthesis.caDetails;
             verdict.questionTopic = 'TOKEN_CA';
+            if (synthesis.conciseConclusion) {
+              verdict.conciseConclusion = synthesis.conciseConclusion;
+            }
           }
 
           const synthesisText = `FINAL CHAMBER SYNTHESIS\n\nQuestion:\n"${synthesis.question}"\n\nKey Findings:\n${synthesis.keyFindings.map((f: string) => `- ${f}`).join('\n')}\n\nAreas of Agreement:\n${synthesis.areasOfAgreement}\n\nAreas of Disagreement:\n${synthesis.areasOfDisagreement}\n\nUnresolved Issues:\n${synthesis.unresolvedIssues}\n\nConclusion:\n${synthesis.conclusion}`;

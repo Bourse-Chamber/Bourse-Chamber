@@ -823,24 +823,116 @@
 .transcript-msg.verdict-announcement {
   background: #FFFFFF;
   color: #050505;
-  padding: 12px;
+  padding: 16px 18px;
   border: 1px solid #FFFFFF;
+  border-radius: 2px;
 }
 
 .transcript-msg.verdict-announcement .msg-meta {
-  color: #050505;
-  font-weight: 600;
-}
-
-.transcript-msg.verdict-announcement .msg-time {
-  color: #555555;
+  display: none;
 }
 
 .transcript-msg.verdict-announcement .msg-body {
-  border-left: 2px solid #050505;
+  border-left: none;
+  padding-left: 0;
+  margin-top: 0;
   color: #111111;
   font-size: 0.76rem;
-  margin-top: 6px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Structured Verdict Record within White Announcement Box */
+.vr-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vr-header-block {
+  border-bottom: 1px solid #E5E5E5;
+  padding-bottom: 8px;
+  margin-bottom: 2px;
+}
+
+.vr-title {
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #050505;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.vr-session {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: #555555;
+  margin-top: 2px;
+  letter-spacing: 0.04em;
+}
+
+.vr-section {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.vr-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #555555;
+}
+
+.vr-text {
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: #111111;
+  word-break: break-word;
+}
+
+.vr-question {
+  font-family: var(--font-sans);
+  color: #111111;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.vr-outcome {
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #000000;
+  letter-spacing: 0.02em;
+}
+
+.vr-vote {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: #222222;
+  white-space: pre-line;
+}
+
+.vr-conclusion {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: #111111;
+}
+
+.vr-status {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: #666666;
+  border-top: 1px solid #EAEAEA;
+  padding-top: 8px;
+  margin-top: 4px;
 }
 
 /* Typing indicator */

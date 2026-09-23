@@ -531,6 +531,70 @@ const BourseChamber = (() => {
     }
   }
 
+  function formatVerdictRecordHtml(rawText) {
+    if (!rawText || typeof rawText !== 'string') return '';
+    const normalizedText = rawText.replace(/\r\n/g, '\n');
+
+    const escape = (str) => {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+
+    const sessionMatch = normalizedText.match(/SESSION\s+([^\n\r]+)/i);
+    const sessionStr = sessionMatch ? sessionMatch[1].trim() : '';
+
+    const extractSection = (heading, nextHeadings) => {
+      const lookahead = nextHeadings.length > 0
+        ? `(?=(?:\\n(?:${nextHeadings.join('|')})\\b)|$)`
+        : '$';
+      const pattern = new RegExp(`${heading}\\s*\\n([\\s\\S]*?)${lookahead}`, 'i');
+      const m = normalizedText.match(pattern);
+      return m ? m[1].trim() : '';
+    };
+
+    const question = extractSection('QUESTION', ['OUTCOME', 'VOTE', 'CONCLUSION', 'STATUS']);
+    const outcome = extractSection('OUTCOME', ['VOTE', 'CONCLUSION', 'STATUS']);
+    const vote = extractSection('VOTE', ['CONCLUSION', 'STATUS']);
+    const conclusion = extractSection('CONCLUSION', ['STATUS']);
+    const status = extractSection('STATUS', []) || 'Record officially closed and committed to the permanent Verdict Ledger.';
+
+    if (!question && !outcome) {
+      return `<div style="white-space: pre-wrap; word-break: break-word;">${escape(rawText)}</div>`;
+    }
+
+    return `
+      <div class="vr-container">
+        <div class="vr-header-block">
+          <div class="vr-title">VERDICT RECORD</div>
+          ${sessionStr ? `<div class="vr-session">SESSION ${escape(sessionStr)}</div>` : ''}
+        </div>
+        <div class="vr-section">
+          <div class="vr-label">QUESTION</div>
+          <div class="vr-text vr-question">${escape(question)}</div>
+        </div>
+        <div class="vr-section">
+          <div class="vr-label">OUTCOME</div>
+          <div class="vr-text vr-outcome">${escape(outcome)}</div>
+        </div>
+        <div class="vr-section">
+          <div class="vr-label">VOTE</div>
+          <div class="vr-text vr-vote">${escape(vote).replace(/\n/g, '<br>')}</div>
+        </div>
+        <div class="vr-section">
+          <div class="vr-label">CONCLUSION</div>
+          <div class="vr-text vr-conclusion">${escape(conclusion)}</div>
+        </div>
+        <div class="vr-section">
+          <div class="vr-label">STATUS</div>
+          <div class="vr-text vr-status">${escape(status)}</div>
+        </div>
+      </div>
+    `.trim();
+  }
+
   function appendTranscriptMsg({ type, who, text, time = null }) {
     if (!feedEl) return null;
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
@@ -541,12 +605,16 @@ const BourseChamber = (() => {
     const msg = document.createElement('div');
     msg.className = `transcript-msg ${type || ''}`;
 
+    const bodyContent = type === 'verdict-announcement'
+      ? formatVerdictRecordHtml(text)
+      : text;
+
     msg.innerHTML = `
       <div class="msg-meta">
         <span>${who}</span>
         <span class="msg-time">${msgTime}</span>
       </div>
-      <div class="msg-body">${text}</div>
+      <div class="msg-body">${bodyContent}</div>
     `;
 
     feedEl.appendChild(msg);
@@ -615,6 +683,9 @@ const BourseChamber = (() => {
     }
 
     bodyEl.classList.remove('typing');
+    if (type === 'verdict-announcement') {
+      bodyEl.innerHTML = formatVerdictRecordHtml(text);
+    }
 
     if (currentSession && currentSession.transcript) {
       currentSession.transcript.push({ type, who, time: msgTime, text });
@@ -810,18 +881,80 @@ const BourseChamber = (() => {
 
     triggerVerdictImpact(outcome);
 
-    const sizingLine = (isSizingRequested && sizingBand && sizingBand !== 'N/A')
-      ? `\nPOSITION SIZE BAND: ${sizingBand} (Fixed by Seat 06 ${sizingSeat.shortName || sizingSeat.name} — ${sizingRationale})`
-      : '';
+    const isTokenCa = (outcome === 'SUPPORTED' || outcome === 'NOT_SUPPORTED' || outcome === 'INSUFFICIENT_EVIDENCE') ||
+                      (verdictData?.tokenCaDetails != null) ||
+                      (verdictData?.questionTopic === 'TOKEN_CA');
+
+    let voteLines = '';
+    if (isTokenCa) {
+      voteLines = `SUPPORTED: ${addTally}\nNOT_SUPPORTED: ${reduceTally}\nINSUFFICIENT_EVIDENCE: ${passTally}`;
+    } else {
+      voteLines = `ADD: ${addTally}\nREDUCE: ${reduceTally}\nPASS: ${passTally}`;
+    }
 
     const outcomeText = outcome === 'DIVIDED'
       ? 'DIVIDED — NO MAJORITY'
-      : `${outcome} (${verdictObj.majorityRatio} Majority)`;
+      : (verdictObj.majorityRatio && verdictObj.majorityRatio !== 'NO MAJORITY'
+          ? `${outcome} (${verdictObj.majorityRatio} Majority)`
+          : outcome);
+
+    let conciseConclusion = verdictData?.conciseConclusion ||
+      verdictData?.synthesis?.conciseConclusion ||
+      currentSession?.synthesis?.conciseConclusion ||
+      (currentSession?.verdict && currentSession.verdict.conciseConclusion);
+
+    if (!conciseConclusion) {
+      if (outcome === 'DIVIDED') {
+        conciseConclusion = isTokenCa
+          ? 'The Chamber could not establish that the token can sustainably reach the target because critical liquidity and LP evidence remain unavailable. The available evidence does not support identifying a single dominant constraint.'
+          : 'The Chamber could not establish a majority consensus on this motion, remaining divided between competing discipline thresholds. Available evidence does not resolve whether current conditions favor execution or capital preservation.';
+      } else if (isTokenCa) {
+        if (outcome === 'SUPPORTED') {
+          conciseConclusion = 'The Chamber determined that observable trading activity supports pursuing the target. However, sustainable feasibility requires proportional liquidity pool expansion alongside verified LP locking.';
+        } else if (outcome === 'NOT_SUPPORTED') {
+          conciseConclusion = 'The Chamber concluded that reaching the target is not supported due to thin observable DEX liquidity relative to required market-cap growth. Critical holder concentration and contract verification data remain unavailable.';
+        } else {
+          conciseConclusion = 'The Chamber could not establish that the token can reach the target because critical LP lock status, holder concentration, and contract verification remain unavailable. The available evidence does not establish a single dominant constraint.';
+        }
+      } else {
+        if (outcome === 'ADD') {
+          conciseConclusion = 'The Chamber established a majority consensus in favor of this motion based on observed market and protocol indicators. Participating seats determined that available evidence supports capital allocation within assigned risk parameters.';
+        } else if (outcome === 'REDUCE') {
+          conciseConclusion = 'The Chamber established a majority consensus to reduce exposure based on elevated risk factors identified across participating disciplines. Observable constraints indicate downside vulnerability outweighs upside potential.';
+        } else {
+          conciseConclusion = 'The Chamber resolved to pass on this motion due to insufficient evidentiary clarity. Participating seats determined that active allocation is not justified under current conditions.';
+        }
+      }
+    }
+
+    verdictObj.conciseConclusion = conciseConclusion;
+
+    const questionText = (currentSession?.question || verdictData?.question || '').trim();
+
+    const verdictText = [
+      'VERDICT RECORD',
+      `SESSION ${sessionId}`,
+      '',
+      'QUESTION',
+      questionText,
+      '',
+      'OUTCOME',
+      outcomeText,
+      '',
+      'VOTE',
+      voteLines,
+      '',
+      'CONCLUSION',
+      conciseConclusion,
+      '',
+      'STATUS',
+      'Record officially closed and committed to the permanent Verdict Ledger.'
+    ].join('\n');
 
     await streamTranscriptMsg({
       type: 'verdict-announcement',
       who: `VERDICT RECORD · SESSION ${sessionId}`,
-      text: `QUESTION: "${currentSession?.question || ''}"\nOUTCOME: ${outcomeText}\nDISSENT: ${dissentBreakdown}${sizingLine}\nRecord officially closed and committed to the permanent Verdict Ledger.`
+      text: verdictText
     });
 
     if (currentSession && typeof BourseStorage !== 'undefined') {

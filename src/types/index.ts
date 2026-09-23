@@ -49,6 +49,7 @@ export interface FinalChamberSynthesis {
   areasOfDisagreement: string;
   unresolvedIssues: string;
   conclusion: string;
+  conciseConclusion?: string;
   caDetails?: TokenCaSynthesisDetails;
 }
 
@@ -245,5 +246,6 @@ export interface AggregatedVerdict extends VerdictRecord {
   tie: boolean;
   questionTopic?: string;
   tokenCaDetails?: TokenCaSynthesisDetails;
+  conciseConclusion?: string;
 }
 
