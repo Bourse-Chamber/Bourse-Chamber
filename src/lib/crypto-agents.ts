@@ -213,3 +213,8 @@ export const CRYPTO_AGENTS: AgentPersona[] = [
 export function getAgentBySeat(seat: number): AgentPersona | undefined {
   return CRYPTO_AGENTS.find(a => a.seat === seat);
 }
+
+// CommonJS interop — required by api/session.js and scripts
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { CRYPTO_AGENTS, getAgentBySeat };
+}

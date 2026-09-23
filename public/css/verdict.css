@@ -111,24 +111,40 @@
   letter-spacing: -0.02em;
 }
 
-.stamp-outcome.add {
+.stamp-outcome.add,
+.stamp-outcome.supported {
   color: #000000;
   text-shadow: none;
 }
 
-.stamp-outcome.reduce {
+.stamp-outcome.reduce,
+.stamp-outcome.not_supported,
+.stamp-outcome.not-supported {
   color: #000000;
   text-shadow: none;
 }
 
-.stamp-outcome.pass {
+.stamp-outcome.pass,
+.stamp-outcome.insufficient_evidence,
+.stamp-outcome.insufficient-evidence {
   color: #444444;
+  text-shadow: none;
+}
+
+.stamp-outcome.divided {
+  color: #222222;
   text-shadow: none;
 }
 
 .verdict-stamp-card.add,
 .verdict-stamp-card.reduce,
-.verdict-stamp-card.pass {
+.verdict-stamp-card.pass,
+.verdict-stamp-card.supported,
+.verdict-stamp-card.not_supported,
+.verdict-stamp-card.not-supported,
+.verdict-stamp-card.insufficient_evidence,
+.verdict-stamp-card.insufficient-evidence,
+.verdict-stamp-card.divided {
   border-top: 4px solid #000000;
 }
 
@@ -392,3 +408,74 @@
     border-top: 1px solid var(--border-subtle);
   }
 }
+
+/* TOKEN_CA Specific Styles */
+.badge.supported {
+  background: #FFFFFF;
+  color: #050505;
+  border: 1px solid #FFFFFF;
+}
+
+.badge.not_supported,
+.badge.not-supported {
+  background: #222222;
+  color: #C0C0C0;
+  border: 1px solid #555555;
+}
+
+.badge.insufficient_evidence,
+.badge.insufficient-evidence {
+  background: #111111;
+  color: #888888;
+  border: 1px solid #333333;
+}
+
+.badge.divided {
+  background: #161616;
+  color: #999999;
+  border: 1px solid #444444;
+}
+
+.token-ca-analysis-card {
+  background: #060606;
+  border: 1px solid var(--border-main);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.token-ca-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+  margin-bottom: 16px;
+  font-family: var(--font-mono);
+}
+
+.token-ca-metric {
+  background: #0D0D0D;
+  border: 1px solid var(--border-subtle);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.token-ca-metric span {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.token-ca-metric b {
+  font-size: 0.95rem;
+  color: #FFFFFF;
+  margin-top: 4px;
+}
+
+.token-ca-assessment-box {
+  background: #0A0A0A;
+  border: 1px solid var(--border-main);
+  padding: 14px;
+  margin-top: 14px;
+}
+

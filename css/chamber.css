@@ -633,17 +633,22 @@
   background: #333333;
 }
 
-.council-seat.voted-add .seat-avatar-box {
+.council-seat.voted-add .seat-avatar-box,
+.council-seat.voted-supported .seat-avatar-box {
   border-color: #FFFFFF;
   box-shadow: 0 0 0 2px #FFFFFF, 0 0 14px rgba(255, 255, 255, 0.35);
 }
 
-.council-seat.voted-reduce .seat-avatar-box {
+.council-seat.voted-reduce .seat-avatar-box,
+.council-seat.voted-not-supported .seat-avatar-box,
+.council-seat.voted-not_supported .seat-avatar-box {
   border-color: #888888;
   box-shadow: 0 0 0 2px #666666, 0 0 10px rgba(120, 120, 120, 0.3);
 }
 
-.council-seat.voted-pass .seat-avatar-box {
+.council-seat.voted-pass .seat-avatar-box,
+.council-seat.voted-insufficient-evidence .seat-avatar-box,
+.council-seat.voted-insufficient_evidence .seat-avatar-box {
   border-color: #444444;
   box-shadow: 0 0 0 1px #444444;
 }

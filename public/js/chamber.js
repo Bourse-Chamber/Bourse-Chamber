@@ -698,16 +698,16 @@ const BourseChamber = (() => {
       console.warn(`[Completion Guard]: Incomplete Round 3 (${votes.length}/${targetCount} votes recorded).`);
       return false;
     }
-    const validVoteSet = new Set(['ADD', 'REDUCE', 'PASS']);
+    const validVoteSet = new Set(['ADD', 'REDUCE', 'PASS', 'SUPPORTED', 'NOT_SUPPORTED', 'INSUFFICIENT_EVIDENCE']);
     const allValid = votes.every(v => v && validVoteSet.has(((v.vote || '').toUpperCase().trim())));
     if (!allValid) {
       console.warn('[Completion Guard]: One or more invalid votes detected:', votes);
       return false;
     }
 
-    // 4. Verdict outcome defined and in ["ADD", "REDUCE", "PASS", "DIVIDED"]
+    // 4. Verdict outcome defined and in ["ADD", "REDUCE", "PASS", "DIVIDED", "SUPPORTED", "NOT_SUPPORTED", "INSUFFICIENT_EVIDENCE"]
     const outcome = verdict ? (((verdict.outcome ?? verdict.decision) || '').toUpperCase().trim()) : '';
-    const validOutcomeSet = new Set(['ADD', 'REDUCE', 'PASS', 'DIVIDED']);
+    const validOutcomeSet = new Set(['ADD', 'REDUCE', 'PASS', 'DIVIDED', 'SUPPORTED', 'NOT_SUPPORTED', 'INSUFFICIENT_EVIDENCE']);
     if (!outcome || !validOutcomeSet.has(outcome)) {
       console.warn(`[Completion Guard]: Invalid verdict outcome: "${outcome}".`);
       return false;
@@ -746,26 +746,37 @@ const BourseChamber = (() => {
     }
 
     const dissentList = [];
-    if (outcome !== 'ADD' && addTally > 0) dissentList.push(`${addTally} ADD`);
-    if (outcome !== 'REDUCE' && reduceTally > 0) dissentList.push(`${reduceTally} REDUCE`);
-    if (outcome !== 'PASS' && passTally > 0) dissentList.push(`${passTally} PASS`);
+    if (outcome === 'SUPPORTED' || outcome === 'NOT_SUPPORTED' || outcome === 'INSUFFICIENT_EVIDENCE') {
+      if (outcome !== 'SUPPORTED' && addTally > 0) dissentList.push(`${addTally} SUPPORTED`);
+      if (outcome !== 'NOT_SUPPORTED' && reduceTally > 0) dissentList.push(`${reduceTally} NOT SUPPORTED`);
+      if (outcome !== 'INSUFFICIENT_EVIDENCE' && passTally > 0) dissentList.push(`${passTally} INSUFFICIENT EVIDENCE`);
+    } else {
+      if (outcome !== 'ADD' && addTally > 0) dissentList.push(`${addTally} ADD`);
+      if (outcome !== 'REDUCE' && reduceTally > 0) dissentList.push(`${reduceTally} REDUCE`);
+      if (outcome !== 'PASS' && passTally > 0) dissentList.push(`${passTally} PASS`);
+    }
     const dissentBreakdown = verdictData?.dissentBreakdown || (dissentList.length > 0 ? dissentList.join(', ') : 'None (Unanimous)');
 
-    let sizingBand = verdictData?.positionSizeBand;
+    const isSizingRequested = verdictData?.isSizingRequested ?? asksForInvestmentSizing(currentSession?.question || '');
+    let sizingBand = null;
     let sizingRationale = "Calibrated against downside tail risk.";
-    if (!sizingBand) {
-      const sizingResult = (sizingSeat && typeof sizingSeat.calculatePositionSizeBand === 'function')
-        ? sizingSeat.calculatePositionSizeBand(
-            { ticker: currentEvidence?.ticker || 'ASSET', name: currentEvidence?.name || 'Asset' },
-            currentEvidence || {},
-            outcome
-          )
-        : { band: outcome === 'ADD' ? "2.0 – 3.5%" : (outcome === 'REDUCE' ? "0.5 – 1.0%" : "0.0%"), rationale: "Discipline-based tail risk sizing." };
-      sizingBand = sizingResult.band;
-      sizingRationale = sizingResult.rationale;
+    if (isSizingRequested) {
+      if (verdictData?.positionSizeBand) {
+        sizingBand = verdictData.positionSizeBand;
+      } else {
+        const sizingResult = (sizingSeat && typeof sizingSeat.calculatePositionSizeBand === 'function')
+          ? sizingSeat.calculatePositionSizeBand(
+              { ticker: currentEvidence?.ticker || 'ASSET', name: currentEvidence?.name || 'Asset' },
+              currentEvidence || {},
+              outcome
+            )
+          : { band: outcome === 'ADD' ? "2.0 – 3.5%" : (outcome === 'REDUCE' ? "0.5 – 1.0%" : "0.0%"), rationale: "Discipline-based tail risk sizing." };
+        sizingBand = sizingResult.band;
+        sizingRationale = sizingResult.rationale;
+      }
     }
 
-    const keyAgreement = verdictData?.keyAgreement || `${currentEvidence?.name || 'Asset'} retains market interest, but participating members agree valuation must reflect structural tail risk.`;
+    const keyAgreement = verdictData?.keyAgreement || (outcome === 'DIVIDED' ? 'No clear consensus.' : `${currentEvidence?.name || 'Asset'} retains market interest, but participating members agree valuation must reflect structural tail risk.`);
     const keyDisagreement = verdictData?.keyDisagreement || `Whether organic adoption and economic moats endure versus speculative momentum.`;
     const unresolvedQuestion = verdictData?.unresolvedQuestion || `Can long-term unit economics sustain valuation through a liquidity contraction?`;
     const reviewTriggers = verdictData?.reviewTriggers || [
@@ -778,7 +789,7 @@ const BourseChamber = (() => {
       id: `VR-${sessionId}`,
       sessionId,
       outcome,
-      majorityRatio: verdictData?.majorityRatio || `${majorityCount} / ${totalParticipants}`,
+      majorityRatio: outcome === 'DIVIDED' ? 'NO MAJORITY' : (verdictData?.majorityRatio || `${majorityCount} / ${totalParticipants}`),
       dissentBreakdown,
       positionSizeBand: sizingBand,
       sizingSeat: `Seat 06 · ${sizingSeat.name} (${sizingSeat.discipline})`,
@@ -788,7 +799,7 @@ const BourseChamber = (() => {
       unresolvedQuestion,
       reviewTriggers,
       totalParticipants,
-      isSizingRequested: verdictData?.isSizingRequested ?? asksForInvestmentSizing(currentSession?.question || ''),
+      isSizingRequested,
       synthesis: verdictData?.synthesis || currentSession?.synthesis || null
     };
 
@@ -799,15 +810,18 @@ const BourseChamber = (() => {
 
     triggerVerdictImpact(outcome);
 
-    const isSizingQuery = verdictObj.isSizingRequested || asksForInvestmentSizing(currentSession?.question || '');
-    const sizingLine = (isSizingQuery && sizingBand && sizingBand !== 'N/A')
+    const sizingLine = (isSizingRequested && sizingBand && sizingBand !== 'N/A')
       ? `\nPOSITION SIZE BAND: ${sizingBand} (Fixed by Seat 06 ${sizingSeat.shortName || sizingSeat.name} — ${sizingRationale})`
       : '';
+
+    const outcomeText = outcome === 'DIVIDED'
+      ? 'DIVIDED — NO MAJORITY'
+      : `${outcome} (${verdictObj.majorityRatio} Majority)`;
 
     await streamTranscriptMsg({
       type: 'verdict-announcement',
       who: `VERDICT RECORD · SESSION ${sessionId}`,
-      text: `QUESTION: "${currentSession?.question || ''}"\nOUTCOME: ${outcome} (${verdictObj.majorityRatio} Majority)\nDISSENT: ${dissentBreakdown}${sizingLine}\nRecord officially closed and committed to the permanent Verdict Ledger.`
+      text: `QUESTION: "${currentSession?.question || ''}"\nOUTCOME: ${outcomeText}\nDISSENT: ${dissentBreakdown}${sizingLine}\nRecord officially closed and committed to the permanent Verdict Ledger.`
     });
 
     if (currentSession && typeof BourseStorage !== 'undefined') {
@@ -911,6 +925,35 @@ const BourseChamber = (() => {
                 if (data.llmProvider && stateLabelEl) {
                   BourseUtils.showToast(`Live AI Engine active: ${data.llmProvider}`);
                 }
+                if (data.questionType === 'TOKEN_CA' && scoreboardEl) {
+                  const badges = scoreboardEl.querySelectorAll('.badge');
+                  if (badges[0]) badges[0].textContent = 'SUPPORTED';
+                  if (badges[1]) badges[1].textContent = 'NOT SUPPORTED';
+                  if (badges[2]) badges[2].textContent = 'INSUFFICIENT';
+                }
+              } else if (currentEvent === 'evidence') {
+                if (data.metrics && Array.isArray(data.metrics) && evidencePanelEl) {
+                  evidencePanelEl.classList.add('active');
+                  const isTokenCa = Boolean(data.targetMarketCap || data.requiredMultiple);
+                  const metricsHtml = data.metrics.map(m => `
+                    <div class="evidence-item">
+                      <span>${m.label}</span>
+                      <b>${m.value}</b>
+                    </div>
+                  `).join('');
+                  evidencePanelEl.innerHTML = `
+                    <div class="evidence-header">
+                      <span>EVIDENCE PACK · ${isTokenCa ? 'TOKEN_CA ANALYSIS' : (currentSession?.ticker || 'MARKET SNAPSHOT')}</span>
+                      <span class="badge">${data.sources ? data.sources[0] : 'LIVE DEX ORACLE'}</span>
+                    </div>
+                    <div class="evidence-grid">
+                      ${metricsHtml}
+                    </div>
+                    <div class="evidence-context">
+                      <strong>Gaps & Verification:</strong> ${(data.gaps || []).join('; ') || 'Verified on-chain evidence pack.'}
+                    </div>
+                  `;
+                }
               } else if (currentEvent === 'seat_start') {
                 currentSpeakerSeat = data.seatId || data.seat;
                 setSeatState(currentSpeakerSeat, 'speaking', 'SPEAKING');
@@ -923,7 +966,7 @@ const BourseChamber = (() => {
                   currentSpeakerBody.textContent += (data.text || data.chunk || '');
                   feedEl.scrollTop = feedEl.scrollHeight;
                 }
-              } else if (currentEvent === 'seat_end' || currentEvent === 'seat_analysis' || currentEvent === 'speech') {
+              } else if (currentEvent === 'seat_end' || currentEvent === 'seat_analysis') {
                 const sNum = currentSpeakerSeat || data.seatId || data.seat;
                 if (sNum) {
                   setSeatState(sNum, '', 'READ FILED');
@@ -949,7 +992,7 @@ const BourseChamber = (() => {
                 currentSpeakerSeat = null;
                 currentSpeakerMsg = null;
                 currentSpeakerBody = null;
-              } else if (currentEvent === 'rebuttal' || currentEvent === 'cross_exam') {
+              } else if (currentEvent === 'rebuttal') {
                 updateChamberState(STATES.ROUND_2);
                 if (currentSession) currentSession.round2Complete = true;
 
@@ -1001,11 +1044,14 @@ const BourseChamber = (() => {
 
                 // Deduplicate votes by seat number to prevent double counting
                 if (!recordedVotes.some(v => v.seat === seatNum)) {
-                  if (['ADD', 'REDUCE', 'PASS'].includes(vUpper)) {
-                    if (vUpper === 'ADD') {
+                  const isTokenCa = ['SUPPORTED', 'NOT_SUPPORTED', 'INSUFFICIENT_EVIDENCE'].includes(vUpper);
+                  const isStandard = ['ADD', 'REDUCE', 'PASS'].includes(vUpper);
+
+                  if (isTokenCa || isStandard) {
+                    if (vUpper === 'ADD' || vUpper === 'SUPPORTED') {
                       addTally++;
                       animateCounter(tallyAddEl, addTally);
-                    } else if (vUpper === 'REDUCE') {
+                    } else if (vUpper === 'REDUCE' || vUpper === 'NOT_SUPPORTED') {
                       reduceTally++;
                       animateCounter(tallyReduceEl, reduceTally);
                     } else {
@@ -1028,15 +1074,20 @@ const BourseChamber = (() => {
                       who: `BALLOT · ${(data.name || data.persona).toUpperCase()}`,
                       text: `Casts: [${vUpper}] — ${data.reason || data.rationale}`
                     });
-                    setSeatState(seatNum, 'voted', vUpper);
+                    const statusClass = vUpper.toLowerCase().replace(/_/g, '-');
+                    setSeatState(seatNum, `voted voted-${statusClass}`, vUpper);
                   }
                 }
               } else if (currentEvent === 'synthesis') {
                 if (currentSession) currentSession.synthesis = data;
+                const evidenceList = Array.isArray(data.keyEvidence) && data.keyEvidence.length > 0
+                  ? `\n\nKey Evidence:\n${data.keyEvidence.map(e => `- ${e}`).join('\n')}`
+                  : '';
+                const agreement = data.areasOfAgreement || (pendingVerdict?.outcome === 'DIVIDED' ? 'No clear consensus.' : '');
                 appendTranscriptMsg({
                   type: 'final-synthesis',
                   who: 'CHAMBER CHAIR · FINAL SYNTHESIS',
-                  text: `FINAL CHAMBER SYNTHESIS\n\nQuestion:\n"${data.question || ''}"\n\nKey Findings:\n${(data.keyFindings || []).map(f => `- ${f}`).join('\n')}\n\nAreas of Agreement:\n${data.areasOfAgreement || ''}\n\nAreas of Disagreement:\n${data.areasOfDisagreement || ''}\n\nUnresolved Issues:\n${data.unresolvedIssues || ''}\n\nConclusion:\n${data.conclusion || ''}`
+                  text: `FINAL CHAMBER SYNTHESIS\n\nQuestion:\n"${data.question || ''}"${evidenceList}\n\nKey Findings:\n${(data.keyFindings || []).map(f => `- ${f}`).join('\n')}\n\nAreas of Agreement:\n${agreement}\n\nAreas of Disagreement:\n${data.areasOfDisagreement || ''}\n\nUnresolved Issues:\n${data.unresolvedIssues || ''}\n\nConclusion:\n${data.conclusion || ''}`
                 });
               } else if (currentEvent === 'verdict') {
                 updateChamberState(STATES.AGGREGATING);
@@ -1050,7 +1101,10 @@ const BourseChamber = (() => {
 
                 if (canCompleteSession(currentSession, pendingVerdict, dbSaved)) {
                   const outcome = pendingVerdict.outcome ?? pendingVerdict.decision;
-                  const majorityCount = pendingVerdict.majorityCount || (outcome === 'ADD' ? addTally : (outcome === 'REDUCE' ? reduceTally : passTally));
+                  const majorityCount = pendingVerdict.majorityCount || (
+                    (outcome === 'ADD' || outcome === 'SUPPORTED') ? addTally :
+                    ((outcome === 'REDUCE' || outcome === 'NOT_SUPPORTED') ? reduceTally : passTally)
+                  );
                   const ok = await finalizeSessionVerdict(outcome, majorityCount, addTally, reduceTally, passTally, pendingVerdict, true);
                   if (ok) sessionCompletedSuccessfully = true;
                 } else {
@@ -1074,7 +1128,10 @@ const BourseChamber = (() => {
         if (currentSession) currentSession.votes = recordedVotes;
         if (canCompleteSession(currentSession, pendingVerdict, true)) {
           const outcome = pendingVerdict.outcome ?? pendingVerdict.decision;
-          const majorityCount = pendingVerdict.majorityCount || (outcome === 'ADD' ? addTally : (outcome === 'REDUCE' ? reduceTally : passTally));
+          const majorityCount = pendingVerdict.majorityCount || (
+            (outcome === 'ADD' || outcome === 'SUPPORTED') ? addTally :
+            ((outcome === 'REDUCE' || outcome === 'NOT_SUPPORTED') ? reduceTally : passTally)
+          );
           const ok = await finalizeSessionVerdict(outcome, majorityCount, addTally, reduceTally, passTally, pendingVerdict, true);
           if (ok) sessionCompletedSuccessfully = true;
         } else {
@@ -1207,7 +1264,16 @@ const BourseChamber = (() => {
     if (conveneBtn) conveneBtn.disabled = true;
     if (composerInput) composerInput.disabled = true;
     if (postActionsEl) postActionsEl.classList.remove('active');
-    if (scoreboardEl) scoreboardEl.classList.remove('active');
+    if (scoreboardEl) {
+      scoreboardEl.classList.remove('active');
+      const badges = scoreboardEl.querySelectorAll('.badge');
+      if (badges[0]) badges[0].textContent = 'ADD';
+      if (badges[1]) badges[1].textContent = 'REDUCE';
+      if (badges[2]) badges[2].textContent = 'PASS';
+    }
+    if (tallyAddEl) tallyAddEl.textContent = '0';
+    if (tallyReduceEl) tallyReduceEl.textContent = '0';
+    if (tallyPassEl) tallyPassEl.textContent = '0';
 
     feedEl.innerHTML = '';
     liveSeatStates = {};
@@ -1490,7 +1556,7 @@ const BourseChamber = (() => {
           majority = true;
         } else if (topCountOccurrences > 1) {
           outcome = 'DIVIDED';
-          majorityCount = maxCount;
+          majorityCount = 0;
           tie = true;
           majority = false;
         } else if (addTally === maxCount) {
@@ -1504,20 +1570,23 @@ const BourseChamber = (() => {
           majorityCount = passTally;
         }
 
-        const majorityRatio = `${majorityCount} / ${totalVotes}`;
+        const majorityRatio = outcome === 'DIVIDED' ? 'NO MAJORITY' : `${majorityCount} / ${totalVotes}`;
 
         // Synthesis from participating seats
         const personaNames = targetSeats.map(a => a.name).join(', ');
         const isUnanimous = recordedVotes.every(v => v.vote === recordedVotes[0]?.vote);
         const keyFindings = targetSeats.map(a => `${a.shortName}: Deliberated via ${a.discipline} constraint.`);
-        const areasOfAgreement = isUnanimous
-          ? `The participating seats (${personaNames}) aligned unanimously in their ${recordedVotes[0]?.vote} ballot.`
-          : `The participating seats (${personaNames}) concurred that core liquidity and execution security remain paramount.`;
+        const areasOfAgreement = outcome === 'DIVIDED'
+          ? 'No clear consensus.'
+          : (isUnanimous
+            ? `The participating seats (${personaNames}) aligned unanimously in their ${recordedVotes[0]?.vote} ballot.`
+            : `The participating seats (${personaNames}) concurred that core liquidity and execution security remain paramount.`);
         const areasOfDisagreement = isUnanimous
           ? `Disagreement was minimal; minor divergence centered on execution timeline.`
           : `The bench divided between ${recordedVotes.map(v => `${v.name} (${v.vote})`).join(', ')}, reflecting divergent thresholds.`;
         const unresolvedIssues = `Whether protocol evolution will satisfy the requirements raised by ${targetSeats.map(a => a.shortName).join(' and ')}.`;
-        const conclusion = `Based strictly on the deliberations of ${personaNames}, the chamber registers ${targetSeats.length > 1 ? `a floor outcome of ${outcome} (${majorityRatio})` : `Seat 0${targetSeats[0].seat}'s ${outcome} ballot`} on the question.`;
+        const outcomeLabel = outcome === 'DIVIDED' ? 'DIVIDED — NO MAJORITY' : `${outcome} (${majorityRatio})`;
+        const conclusion = `Based strictly on the deliberations of ${personaNames}, the chamber registers ${targetSeats.length > 1 ? `a floor outcome of ${outcomeLabel}` : `Seat 0${targetSeats[0].seat}'s ${outcome} ballot`} on the question.`;
 
         const synthesis = {
           question: query,
@@ -1681,7 +1750,16 @@ const BourseChamber = (() => {
         clearSeatSelection();
         if (composerInput) composerInput.value = '';
         if (postActionsEl) postActionsEl.classList.remove('active');
-        if (scoreboardEl) scoreboardEl.classList.remove('active');
+        if (scoreboardEl) {
+          scoreboardEl.classList.remove('active');
+          const badges = scoreboardEl.querySelectorAll('.badge');
+          if (badges[0]) badges[0].textContent = 'ADD';
+          if (badges[1]) badges[1].textContent = 'REDUCE';
+          if (badges[2]) badges[2].textContent = 'PASS';
+        }
+        if (tallyAddEl) tallyAddEl.textContent = '0';
+        if (tallyReduceEl) tallyReduceEl.textContent = '0';
+        if (tallyPassEl) tallyPassEl.textContent = '0';
         if (evidencePanelEl) {
           evidencePanelEl.classList.remove('active');
           evidencePanelEl.innerHTML = `

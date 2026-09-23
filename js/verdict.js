@@ -145,30 +145,49 @@ const BourseVerdict = (() => {
     };
 
     if (outcomeEl) {
-      outcomeEl.textContent = v.outcome;
+      outcomeEl.textContent = v.outcome === 'DIVIDED' ? 'DIVIDED — NO MAJORITY' : v.outcome;
       outcomeEl.className = `stamp-outcome ${v.outcome ? v.outcome.toLowerCase() : 'pass'}`;
     }
     if (ratioEl) {
-      ratioEl.textContent = `${v.majorityRatio || `${v.majorityCount || 1} / ${targetCount}`} BENCH MAJORITY`;
+      if (v.outcome === 'DIVIDED') {
+        ratioEl.textContent = 'DIVIDED — NO MAJORITY';
+      } else {
+        ratioEl.textContent = `${v.majorityRatio || `${v.majorityCount || 1} / ${targetCount}`} BENCH MAJORITY`;
+      }
     }
     if (dissentEl) {
       dissentEl.textContent = v.dissentBreakdown ? `DISSENT: ${v.dissentBreakdown}` : 'UNANIMOUS BENCH';
     }
     const stampCard = document.querySelector('.verdict-stamp-card');
     if (stampCard && v.outcome) {
-      stampCard.classList.remove('add', 'reduce', 'pass', 'divided');
+      stampCard.classList.remove('add', 'reduce', 'pass', 'divided', 'supported', 'not_supported', 'insufficient_evidence');
       stampCard.classList.add(v.outcome.toLowerCase());
     }
     if (sizeBandEl) {
-      const isSizingQuery = v.isSizingRequested || /\b(size|sizing|position|allocation|allocate|portfolio|weight|percentage|percent|how much|risk budget)\b/i.test(session.question || '');
-      if (isSizingQuery && v.positionSizeBand && v.positionSizeBand !== 'N/A') {
+      const tokenCa = v.tokenCaDetails || session?.synthesis?.tokenCaDetails || session?.synthesis?.caDetails;
+      const isTokenCa = Boolean(tokenCa || v.questionType === 'TOKEN_CA');
+      const isSizingQuery = v.isSizingRequested || /\b(allocation|portfolio weight|position size|sizing|how much to invest|percentage allocation|how much should i (buy|invest|allocate)|risk budget)\b/i.test(session.question || '');
+
+      if (isTokenCa && tokenCa) {
+        sizeBandEl.innerHTML = `
+          <strong>VALUATION TARGET: ${tokenCa.targetMarketCap || '$100K'} (${tokenCa.requiredMultiple || 'N/A'})</strong>
+          <small>Feasibility: ${tokenCa.overallFeasibility || v.outcome} · Confidence: ${tokenCa.confidenceScore || 'MEDIUM'}</small>
+        `;
+      } else if (isSizingQuery && v.positionSizeBand && v.positionSizeBand !== 'N/A') {
         sizeBandEl.innerHTML = `
           <strong>POSITION SIZE BAND: ${v.positionSizeBand}</strong>
           <small>Calibrated against tail risk for requested allocation sizing.</small>
         `;
       } else {
+        const outcomeDesc = v.outcome === 'ADD' ? 'AFFIRMATIVE / BULLISH CONSENSUS'
+          : v.outcome === 'REDUCE' ? 'SKEPTICAL / RISK-OFF CONSENSUS'
+          : v.outcome === 'SUPPORTED' ? 'TARGET VALUATION FEASIBLE / SUPPORTED'
+          : v.outcome === 'NOT_SUPPORTED' ? 'TARGET VALUATION NOT SUPPORTED BY EVIDENCE'
+          : v.outcome === 'INSUFFICIENT_EVIDENCE' ? 'INSUFFICIENT ON-CHAIN EVIDENCE TO SUPPORT TARGET'
+          : v.outcome === 'DIVIDED' ? 'DIVIDED BENCH — NO MAJORITY'
+          : 'NEUTRAL / PASS BENCH';
         sizeBandEl.innerHTML = `
-          <strong>QUESTION EVALUATION: ${v.outcome === 'ADD' ? 'AFFIRMATIVE / BULLISH CONSENSUS' : v.outcome === 'REDUCE' ? 'SKEPTICAL / RISK-OFF CONSENSUS' : v.outcome === 'DIVIDED' ? 'DIVIDED BENCH' : 'NEUTRAL / PASS BENCH'}</strong>
+          <strong>QUESTION EVALUATION: ${outcomeDesc}</strong>
           <small>${session.question ? `Directly answering: "${session.question}"` : 'Deliberation concluded by bench majority.'}</small>
         `;
       }
@@ -191,6 +210,87 @@ const BourseVerdict = (() => {
     const questionText = synth?.question || session?.question || 'Chamber Motion';
     if (qEl) qEl.textContent = questionText;
 
+    // Render TOKEN_CA Feasibility Card if present
+    const tokenCa = v.tokenCaDetails || synth?.tokenCaDetails || synth?.caDetails;
+    const tokenCaCard = document.getElementById('token-ca-feasibility-card');
+    if (tokenCaCard) {
+      if (tokenCa) {
+        tokenCaCard.style.display = 'block';
+        tokenCaCard.className = 'token-ca-analysis-card';
+        const condList = Array.isArray(tokenCa.conditionsRequired) && tokenCa.conditionsRequired.length > 0
+          ? tokenCa.conditionsRequired.map(c => `<li>${c}</li>`).join('')
+          : '<li>Substantial capital inflows and AMM depth expansion.</li>';
+        const weakList = Array.isArray(tokenCa.weakestConditions) && tokenCa.weakestConditions.length > 0
+          ? tokenCa.weakestConditions.map(w => `<li>${w}</li>`).join('')
+          : '<li>Liquidity slippage and order execution depth.</li>';
+
+        tokenCaCard.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--border-subtle);padding-bottom:10px;">
+            <div>
+              <span style="font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;">TOKEN CONTRACT AUDIT</span>
+              <div style="font-family:var(--font-mono);font-size:0.85rem;color:#FFFFFF;margin-top:2px;"><b>CA:</b> ${tokenCa.contractAddress || 'UNSPECIFIED'} · <b>NETWORK:</b> ${tokenCa.network || 'UNKNOWN'}</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span class="badge ${tokenCa.overallFeasibility ? tokenCa.overallFeasibility.toLowerCase() : 'pass'}">${tokenCa.overallFeasibility || 'FEASIBILITY AUDITED'}</span>
+              <span class="badge" style="background:#0D0D0D;border-color:#555555;color:#FFFFFF;">CONFIDENCE: ${tokenCa.confidenceScore || 'MEDIUM'}</span>
+            </div>
+          </div>
+
+          <div class="token-ca-meta-grid">
+            <div class="token-ca-metric">
+              <span>Current MCap</span>
+              <b>${tokenCa.currentMarketCap || 'DATA UNAVAILABLE'}</b>
+            </div>
+            <div class="token-ca-metric">
+              <span>Target MCap</span>
+              <b>${tokenCa.targetMarketCap || 'N/A'}</b>
+            </div>
+            <div class="token-ca-metric">
+              <span>Required Multiple</span>
+              <b>${tokenCa.requiredMultiple || 'N/A'}</b>
+            </div>
+            <div class="token-ca-metric">
+              <span>Pool Liquidity</span>
+              <b>${tokenCa.currentLiquidity || 'DATA UNAVAILABLE'}</b>
+            </div>
+            <div class="token-ca-metric">
+              <span>24h Volume</span>
+              <b>${tokenCa.volume24h || 'DATA UNAVAILABLE'}</b>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:12px;margin-bottom:12px;">
+            <div style="background:#080808;padding:12px;border:1px solid var(--border-subtle);">
+              <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);margin-bottom:6px;">CONDITIONS REQUIRED FOR TARGET</div>
+              <ul style="margin:0 0 0 16px;padding:0;font-size:0.8rem;color:var(--text-secondary);line-height:1.5;">${condList}</ul>
+            </div>
+            <div style="background:#080808;padding:12px;border:1px solid var(--border-subtle);">
+              <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);margin-bottom:6px;">WEAKEST CONDITIONS / VULNERABILITIES</div>
+              <ul style="margin:0 0 0 16px;padding:0;font-size:0.8rem;color:var(--text-secondary);line-height:1.5;">${weakList}</ul>
+            </div>
+          </div>
+
+          <div class="token-ca-assessment-box">
+            <div style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);margin-bottom:4px;">CONFIDENCE RATIONALE</div>
+            <div style="font-size:0.82rem;color:var(--text-main);line-height:1.4;">${tokenCa.confidenceReason || 'Based on available verified on-chain metrics and liquidity depth analysis.'}</div>
+          </div>
+        `;
+      } else {
+        tokenCaCard.style.display = 'none';
+      }
+    }
+
+    const evContainer = document.getElementById('synthesis-evidence-container');
+    const evEl = document.getElementById('synthesis-evidence');
+    if (evContainer && evEl) {
+      if (synth && Array.isArray(synth.keyEvidence) && synth.keyEvidence.length > 0) {
+        evContainer.style.display = 'block';
+        evEl.innerHTML = synth.keyEvidence.map(e => `<li>${e}</li>`).join('');
+      } else {
+        evContainer.style.display = 'none';
+      }
+    }
+
     if (fEl) {
       if (synth && Array.isArray(synth.keyFindings) && synth.keyFindings.length > 0) {
         fEl.innerHTML = synth.keyFindings.map(f => `<li>${f}</li>`).join('');
@@ -199,10 +299,18 @@ const BourseVerdict = (() => {
       }
     }
 
-    if (aEl) aEl.textContent = synth?.areasOfAgreement || v.keyAgreement || `Consensus on governing constraints by participating seats (${participants}).`;
+    const agreementText = (v.outcome === 'DIVIDED' || synth?.areasOfAgreement === 'No clear consensus.')
+      ? 'No clear consensus.'
+      : (synth?.areasOfAgreement || v.keyAgreement || `Consensus on governing constraints by participating seats (${participants}).`);
+    if (aEl) aEl.textContent = agreementText;
+
     if (dEl) dEl.textContent = synth?.areasOfDisagreement || v.keyDisagreement || `Divergence across individual discipline thresholds: ${v.dissentBreakdown || 'None'}.`;
     if (uEl) uEl.textContent = synth?.unresolvedIssues || v.unresolvedQuestion || `Whether key network and market fundamentals maintain structural integrity.`;
-    if (cEl) cEl.textContent = synth?.conclusion || `Floor outcome certified as ${v.outcome || 'PASS'} (${v.majorityRatio || `${votes.length} / ${votes.length}`} Majority) based strictly on participating seats: ${participants}.`;
+
+    if (cEl) {
+      const outcomeText = v.outcome === 'DIVIDED' ? 'DIVIDED — NO MAJORITY' : `${v.outcome || 'PASS'} (${v.majorityRatio || `${votes.length} / ${votes.length}`} Majority)`;
+      cEl.textContent = synth?.conclusion || `Floor outcome certified as ${outcomeText} based strictly on participating seats: ${participants}.`;
+    }
   }
 
   function renderVotesTable() {
@@ -292,11 +400,12 @@ const BourseVerdict = (() => {
     if (s.verdict) {
       const isSizingQ = /\b(size|sizing|position|allocation|allocate|portfolio|weight|percentage|percent|how much|risk budget)\b/i.test(s.question || '');
       const sizingText = isSizingQ ? ` Position Size Band: ${s.verdict.positionSizeBand}.` : '';
+      const outcomeAnnounce = s.verdict.outcome === 'DIVIDED' ? 'DIVIDED — NO MAJORITY' : `${s.verdict.outcome} (${s.verdict.majorityRatio} Majority)`;
       list.push({
         type: 'chair',
         who: 'CHAIR',
         time: tTime,
-        text: `Floor balloting completed on: "${s.question || 'Floor Question'}". Certified Outcome: ${s.verdict.outcome} (${s.verdict.majorityRatio} Majority). Dissent: ${s.verdict.dissentBreakdown || '--'}.${sizingText} Record officially closed.`
+        text: `Floor balloting completed on: "${s.question || 'Floor Question'}". Certified Outcome: ${outcomeAnnounce}. Dissent: ${s.verdict.dissentBreakdown || '--'}.${sizingText} Record officially closed.`
       });
     }
 

@@ -1,8 +1,7 @@
-require("../src/lib/env");
 /**
  * Vercel Serverless Function & Express Route — POST /api/session
  * Multi-Agent SSE Streaming Protocol for Bourse Chamber
- * 3-Round Deliberation (9 Personas, Cross-Exam, Voting, Deterministic Verdict)
+ * 3-Round Deliberation (Selected Personas, Cross-Exam, Voting, Deterministic Verdict)
  */
 
 const { CRYPTO_AGENTS: AGENTS } = require("../src/lib/crypto-agents");
@@ -11,8 +10,11 @@ const {
   generateRound2CrossExam,
   generateRound3Vote,
   aggregateVotes,
-  generateFinalSynthesis
+  generateFinalSynthesis,
+  detectQuestionTopic,
+  validateDeterministicTokenCa
 } = require("../src/lib/openrouter");
+const { fetchCaEvidence, formatCaEvidenceSummary, extractContractAddress } = require("../src/lib/ca-evidence");
 const { db } = require("../src/lib/db");
 const { demoEvidence } = require("../db/engine");
 const { extractTickerFromQuery } = require("../src/lib/coingecko");
@@ -111,59 +113,127 @@ module.exports = async function handler(req, res) {
 
   const sessionId = `BC-${Math.floor(1000 + Math.random() * 9000)}`;
   const ticker = extractTickerFromQuery(query);
+  const qTopic = detectQuestionTopic(query);
+  const caMatch = extractContractAddress(query);
+  const isCa = qTopic === 'TOKEN_CA' || Boolean(caMatch);
 
   try {
+    let evidence;
+    let evidenceSummary;
+    let caData = null;
+
+    if (isCa) {
+      caData = await fetchCaEvidence(query);
+      evidenceSummary = formatCaEvidenceSummary(caData);
+      evidence = {
+        ticker: caData.symbol !== 'DATA UNAVAILABLE' ? caData.symbol : 'TOKEN',
+        name: caData.name !== 'DATA UNAVAILABLE' ? `${caData.name} (${caData.symbol})` : `Contract ${(caData.contractAddress || '').slice(0, 6)}...${(caData.contractAddress || '').slice(-4)}`,
+        price: typeof caData.price === 'number' ? caData.price : 0,
+        priceFormatted: caData.priceFormatted,
+        change24h: typeof caData.change24h === 'number' ? caData.change24h : 0,
+        marketCap: typeof caData.marketCap === 'number' ? caData.marketCap : 0,
+        marketCapFormatted: caData.marketCapFormatted,
+        targetMarketCapFormatted: caData.targetMarketCapFormatted,
+        requiredMultiple: caData.requiredMultiple,
+        requiredMultipleFormatted: caData.requiredMultipleFormatted,
+        network: caData.network,
+        fdvFormatted: caData.fdvFormatted,
+        volume24h: typeof caData.volume24h === 'number' ? caData.volume24h : 0,
+        volume24hFormatted: caData.volume24hFormatted,
+        liquidityUsd: typeof caData.liquidityUsd === 'number' ? caData.liquidityUsd : 0,
+        liquidityFormatted: caData.liquidityFormatted,
+        ath: typeof caData.price === 'number' ? caData.price : 0,
+        drawdownFromAthPct: '0.0',
+        networkActivity: caData.isAvailable ? `DEX: ${caData.pairDex} · Token Age: ${caData.tokenAge}` : 'DATA UNAVAILABLE',
+        supply: 'Contract-defined tokenomics',
+        macroContext: 'DEX Secondary Market',
+        retrievalDate: caData.retrievalDate,
+        isDemoData: false,
+        dataGaps: caData.isAvailable
+          ? [
+              `Holder Count: ${caData.holders}`,
+              `Top 10 Holder Concentration: ${caData.holderConcentration}`,
+              `Contract Verification: ${caData.contractVerification}`,
+              `Liquidity Lock: ${caData.liquidityLock}`
+            ]
+          : [
+              'Contract not found or zero liquidity on DEX indexer (DexScreener)',
+              'Deployer mint / tax audit data unavailable',
+              'Secondary liquidity pool depth data unavailable'
+            ]
+      };
+    } else {
+      const rawEvidence = demoEvidence(query);
+      evidence = {
+        ticker,
+        name: rawEvidence.name || `${ticker} Asset`,
+        price: rawEvidence.price || 100,
+        priceFormatted: `$${Number(rawEvidence.price || 100).toLocaleString()}`,
+        change24h: rawEvidence.change24h || 0,
+        marketCap: rawEvidence.marketCap || 1000000000,
+        marketCapFormatted: `$${(Number(rawEvidence.marketCap || 1000000000) / 1e9).toFixed(2)}B`,
+        volume24h: rawEvidence.volume24h || 50000000,
+        volume24hFormatted: `$${(Number(rawEvidence.volume24h || 50000000) / 1e9).toFixed(2)}B`,
+        ath: rawEvidence.ath || rawEvidence.price,
+        drawdownFromAthPct: rawEvidence.drawdownFromAthPct || '0.0',
+        networkActivity: 'Verified secondary market liquidity',
+        supply: 'Liquid circulating supply',
+        macroContext: 'Institutional multi-asset context',
+        retrievalDate: new Date().toISOString().split('T')[0],
+        isDemoData: false,
+        dataGaps: ['Non-speculative fee accrual metrics pending protocol audit']
+      };
+      evidenceSummary = `${evidence.name} (${evidence.priceFormatted}), 24h Change: ${evidence.change24h}%, MCap: ${evidence.marketCapFormatted}`;
+    }
+
     // 1. Motion Event
     sendEvent('motion', {
       asset: ticker,
       motion: query,
       sessionId,
+      questionType: isCa ? 'TOKEN_CA' : qTopic,
+      targetMarketCap: isCa ? caData.targetMarketCapFormatted : null,
+      requiredMultiple: isCa ? caData.requiredMultipleFormatted : null,
+      network: isCa ? caData.network : null,
       totalParticipants: participatingAgents.length,
       participatingSeats: participatingAgents.map(a => a.seat),
       llmProvider: process.env.OPENROUTER_API_KEY ? `OpenRouter Live AI (${process.env.OPENROUTER_MODEL || 'openrouter/free'})` : 'Deterministic Cognitive Simulator'
     });
 
-    // 2. Evidence Pack Event (Identical Evidence for all 9 personas)
-    const rawEvidence = demoEvidence(query);
-    const caMatch = query.match(/0x[a-fA-F0-9]{40}/i);
-    const evidenceName = caMatch
-      ? `Contract ${caMatch[0].slice(0, 6)}...${caMatch[0].slice(-4)}`
-      : (rawEvidence.name || `${ticker} Asset`);
-
-    const evidence = {
-      ticker,
-      name: evidenceName,
-      price: rawEvidence.price || 100,
-      priceFormatted: `$${Number(rawEvidence.price || 100).toLocaleString()}`,
-      change24h: rawEvidence.change24h || 0,
-      marketCap: rawEvidence.marketCap || 1000000000,
-      marketCapFormatted: `$${(Number(rawEvidence.marketCap || 1000000000) / 1e9).toFixed(2)}B`,
-      volume24h: rawEvidence.volume24h || 50000000,
-      volume24hFormatted: `$${(Number(rawEvidence.volume24h || 50000000) / 1e9).toFixed(2)}B`,
-      ath: rawEvidence.ath || rawEvidence.price,
-      drawdownFromAthPct: rawEvidence.drawdownFromAthPct || '0.0',
-      networkActivity: caMatch ? 'Smart contract address pending audit & on-chain verification' : 'Verified secondary market liquidity',
-      supply: caMatch ? 'Contract-defined tokenomics' : 'Liquid circulating supply',
-      macroContext: 'Institutional multi-asset context',
-      retrievalDate: new Date().toISOString().split('T')[0],
-      isDemoData: false,
-      dataGaps: caMatch
-        ? ['DEX liquidity lock status unverified', 'Deployer mint/tax backdoor inspection required', 'Organic holder distribution audit pending']
-        : ['Non-speculative fee accrual metrics pending protocol audit']
-    };
-
-    sendEvent('evidence', {
-      metrics: [
-        { label: 'Price', value: evidence.priceFormatted },
-        { label: '24h Change', value: `${evidence.change24h}%` },
-        { label: 'Market Cap', value: evidence.marketCapFormatted },
-        { label: '24h Volume', value: evidence.volume24hFormatted }
-      ],
-      gaps: evidence.dataGaps,
-      sources: ['CoinGecko v3 API Feed', 'Market Liquidity Oracle']
-    });
-
-    const evidenceSummary = `${evidence.name} (${evidence.priceFormatted}), 24h Change: ${evidence.change24h}%, MCap: ${evidence.marketCapFormatted}`;
+    // 2. Evidence Pack Event
+    if (isCa) {
+      sendEvent('evidence', {
+        network: caData.network,
+        targetMarketCap: caData.targetMarketCapFormatted,
+        requiredMultiple: caData.requiredMultipleFormatted,
+        metrics: [
+          { label: 'Price', value: caData.priceFormatted },
+          { label: '24h Change', value: typeof caData.change24h === 'number' ? `${caData.change24h}%` : 'DATA UNAVAILABLE' },
+          { label: 'Current Market Cap', value: caData.marketCapFormatted },
+          { label: 'Target Market Cap', value: caData.targetMarketCapFormatted },
+          { label: 'Required Multiple', value: caData.requiredMultipleFormatted },
+          { label: 'DEX Liquidity', value: caData.liquidityFormatted },
+          { label: '24h Volume', value: caData.volume24hFormatted },
+          { label: '24h Transactions', value: typeof caData.txns24h.buys === 'number' ? `${caData.txns24h.buys} buys / ${caData.txns24h.sells} sells` : 'DATA UNAVAILABLE' },
+          { label: 'Buy/Sell Ratio', value: caData.buySellRatio },
+          { label: 'Network', value: caData.network }
+        ],
+        gaps: evidence.dataGaps,
+        sources: [caData.source, 'On-Chain Liquidity Oracle'],
+        timestamp: caData.retrievedAt
+      });
+    } else {
+      sendEvent('evidence', {
+        metrics: [
+          { label: 'Price', value: evidence.priceFormatted },
+          { label: '24h Change', value: `${evidence.change24h}%` },
+          { label: 'Market Cap', value: evidence.marketCapFormatted },
+          { label: '24h Volume', value: evidence.volume24hFormatted }
+        ],
+        gaps: evidence.dataGaps,
+        sources: ['CoinGecko v3 API Feed', 'Market Liquidity Oracle']
+      });
+    }
 
     const round1Analyses = new Map();
     const transcript = [];
@@ -203,8 +273,7 @@ module.exports = async function handler(req, res) {
         time: new Date().toLocaleTimeString('en-US', { hour12: false }),
         text: r1.analysis
       });
-
-      sendEvent('speech', { seat: agent.seat, who: agent.name, text: r1.analysis });
+      // Single emission per seat analysis — speech event omitted to avoid duplicate rendering
     }
 
     if (round1Analyses.size !== participatingAgents.length) {
@@ -238,8 +307,8 @@ module.exports = async function handler(req, res) {
         challenge: duel.challenge,
         response: duel.response
       };
+      // Single cross-exam event emission
       sendEvent('rebuttal', rebuttalPayload);
-      sendEvent('cross_exam', rebuttalPayload);
 
       transcript.push({
         type: 'challenge',
@@ -256,9 +325,6 @@ module.exports = async function handler(req, res) {
         time: new Date().toLocaleTimeString('en-US', { hour12: false }),
         text: duel.response
       });
-
-      sendEvent('speech', { seat: challenger.seat, who: `${challenger.name} [CROSS-EXAM]`, text: duel.challenge });
-      sendEvent('speech', { seat: defender.seat, who: `${defender.name} [REBUTTAL]`, text: duel.response });
     }
 
     // --- ROUND 3: Voting Ballot & Aggregation (Selected Personas Only) ---
@@ -285,11 +351,17 @@ module.exports = async function handler(req, res) {
     }
 
     // Deterministic Aggregator (Dynamic Denominator)
-    const verdict = aggregateVotes(votes, sessionId, ticker, evidence.name, query);
+    const verdict = aggregateVotes(votes, sessionId, ticker, evidence.name, query, isCa ? caData : undefined);
 
     // Final Chamber Synthesis (Summarizing strictly participating seats)
-    const synthesis = await generateFinalSynthesis(query, participatingAgents, round1Analyses, votes, evidenceSummary);
+    const synthesis = await generateFinalSynthesis(query, participatingAgents, round1Analyses, votes, evidenceSummary, isCa ? caData : undefined);
     verdict.synthesis = synthesis;
+
+    if (isCa && caData) {
+      validateDeterministicTokenCa(verdict, caData, participatingAgents.map(a => a.seat));
+      verdict.tokenCaDetails = synthesis.caDetails;
+      verdict.questionTopic = 'TOKEN_CA';
+    }
 
     const synthesisText = `FINAL CHAMBER SYNTHESIS\n\nQuestion:\n"${synthesis.question}"\n\nKey Findings:\n${synthesis.keyFindings.map(f => `- ${f}`).join('\n')}\n\nAreas of Agreement:\n${synthesis.areasOfAgreement}\n\nAreas of Disagreement:\n${synthesis.areasOfDisagreement}\n\nUnresolved Issues:\n${synthesis.unresolvedIssues}\n\nConclusion:\n${synthesis.conclusion}`;
 
@@ -301,7 +373,6 @@ module.exports = async function handler(req, res) {
     });
 
     sendEvent('synthesis', synthesis);
-    sendEvent('speech', { seat: 0, who: 'CHAMBER CHAIR · FINAL SYNTHESIS', text: synthesisText });
     sendEvent('verdict', verdict);
 
     // --- PERSISTENCE: Save completed session to Database ---

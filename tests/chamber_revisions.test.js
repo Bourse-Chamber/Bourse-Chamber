@@ -132,10 +132,12 @@ test('TEST C: Two seats session (2 R1, cross-exam duel only between 2 seats, 2 R
   const r1Seats = r1Events.map(e => e.data.seat);
   assert.deepStrictEqual(r1Seats.sort(), [1, 2]);
 
-  // Cross-exam duel must only involve Seat 1 and Seat 2
-  const crossExamEvents = events.filter(e => e.event === 'cross_exam');
-  assert.strictEqual(crossExamEvents.length, 1, 'Must have exactly 1 cross-exam duel');
-  const duel = crossExamEvents[0].data;
+  // Cross-exam duel must only involve Seat 1 and Seat 2 via single 'rebuttal' event
+  const rebuttalEvents = events.filter(e => e.event === 'rebuttal');
+  assert.strictEqual(rebuttalEvents.length, 1, 'Must have exactly 1 rebuttal duel event');
+  const redundantCrossExam = events.filter(e => e.event === 'cross_exam');
+  assert.strictEqual(redundantCrossExam.length, 0, 'No redundant cross_exam event should be emitted');
+  const duel = rebuttalEvents[0].data;
   assert.ok(
     (duel.seatA === 1 && duel.seatB === 2) || (duel.seatA === 2 && duel.seatB === 1),
     'Duel must be strictly between Seat 1 and Seat 2'
@@ -145,11 +147,13 @@ test('TEST C: Two seats session (2 R1, cross-exam duel only between 2 seats, 2 R
   const voteEvents = events.filter(e => e.event === 'vote');
   assert.strictEqual(voteEvents.length, 2);
 
-  // Verdict denominator
+  // In default 2-seat deliberation (Seat 1: PASS, Seat 2: REDUCE), outcome is strictly a tie -> DIVIDED
   const verdictEvt = events.find(e => e.event === 'verdict');
   assert.ok(verdictEvt);
   assert.strictEqual(verdictEvt.data.totalVotes, 2);
-  assert.ok(verdictEvt.data.majorityRatio.endsWith('/ 2'), `Majority ratio must end with '/ 2', received: ${verdictEvt.data.majorityRatio}`);
+  assert.strictEqual(verdictEvt.data.outcome, 'DIVIDED', '1 PASS and 1 REDUCE must produce DIVIDED');
+  assert.strictEqual(verdictEvt.data.majorityRatio, 'NO MAJORITY', 'Tie outcome must have NO MAJORITY ratio');
+  assert.ok(verdictEvt.data.keyAgreement.includes('No clear consensus.'));
 });
 
 // TEST D: input 4 selectedSeats -> 4 responses R1, 4 votes R3, denominator "X / 4"
@@ -221,9 +225,9 @@ test('TEST F: Cross-exam duel strictly restricted to participating seats', async
   assert.strictEqual(res.statusCode, 200);
   const events = parseSseEvents(res.body);
 
-  const crossExamEvents = events.filter(e => e.event === 'cross_exam');
-  assert.strictEqual(crossExamEvents.length, 1);
-  const duel = crossExamEvents[0].data;
+  const rebuttalEvents = events.filter(e => e.event === 'rebuttal');
+  assert.strictEqual(rebuttalEvents.length, 1);
+  const duel = rebuttalEvents[0].data;
   assert.ok([6, 7].includes(duel.seatA) && [6, 7].includes(duel.seatB), 'Duel seats must only be from [6, 7]');
   assert.notStrictEqual(duel.seatA, 1, 'Unselected Seat 1 must NOT appear in cross-exam');
   assert.notStrictEqual(duel.seatB, 2, 'Unselected Seat 2 must NOT appear in cross-exam');
@@ -257,7 +261,19 @@ test('TEST G: Technical question topic detection and direct response without que
   });
 
   const verdictEvt = events.find(e => e.event === 'verdict');
-  assert.ok(verdictEvt.data.keyAgreement.toLowerCase().includes('protocol') || verdictEvt.data.keyAgreement.toLowerCase().includes('decentraliz') || verdictEvt.data.keyAgreement.toLowerCase().includes('technical'), 'Verdict agreement should reflect technical context');
+  assert.ok(verdictEvt);
+  assert.strictEqual(verdictEvt.data.outcome, 'DIVIDED');
+  assert.strictEqual(verdictEvt.data.majorityRatio, 'NO MAJORITY');
+  assert.ok(verdictEvt.data.keyAgreement.includes('No clear consensus.'));
+
+  // Test technical agreement when decisive majority exists
+  const techVotes = [
+    { seat: 1, persona: 'Satoshi Nakamoto', shortName: 'Satoshi', vote: 'ADD', weight: 1, rationale: 'r' },
+    { seat: 7, persona: 'Michael Saylor', shortName: 'Saylor', vote: 'ADD', weight: 1, rationale: 'r' }
+  ];
+  const techVerdict = aggregateVotes(techVotes, 'BC-TEST-G', 'ETH', 'Ethereum', techQuestion);
+  assert.strictEqual(techVerdict.outcome, 'ADD');
+  assert.ok(techVerdict.keyAgreement.toLowerCase().includes('protocol') || techVerdict.keyAgreement.toLowerCase().includes('technical'));
 });
 
 // TEST H: pertanyaan market menghasilkan analisis market
@@ -266,13 +282,24 @@ test('TEST H: Market question topic detection and analysis', () => {
   const topic = detectQuestionTopic(marketQuery);
   assert.strictEqual(topic, 'MARKET');
 
-  const votesMock = [
+  const votesMockMajority = [
+    { seat: 6, persona: 'Arthur Hayes', shortName: 'Hayes', vote: 'ADD', weight: 1, rationale: 'r' },
+    { seat: 7, persona: 'Michael Saylor', shortName: 'Saylor', vote: 'ADD', weight: 1, rationale: 'r' }
+  ];
+  const verdict = aggregateVotes(votesMockMajority, 'BC-TEST-H', 'BTC', 'Bitcoin', marketQuery);
+  assert.strictEqual(verdict.outcome, 'ADD');
+  assert.ok(verdict.keyAgreement.toLowerCase().includes('market') || verdict.keyAgreement.toLowerCase().includes('flow') || verdict.keyAgreement.toLowerCase().includes('liquidity'));
+  assert.ok(verdict.unresolvedQuestion.toLowerCase().includes('liquidity') || verdict.unresolvedQuestion.toLowerCase().includes('macro'));
+
+  // Divided / tie case
+  const votesMockTie = [
     { seat: 1, persona: 'Satoshi Nakamoto', shortName: 'Satoshi', vote: 'PASS', weight: 1, rationale: 'r' },
     { seat: 6, persona: 'Arthur Hayes', shortName: 'Hayes', vote: 'ADD', weight: 1, rationale: 'r' }
   ];
-  const verdict = aggregateVotes(votesMock, 'BC-TEST-H', 'BTC', 'Bitcoin', marketQuery);
-  assert.ok(verdict.keyAgreement.toLowerCase().includes('market') || verdict.keyAgreement.toLowerCase().includes('flow') || verdict.keyAgreement.toLowerCase().includes('liquidity'));
-  assert.ok(verdict.unresolvedQuestion.toLowerCase().includes('liquidity') || verdict.unresolvedQuestion.toLowerCase().includes('macro'));
+  const tieVerdict = aggregateVotes(votesMockTie, 'BC-TEST-H-TIE', 'BTC', 'Bitcoin', marketQuery);
+  assert.strictEqual(tieVerdict.outcome, 'DIVIDED');
+  assert.strictEqual(tieVerdict.majorityRatio, 'NO MAJORITY');
+  assert.ok(tieVerdict.keyAgreement.includes('No clear consensus.'));
 });
 
 // TEST I: pertanyaan umum menghasilkan analisis umum sesuai persona
@@ -353,4 +380,90 @@ test('TEST M: Single done event emitted without duplicate complete event', async
   assert.strictEqual(doneEvents.length, 1, 'Exactly one done event must be emitted');
   assert.strictEqual(completeEvents.length, 0, 'No redundant complete events should be emitted');
 });
+
+// TEST N: PROTOCOL category question routing and mandate
+test('TEST N: Protocol topic category detection', () => {
+  const protoQuery = 'Will introducing a protocol fee switch and staking emissions dilute liquidity providers in this DAO?';
+  const topic = detectQuestionTopic(protoQuery);
+  assert.strictEqual(topic, 'PROTOCOL');
+
+  const votes = [
+    { seat: 2, persona: 'Vitalik Buterin', shortName: 'Vitalik', vote: 'REDUCE', weight: 1, rationale: 'Centralization' },
+    { seat: 4, persona: 'Nick Szabo', shortName: 'Szabo', vote: 'REDUCE', weight: 1, rationale: 'Social consensus violation' }
+  ];
+  const verdict = aggregateVotes(votes, 'BC-TEST-N', 'UNI', 'Uniswap', protoQuery);
+  assert.strictEqual(verdict.outcome, 'REDUCE');
+  assert.ok(verdict.keyAgreement.toLowerCase().includes('tokenomics') || verdict.keyAgreement.toLowerCase().includes('protocol') || verdict.keyAgreement.toLowerCase().includes('fee'));
+});
+
+// TEST O: Real CA evidence vs DATA UNAVAILABLE (zero fabricated numbers)
+test('TEST O: Real CA evidence vs DATA UNAVAILABLE without fabricated numbers', async () => {
+  const { fetchCaEvidence } = require('../src/lib/ca-evidence');
+
+  // Case 1: Unindexed / invalid CA returns DATA UNAVAILABLE with zero fabricated numbers
+  const unavailableCa = await fetchCaEvidence('0x1111111111111111111111111111111111111111');
+  assert.strictEqual(unavailableCa.isAvailable, false);
+  assert.strictEqual(unavailableCa.priceFormatted, 'DATA UNAVAILABLE');
+  assert.strictEqual(unavailableCa.marketCapFormatted, 'DATA UNAVAILABLE');
+  assert.strictEqual(unavailableCa.liquidityFormatted, 'DATA UNAVAILABLE');
+  assert.strictEqual(unavailableCa.volume24hFormatted, 'DATA UNAVAILABLE');
+
+  // Case 2: Live token contract address on DexScreener
+  const realCa = await fetchCaEvidence('0x63Ee32Ac3077d1fbd8a77eBBA2a6ed4b8e9c1e18');
+  assert.ok(realCa.contractAddress.toLowerCase().includes('0x63ee'));
+  if (realCa.isAvailable) {
+    assert.notStrictEqual(realCa.priceFormatted, 'DATA UNAVAILABLE');
+    assert.notStrictEqual(realCa.liquidityFormatted, 'DATA UNAVAILABLE');
+    assert.ok(realCa.priceFormatted.startsWith('$'), `Price should be formatted with $: ${realCa.priceFormatted}`);
+    assert.ok(typeof realCa.price === 'number', 'Price must be numeric');
+  }
+});
+
+// TEST P: Position Sizing Suppression unless explicitly requested
+test('TEST P: Position sizing suppression on CA/general queries vs explicitly requested', () => {
+  const generalQuery = 'Can this token maintain valuation during liquidity contraction?';
+  assert.strictEqual(asksForInvestmentSizing(generalQuery), false, 'General query does not ask for position sizing');
+
+  const sizingQuery1 = 'What should my allocation percentage be for SOL?';
+  assert.strictEqual(asksForInvestmentSizing(sizingQuery1), true, 'Allocation percentage query asks for sizing');
+
+  const sizingQuery2 = 'How much should I invest in BTC given tail risk?';
+  assert.strictEqual(asksForInvestmentSizing(sizingQuery2), true, 'How much should I invest query asks for sizing');
+
+  const sizingQuery3 = 'What is the recommended position size for this thesis?';
+  assert.strictEqual(asksForInvestmentSizing(sizingQuery3), true, 'Position size query asks for sizing');
+});
+
+// TEST Q: Final synthesis structure includes keyEvidence and No clear consensus on ties
+test('TEST Q: Final synthesis includes keyEvidence and No clear consensus on ties', async () => {
+  const mockAgents = [
+    { seat: 1, name: 'Satoshi Nakamoto', shortName: 'Satoshi', discipline: 'Proof-of-work' },
+    { seat: 2, name: 'Vitalik Buterin', shortName: 'Vitalik', discipline: 'Smart contracts' }
+  ];
+  const r1Map = new Map();
+  r1Map.set(1, { persona: 'Satoshi Nakamoto', analysis: 'Analysis 1', key_claims: ['c1'], risk: 'Centralization', stance: 'PASS' });
+  r1Map.set(2, { persona: 'Vitalik Buterin', analysis: 'Analysis 2', key_claims: ['c2'], risk: 'Liveness', stance: 'REDUCE' });
+
+  const tiedVotes = [
+    { seat: 1, persona: 'Satoshi Nakamoto', shortName: 'Satoshi', vote: 'PASS', weight: 1, rationale: 'P' },
+    { seat: 2, persona: 'Vitalik Buterin', shortName: 'Vitalik', vote: 'REDUCE', weight: 1, rationale: 'R' }
+  ];
+
+  const evidenceSummary = `Contract Address: 0x63Ee32Ac3077d1fbd8a77eBBA2a6ed4b8e9c1e18\nPrice: $0.009\nMarket Cap: $9.7M\nDEX Liquidity Pool: $1.04M\n24h Trading Volume: $44.8K`;
+
+  const synthesis = await generateFinalSynthesis(
+    'Can this CA reach a $100K market cap?',
+    mockAgents,
+    r1Map,
+    tiedVotes,
+    evidenceSummary
+  );
+
+  assert.ok(Array.isArray(synthesis.keyEvidence), 'Synthesis must contain keyEvidence array');
+  assert.ok(synthesis.keyEvidence.length > 0, 'keyEvidence must be populated from evidence');
+  assert.strictEqual(synthesis.areasOfAgreement, 'No clear consensus.', 'Divided votes must yield No clear consensus.');
+  assert.ok(synthesis.conclusion.includes('DIVIDED — NO MAJORITY'), 'Conclusion must state DIVIDED — NO MAJORITY on tie');
+  assert.ok(synthesis.conclusion.includes('$100K'), 'Conclusion must directly address the target from the question');
+});
+
 

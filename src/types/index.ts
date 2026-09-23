@@ -3,17 +3,84 @@
  * Based on Dev Brief specifications (@bim 18 Sept 2026)
  */
 
-export type VoteOutcome = 'ADD' | 'REDUCE' | 'PASS' | 'DIVIDED';
+export type TokenCaVote = 'SUPPORTED' | 'NOT_SUPPORTED' | 'INSUFFICIENT_EVIDENCE';
+export type TokenCaAssessment = TokenCaVote | 'DIVIDED';
+
+export type VoteOutcome = 'ADD' | 'REDUCE' | 'PASS' | 'DIVIDED' | TokenCaVote;
 
 export type SeatNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
+export interface TokenCaSynthesisDetails {
+  ca: string;
+  network: string;
+  currentMarketCap: string;
+  targetMarketCap: string;
+  requiredMultiple: number | null;
+  requiredMultipleFormatted: string;
+  liquidity: string;
+  volume24h: string;
+  buysSells: string;
+  holderCount: string;
+  holderConcentration: string;
+  lpStatus: string;
+  contractRisks: string;
+  evidenceGaps: string[];
+  conditionsRequired: string[];
+  weakestConditions: string[];
+  chamberAssessment: TokenCaAssessment;
+  confidence: 'LOW' | 'MEDIUM' | 'HIGH';
+  reason: string;
+}
+
 export interface FinalChamberSynthesis {
   question: string;
+  keyEvidence?: string[];
   keyFindings: string[];
   areasOfAgreement: string;
   areasOfDisagreement: string;
   unresolvedIssues: string;
   conclusion: string;
+  caDetails?: TokenCaSynthesisDetails;
+}
+
+export interface CaEvidence {
+  contractAddress: string;
+  name: string;
+  symbol: string;
+  network: string;
+  chainId: string;
+  pairDex: string;
+  pairAddress: string;
+  tradingPair: string;
+  price: number | 'DATA UNAVAILABLE';
+  priceFormatted: string;
+  marketCap: number | 'DATA UNAVAILABLE';
+  marketCapFormatted: string;
+  targetMarketCap: number | null;
+  targetMarketCapFormatted: string;
+  requiredMultiple: number | null;
+  requiredMultipleFormatted: string;
+  fdv: number | 'DATA UNAVAILABLE';
+  fdvFormatted: string;
+  liquidityUsd: number | 'DATA UNAVAILABLE';
+  liquidityFormatted: string;
+  volume24h: number | 'DATA UNAVAILABLE';
+  volume24hFormatted: string;
+  change24h: number | 'DATA UNAVAILABLE';
+  txns24h: { buys: number | 'DATA UNAVAILABLE'; sells: number | 'DATA UNAVAILABLE' };
+  buySellRatio: string;
+  tokenAge: string;
+  holders: string;
+  holderConcentration: string;
+  contractVerification: string;
+  liquidityLock: string;
+  contractRisks: string;
+  isAvailable: boolean;
+  isAmbiguous?: boolean;
+  isNotFound?: boolean;
+  source: string;
+  retrievalDate: string;
+  retrievedAt: string;
 }
 
 export interface AgentPersona {
@@ -160,9 +227,14 @@ export interface AggregatedVerdict extends VerdictRecord {
   addCount: number;
   reduceCount: number;
   passCount: number;
+  supportedCount?: number;
+  notSupportedCount?: number;
+  insufficientCount?: number;
   totalVotes: number;
   majorityCount: number;
   majority: boolean;
   tie: boolean;
+  questionTopic?: string;
+  tokenCaDetails?: TokenCaSynthesisDetails;
 }
 

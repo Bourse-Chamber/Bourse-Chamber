@@ -352,6 +352,37 @@ header.site-header {
   font-weight: 500;
 }
 
+.badge.supported {
+  background: #FFFFFF;
+  color: #000000;
+  border-color: #FFFFFF;
+  font-weight: 700;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.25);
+}
+
+.badge.not_supported,
+.badge.not-supported {
+  background: #1F1F1F;
+  color: #CCCCCC;
+  border-color: #4A4A4A;
+  font-weight: 600;
+}
+
+.badge.insufficient_evidence,
+.badge.insufficient {
+  background: transparent;
+  color: #888888;
+  border-color: #333333;
+  font-weight: 500;
+}
+
+.badge.divided {
+  background: transparent;
+  color: #A3A3A3;
+  border-color: #555555;
+  font-weight: 600;
+}
+
 /* ==========================================================================
    Dossier Drawer (Right Side Inspector)
    ========================================================================== */

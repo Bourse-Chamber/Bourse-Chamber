@@ -5,9 +5,12 @@ import {
   generateRound2CrossExam,
   generateRound3Vote,
   aggregateVotes,
-  generateFinalSynthesis
+  generateFinalSynthesis,
+  detectQuestionTopic,
+  validateDeterministicTokenCa
 } from '../../../lib/openrouter';
 import { fetchCryptoEvidence, extractTickerFromQuery } from '../../../lib/coingecko';
+import { fetchCaEvidence, formatCaEvidenceSummary, extractContractAddress } from '../../../lib/ca-evidence';
 import { db } from '../../../lib/db';
 import { redis } from '../../../lib/redis';
 import { SeatVote, TranscriptMessage, Round1Analysis } from '../../../types';
@@ -68,8 +71,77 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const ticker = extractTickerFromQuery(query);
-    const evidence = await fetchCryptoEvidence(ticker);
+    // 4. Evidence Pack Gathering (CA-specific or Crypto Market)
+    const qTopic = detectQuestionTopic(query);
+    const caMatch = extractContractAddress(query);
+    const isCa = qTopic === 'TOKEN_CA' || Boolean(caMatch);
+
+    console.log('[SESSION DEBUG] query:', query.slice(0, 120));
+    console.log('[SESSION DEBUG] qTopic:', qTopic, '| isCa:', isCa, '| caMatch:', caMatch);
+
+    let evidence: any;
+    let evidenceSummary: string;
+    let ticker = extractTickerFromQuery(query);
+    let caData: any = null;
+
+    if (isCa) {
+      caData = await fetchCaEvidence(query);
+
+      // Debug: log CA evidence snapshot to Vercel runtime logs
+      console.log('[SESSION DEBUG] caData.isAvailable:', caData.isAvailable);
+      console.log('[SESSION DEBUG] caData.name:', caData.name, '| symbol:', caData.symbol);
+      console.log('[SESSION DEBUG] caData.network:', caData.network);
+      console.log('[SESSION DEBUG] caData.marketCapFormatted:', caData.marketCapFormatted);
+      console.log('[SESSION DEBUG] caData.targetMarketCapFormatted:', caData.targetMarketCapFormatted);
+      console.log('[SESSION DEBUG] caData.requiredMultipleFormatted:', caData.requiredMultipleFormatted);
+      console.log('[SESSION DEBUG] caData.liquidityFormatted:', caData.liquidityFormatted);
+      console.log('[SESSION DEBUG] caData.volume24hFormatted:', caData.volume24hFormatted);
+      console.log('[SESSION DEBUG] caData.txns24h:', JSON.stringify(caData.txns24h));
+
+      evidenceSummary = formatCaEvidenceSummary(caData);
+      ticker = caData.symbol !== 'DATA UNAVAILABLE' ? caData.symbol : 'TOKEN';
+      evidence = {
+        ticker,
+        name: caData.name !== 'DATA UNAVAILABLE' ? `${caData.name} (${caData.symbol})` : `Contract ${(caData.contractAddress || '').slice(0, 6)}...${(caData.contractAddress || '').slice(-4)}`,
+        price: typeof caData.price === 'number' ? caData.price : 0,
+        priceFormatted: caData.priceFormatted,
+        change24h: typeof caData.change24h === 'number' ? caData.change24h : 0,
+        marketCap: typeof caData.marketCap === 'number' ? caData.marketCap : 0,
+        marketCapFormatted: caData.marketCapFormatted,
+        targetMarketCapFormatted: caData.targetMarketCapFormatted,
+        requiredMultiple: caData.requiredMultiple,
+        requiredMultipleFormatted: caData.requiredMultipleFormatted,
+        network: caData.network,
+        fdvFormatted: caData.fdvFormatted,
+        volume24h: typeof caData.volume24h === 'number' ? caData.volume24h : 0,
+        volume24hFormatted: caData.volume24hFormatted,
+        liquidityUsd: typeof caData.liquidityUsd === 'number' ? caData.liquidityUsd : 0,
+        liquidityFormatted: caData.liquidityFormatted,
+        ath: typeof caData.price === 'number' ? caData.price : 0,
+        drawdownFromAthPct: '0.0',
+        networkActivity: caData.isAvailable ? `DEX: ${caData.pairDex} · Token Age: ${caData.tokenAge}` : 'DATA UNAVAILABLE',
+        supply: 'Contract-defined tokenomics',
+        macroContext: 'DEX Secondary Market',
+        retrievalDate: caData.retrievalDate,
+        isDemoData: false,
+        dataGaps: caData.isAvailable
+          ? [
+              `Holder Count: ${caData.holders}`,
+              `Top 10 Holder Concentration: ${caData.holderConcentration}`,
+              `Contract Verification: ${caData.contractVerification}`,
+              `Liquidity Lock: ${caData.liquidityLock}`
+            ]
+          : [
+              'Contract not found or zero liquidity on DEX indexer (DexScreener)',
+              'Deployer mint / tax audit data unavailable',
+              'Secondary liquidity pool depth data unavailable'
+            ]
+      };
+    } else {
+      evidence = await fetchCryptoEvidence(ticker);
+      evidenceSummary = `${evidence.name} ($${evidence.priceFormatted || evidence.price}), 24h Change: ${evidence.change24h}%, MCap: $${evidence.marketCapFormatted || evidence.marketCap}`;
+    }
+
     const sessionId = `BC-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const stream = new ReadableStream({
@@ -91,14 +163,39 @@ export async function POST(req: NextRequest) {
             sessionId,
             asset: ticker,
             motion: query,
+            questionType: isCa ? 'TOKEN_CA' : qTopic,
+            targetMarketCap: isCa ? caData?.targetMarketCapFormatted : null,
+            requiredMultiple: isCa ? caData?.requiredMultipleFormatted : null,
+            network: isCa ? caData?.network : null,
             totalParticipants: participatingAgents.length,
             participatingSeats: participatingAgents.map(a => a.seat),
             llmProvider: process.env.OPENROUTER_API_KEY ? 'OpenRouter Real LLM Engine' : 'Deterministic Cognitive Simulator',
           });
 
-          emit('evidence', evidence);
-
-          const evidenceSummary = `${evidence.name} ($${evidence.priceFormatted || evidence.price}), 24h Change: ${evidence.change24h}%, MCap: $${evidence.marketCapFormatted || evidence.marketCap}`;
+          if (isCa && caData) {
+            emit('evidence', {
+              network: caData.network,
+              targetMarketCap: caData.targetMarketCapFormatted,
+              requiredMultiple: caData.requiredMultipleFormatted,
+              metrics: [
+                { label: 'Price', value: caData.priceFormatted },
+                { label: '24h Change', value: typeof caData.change24h === 'number' ? `${caData.change24h}%` : 'DATA UNAVAILABLE' },
+                { label: 'Current Market Cap', value: caData.marketCapFormatted },
+                { label: 'Target Market Cap', value: caData.targetMarketCapFormatted },
+                { label: 'Required Multiple', value: caData.requiredMultipleFormatted },
+                { label: 'DEX Liquidity', value: caData.liquidityFormatted },
+                { label: '24h Volume', value: caData.volume24hFormatted },
+                { label: '24h Transactions', value: typeof caData.txns24h.buys === 'number' ? `${caData.txns24h.buys} buys / ${caData.txns24h.sells} sells` : 'DATA UNAVAILABLE' },
+                { label: 'Buy/Sell Ratio', value: caData.buySellRatio },
+                { label: 'Network', value: caData.network }
+              ],
+              gaps: evidence.dataGaps,
+              sources: [caData.source, 'On-Chain Liquidity Oracle'],
+              timestamp: caData.retrievedAt
+            });
+          } else {
+            emit('evidence', evidence);
+          }
 
           // --- ROUND 1: Strictly Independent Readings (Selected Personas Only) ---
           for (const agent of participatingAgents) {
@@ -132,8 +229,7 @@ export async function POST(req: NextRequest) {
               time: new Date().toLocaleTimeString('en-US', { hour12: false }),
               text: r1.analysis,
             });
-
-            emit('speech', { seat: agent.seat, who: agent.name, text: r1.analysis });
+            // Single emission per seat analysis — speech event omitted to avoid duplicate rendering
           }
 
           if (round1Analyses.size !== participatingAgents.length) {
@@ -143,12 +239,25 @@ export async function POST(req: NextRequest) {
           // --- ROUND 2: Cross-Examination Duel (Only if >= 2 participants) ---
           let duelChallenge = '';
           if (participatingAgents.length >= 2) {
-            const addAgent = participatingAgents.find((a) => round1Analyses.get(a.seat)?.stance === 'ADD') || participatingAgents[0];
-            const reduceAgent = participatingAgents.find((a) => round1Analyses.get(a.seat)?.stance === 'REDUCE' && a.seat !== addAgent.seat) || participatingAgents.find(a => a.seat !== addAgent.seat) || participatingAgents[1];
+            // TOKEN_CA: pair SUPPORTED vs NOT_SUPPORTED/INSUFFICIENT_EVIDENCE
+            // Standard: pair ADD vs REDUCE
+            const isTokenCa = isCa;
+            const proStances = isTokenCa ? ['SUPPORTED'] : ['ADD'];
+            const conStances = isTokenCa ? ['NOT_SUPPORTED', 'INSUFFICIENT_EVIDENCE'] : ['REDUCE', 'PASS'];
+
+            const addAgent =
+              participatingAgents.find((a) => proStances.includes(round1Analyses.get(a.seat)?.stance || '')) ||
+              participatingAgents[0];
+            const reduceAgent =
+              participatingAgents.find((a) => conStances.includes(round1Analyses.get(a.seat)?.stance || '') && a.seat !== addAgent.seat) ||
+              participatingAgents.find(a => a.seat !== addAgent.seat) ||
+              participatingAgents[1];
 
             const challenger = reduceAgent;
             const defender = addAgent;
             const defenderR1 = round1Analyses.get(defender.seat)!;
+
+            console.log(`[SESSION DEBUG] Round 2 duel: ${challenger.name} (Seat ${challenger.seat}, stance: ${round1Analyses.get(challenger.seat)?.stance}) vs ${defender.name} (Seat ${defender.seat}, stance: ${round1Analyses.get(defender.seat)?.stance})`);
 
             emit('duel_start', { seatA: challenger.seat, seatB: defender.seat });
 
@@ -173,8 +282,8 @@ export async function POST(req: NextRequest) {
               challenge: duel.challenge,
               response: duel.response,
             };
+            // Single cross-exam event emission
             emit('rebuttal', duelPayload);
-            emit('cross_exam', duelPayload);
 
             transcript.push({
               type: 'challenge',
@@ -191,9 +300,6 @@ export async function POST(req: NextRequest) {
               time: new Date().toLocaleTimeString('en-US', { hour12: false }),
               text: duel.response,
             });
-
-            emit('speech', { seat: challenger.seat, who: `${challenger.name} [CROSS-EXAM]`, text: duel.challenge });
-            emit('speech', { seat: defender.seat, who: `${defender.name} [REBUTTAL]`, text: duel.response });
           }
 
           // --- ROUND 3: Voting Ballot & Aggregation (Selected Personas Only) ---
@@ -201,6 +307,8 @@ export async function POST(req: NextRequest) {
             const r1 = round1Analyses.get(agent.seat)?.analysis || '';
             const ballot = await generateRound3Vote(agent, query, r1, duelChallenge);
             votes.push(ballot);
+
+            console.log(`[SESSION DEBUG] Vote — Seat ${agent.seat} ${agent.name}: ${ballot.vote}`);
 
             emit('vote', {
               type: 'vote',
@@ -220,11 +328,18 @@ export async function POST(req: NextRequest) {
           }
 
           // Deterministic Aggregator (Dynamic Denominator)
-          const verdict = aggregateVotes(votes, sessionId, ticker, evidence.name, query);
+          const verdict = aggregateVotes(votes, sessionId, ticker, evidence.name, query, isCa ? caData : undefined);
+          console.log(`[SESSION DEBUG] Verdict: outcome=${verdict.outcome} | majorityRatio=${verdict.majorityRatio} | questionTopic=${verdict.questionTopic}`);
 
           // Final Chamber Synthesis
-          const synthesis = await generateFinalSynthesis(query, participatingAgents, round1Analyses, votes, evidenceSummary);
+          const synthesis = await generateFinalSynthesis(query, participatingAgents, round1Analyses, votes, evidenceSummary, isCa ? caData : undefined);
           verdict.synthesis = synthesis;
+
+          if (isCa && caData) {
+            validateDeterministicTokenCa(verdict, caData, participatingAgents.map(a => a.seat));
+            verdict.tokenCaDetails = synthesis.caDetails;
+            verdict.questionTopic = 'TOKEN_CA';
+          }
 
           const synthesisText = `FINAL CHAMBER SYNTHESIS\n\nQuestion:\n"${synthesis.question}"\n\nKey Findings:\n${synthesis.keyFindings.map((f: string) => `- ${f}`).join('\n')}\n\nAreas of Agreement:\n${synthesis.areasOfAgreement}\n\nAreas of Disagreement:\n${synthesis.areasOfDisagreement}\n\nUnresolved Issues:\n${synthesis.unresolvedIssues}\n\nConclusion:\n${synthesis.conclusion}`;
 
@@ -236,7 +351,6 @@ export async function POST(req: NextRequest) {
           });
 
           emit('synthesis', synthesis);
-          emit('speech', { seat: 0, who: 'CHAMBER CHAIR · FINAL SYNTHESIS', text: synthesisText });
           emit('verdict', verdict);
 
           // --- PERSISTENCE: Save completed session to Database ---
