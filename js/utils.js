@@ -81,6 +81,9 @@ const BourseUtils = (() => {
     if (/burry/i.test(name)) {
       return faceZoom('/img/burry.png', 'Michael Burry', 'img/burry.png');
     }
+    if (/pabrai/i.test(name)) {
+      return faceZoom('/img/pabrai.png', 'Mohnish Pabrai', 'img/pabrai.png');
+    }
     const hash = hashString(name);
     const gridSize = 8;
     const halfGrid = 4;
