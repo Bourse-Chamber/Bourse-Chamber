@@ -235,7 +235,7 @@ export async function generateRound1Analysis(
       agent.seat === 5 ? 'DEX AMM execution efficiency, liquidity pool utilization, and swap slippage under accelerated buying' :
       agent.seat === 1 ? 'token distribution fairness, mint authority, owner privileges, and sound monetary decentralization' :
       agent.seat === 2 ? 'smart-contract mechanism design, composability, LP fee incentives, and tokenomics sustainability' :
-      agent.seat === 6 ? 'macro liquidity, speculative momentum, volume-to-liquidity ratio, reflexivity, and downside volatility' :
+      agent.seat === 6 ? 'macro liquidity, speculative momentum, volume vs liquidity divergence (volume turnover != executable pool depth), reflexivity, and downside price impact' :
       'FDV dilution, token supply expansion, and balance-sheet demand sustainability';
 
     mandate = `The user is asking a TOKEN_CA question regarding token market-cap feasibility. You MUST analyze the identical CA evidence snapshot through your assigned lens.
@@ -243,6 +243,7 @@ CRITICAL MANDATE FOR ${agent.name} (Seat 0${agent.seat}):
 - Specific Lens: ${specificLens}.
 - STRICT PROHIBITION: Do NOT discuss validator hardware, validator decentralization, sustained TPS, proof-of-work/stake consensus, or ETF AUM.
 - Distinguish Market Cap != Executable Liquidity. A $100K market cap does NOT mean $100K of executable liquidity.
+- Distinguish Trading Volume != Executable Pool Liquidity. High 24h trading volume reflects turnover velocity, NOT pool depth. Do NOT treat high volume as proof of sufficient liquidity.
 - Distinguish Trading Volume != Organic Demand.
 - Never guarantee future price or market cap (never say "will reach" or "guaranteed to reach").
 - If a metric is 'DATA UNAVAILABLE', it is strictly UNKNOWN; do NOT make positive or negative assumptions about missing data.
@@ -346,7 +347,7 @@ Deliver your evaluation now as a JSON object starting directly with {:`;
       agent.seat === 5 ? `From a DEX AMM pool execution standpoint, the governing constraint is liquidity pool depth and execution slippage under accelerated buying volume. Expanding toward the target multiple with current liquidity depth will incur steep price impact.` :
       agent.seat === 1 ? `From a decentralization and monetary invariants standpoint, token distribution fairness and deployer mint authority revocation cannot be verified from the evidence pack because contract permissions are DATA UNAVAILABLE.` :
       agent.seat === 2 ? `From a smart-contract mechanism design perspective, the token's LP fee incentives and composability require scrutiny. Unverified liquidity pool locking presents structural vulnerability to liquidity withdrawal as market cap scales.` :
-      agent.seat === 6 ? `From a macro liquidity and speculative reflexivity lens, the volume-to-liquidity turnover reflects strong momentum, but downside volatility remains asymmetric given thin secondary liquidity relative to the target multiple.` :
+      agent.seat === 6 ? `From a macro liquidity and speculative reflexivity lens, 24h volume turnover reflects active secondary trading interest, but high trading volume must be strictly distinguished from executable liquidity depth. High volume measures trading turnover, not the pool liquidity depth required to absorb large orders without severe price impact.` :
       `From a capital preservation perspective, evaluating target feasibility requires analyzing FDV dilution and supply inflation. Without verified vesting schedules and durable demand, speculative multiple expansion carries high downside risk.`;
   } else if (isMarketQuestion) {
     fallbackAnalysis = `From my ${agent.discipline} discipline, current ${agent.primaryMetric} conditions represent the primary variable. The decisive tail risk to monitor is ${agent.fatalFlaw}.`;
@@ -468,6 +469,7 @@ export async function generateRound3Vote(
   const systemPrompt = `You are ${agent.name}, Seat 0${agent.seat} (${agent.discipline}) at the Bourse Crypto Chamber.
 Cast your final binding ballot on the question submitted to the floor.
 ${isCaQuestion ? 'For this TOKEN_CA feasibility question, your vote must be SUPPORTED, NOT_SUPPORTED, or INSUFFICIENT_EVIDENCE based on observable liquidity, volume, and contract verification.' : 'Your vote must be ADD, REDUCE, or PASS.'}
+${agent.seat === 6 ? 'CRITICAL MANDATE FOR ARTHUR HAYES: Distinguish 24h trading volume (turnover velocity) from executable pool liquidity (depth/price impact). Do NOT treat high 24h volume as proof of sufficient liquidity.' : ''}
 Do NOT quote or repeat the user's question. State your voting reason directly.
 
 You MUST respond strictly with a valid JSON object matching this schema:
@@ -547,7 +549,7 @@ Cast your final ballot now as a JSON object starting directly with {:`;
       agent.seat === 3 ? 'Holder distribution is DATA UNAVAILABLE, making organic adoption indistinguishable from wash trading.' :
       agent.seat === 4 ? 'Contract verification and LP lock status are DATA UNAVAILABLE, presenting deployer centralization risk.' :
       agent.seat === 5 ? 'AMM liquidity pool utilization indicates prohibitive price impact under target expansion.' :
-      agent.seat === 6 ? '24h volume turnover and buy/sell activity provide initial speculative liquidity momentum.' :
+      agent.seat === 6 ? '24h volume reflects active trading turnover, but volume is not executable pool depth; available DEX liquidity dictates actual slippage and downside price impact.' :
       agent.seat === 7 ? 'Dilution risks and unverified token supply prevent capital preservation at the target multiple.' :
       agent.seat === 8 ? 'Active secondary 24h trading volume demonstrates sufficient initial market turnover.' :
       'Missing contract audit verification and custody transparency preclude market support.';
@@ -934,37 +936,138 @@ export async function generateFinalSynthesis(
 
     const targetParsed = extractTargetMarketCap(question);
     const targetFormatted = caEvidence?.targetMarketCapFormatted || (targetParsed.targetMcapFormatted !== 'DATA UNAVAILABLE' ? targetParsed.targetMcapFormatted : '$100K');
-    const multFormatted = caEvidence?.requiredMultipleFormatted || (
-      (typeof caEvidence?.marketCap === 'number' && targetParsed.targetMcap)
-        ? `${(targetParsed.targetMcap / caEvidence.marketCap).toFixed(2)}x`
-        : 'the required multiple'
-    );
-    const liqFormatted = caEvidence?.liquidityFormatted || 'DATA UNAVAILABLE';
 
+    // ── TARGET DIRECTION & RATIO CALCULATION ─────────────────────────────────
+    const currentMcNum = typeof caEvidence?.marketCap === 'number' ? caEvidence.marketCap : null;
+    const targetMcNum: number | null = (caEvidence?.targetMarketCap != null && typeof caEvidence.targetMarketCap === 'number')
+      ? caEvidence.targetMarketCap
+      : (targetParsed.targetMcap ?? null);
+
+    let targetInterpretation = 'DATA UNAVAILABLE';
+    let marketCapChangeRequired = 'DATA UNAVAILABLE';
+    let targetRatio: number | null = caEvidence?.requiredMultiple ?? null;
+    let multFormatted = caEvidence?.requiredMultipleFormatted || 'DATA UNAVAILABLE';
+    let isTargetBelow = false;
+    let isTargetAbove = false;
+
+    if (currentMcNum !== null && targetMcNum !== null && currentMcNum > 0 && targetMcNum > 0) {
+      const ratio = targetMcNum / currentMcNum;
+      targetRatio = Number(ratio.toFixed(4));
+      multFormatted = `${ratio.toFixed(2)}x`;
+
+      if (targetMcNum < currentMcNum) {
+        isTargetBelow = true;
+        const pctDecrease = ((currentMcNum - targetMcNum) / currentMcNum * 100).toFixed(1);
+        const pctChange = (((targetMcNum - currentMcNum) / currentMcNum) * 100).toFixed(2);
+        targetInterpretation = 'Below current market cap';
+        marketCapChangeRequired = `The ${targetFormatted} target is below the current market cap. Reaching ${targetFormatted} would represent approximately an ${pctDecrease}% decrease in market capitalization from the current level, not a required increase. Required change from current MC to target = approximately ${pctChange}% (Target / Current MC = ${multFormatted}).`;
+      } else if (targetMcNum > currentMcNum) {
+        isTargetAbove = true;
+        const pctIncrease = ((targetMcNum - currentMcNum) / currentMcNum * 100).toFixed(1);
+        const pctChange = (((targetMcNum - currentMcNum) / currentMcNum) * 100).toFixed(2);
+        targetInterpretation = 'Above current market cap';
+        marketCapChangeRequired = `+${pctIncrease}% expansion from current market cap (${caEvidence?.marketCapFormatted || 'DATA UNAVAILABLE'}) to reach ${targetFormatted}. Required change from current MC to target = approximately +${pctChange}% (Target / Current MC = ${multFormatted}).`;
+      } else {
+        targetInterpretation = 'Equal to current market cap';
+        marketCapChangeRequired = `Current market cap already matches target ${targetFormatted} (Target / Current MC = 1.00x).`;
+      }
+    } else if (currentMcNum === null) {
+      targetInterpretation = 'DATA UNAVAILABLE — current market cap not indexed on-chain';
+      marketCapChangeRequired = 'DATA UNAVAILABLE — current MC required to compute required change';
+    }
+
+    const liqFormatted = caEvidence?.liquidityFormatted || 'DATA UNAVAILABLE';
+    const volFormatted = caEvidence?.volume24hFormatted || 'DATA UNAVAILABLE';
+    const txns = caEvidence?.txns24h;
+    const txnsFormatted = (txns && typeof txns.buys === 'number')
+      ? `${txns.buys} buys / ${txns.sells} sells`
+      : 'DATA UNAVAILABLE';
+
+    // ── GREATEST EVIDENCE-BASED CONSTRAINT ─────────────────────────────────
+    const criticalFieldsMissing = caEvidence?.holderConcentration === 'DATA UNAVAILABLE'
+      || caEvidence?.liquidityLock === 'DATA UNAVAILABLE'
+      || caEvidence?.contractVerification === 'DATA UNAVAILABLE';
+
+    let greatestObservableConstraint: string;
+    let greatestConstraintEvidence: string;
+
+    if (criticalFieldsMissing) {
+      greatestObservableConstraint = 'INSUFFICIENT EVIDENCE — no single greatest constraint can be reliably identified because critical fields such as holder concentration or LP status are unavailable.';
+      greatestConstraintEvidence = `Observable metrics: DEX Liquidity = ${liqFormatted}, 24h Volume = ${volFormatted}, 24h Transactions = ${txnsFormatted}. Critical unavailable fields: Holder Concentration (DATA UNAVAILABLE), LP Lock Status (DATA UNAVAILABLE), Contract Verification (DATA UNAVAILABLE). Declaring any single constraint as the primary obstacle without verifiable lockup and distribution data would be an ungrounded assumption.`;
+    } else if (isTargetAbove && typeof caEvidence?.liquidityUsd === 'number' && currentMcNum !== null) {
+      greatestObservableConstraint = 'DEX Liquidity Depth vs Required Growth Multiple';
+      greatestConstraintEvidence = `Current DEX liquidity of ${liqFormatted} relative to current market cap of ${caEvidence?.marketCapFormatted || 'DATA UNAVAILABLE'}. Scaling to ${targetFormatted} (${multFormatted}) without proportional liquidity expansion will trigger extreme slippage and price impact. (Note: 24h volume of ${volFormatted} reflects turnover velocity, NOT executable pool depth).`;
+    } else {
+      greatestObservableConstraint = 'DEX Liquidity Pool Depth';
+      greatestConstraintEvidence = `Observable DEX liquidity is ${liqFormatted}. Note: 24h volume of ${volFormatted} reflects turnover velocity, NOT executable pool depth.`;
+    }
+
+    // ── CONCRETE MEASURABLE CONDITIONS (Evidence-Derived) ───────────────────
+    const measurableConditions: string[] = [];
+    if (isTargetBelow) {
+      const pctDecrease = currentMcNum && targetMcNum ? ((currentMcNum - targetMcNum) / currentMcNum * 100).toFixed(1) : '88.9';
+      measurableConditions.push(`1. Market-Cap Change: Reaching ${targetFormatted} from ${caEvidence?.marketCapFormatted || 'current level'} represents a ${pctDecrease}% contraction in market capitalization (-${Math.abs((currentMcNum || 0) - (targetMcNum || 0)).toLocaleString('en-US', { maximumFractionDigits: 0 })} USD). No capital expansion is required because the current market cap already exceeds the stated target.`);
+      measurableConditions.push(`2. Liquidity Pool Conditions: Current observable DEX liquidity of ${liqFormatted} on ${caEvidence?.network || 'network'} must support ongoing order flow without severe slippage or sudden LP drainage.`);
+      measurableConditions.push(`3. Volume & Activity Equilibrium: 24h trading volume of ${volFormatted} (${txnsFormatted}, Buy/Sell Ratio: ${caEvidence?.buySellRatio || 'DATA UNAVAILABLE'}) reflects turnover velocity, NOT executable pool depth. Price stability requires sustained two-way order flow.`);
+      measurableConditions.push(`4. Holder Concentration Requirements: DATA UNAVAILABLE — on-chain holder distribution is not indexed; verifiable non-custodial holder metrics cannot be quantified.`);
+      measurableConditions.push(`5. LP & Contract Requirements: DATA UNAVAILABLE — proof of LP token burn/lock and deployer key renunciation cannot be verified from available on-chain indexer records.`);
+    } else if (isTargetAbove) {
+      const pctIncrease = currentMcNum && targetMcNum ? ((targetMcNum - currentMcNum) / currentMcNum * 100).toFixed(1) : '0';
+      measurableConditions.push(`1. Market-Cap Change: Reaching ${targetFormatted} from ${caEvidence?.marketCapFormatted || 'current level'} requires a +${pctIncrease}% expansion in market capitalization (+${((targetMcNum || 0) - (currentMcNum || 0)).toLocaleString('en-US', { maximumFractionDigits: 0 })} USD, ${multFormatted} multiple).`);
+      measurableConditions.push(`2. Liquidity Pool Expansion: Current DEX liquidity of ${liqFormatted} must expand proportionally with market cap to absorb buy-side order flow without prohibitive price slippage (24h volume of ${volFormatted} reflects turnover, NOT pool depth).`);
+      measurableConditions.push(`3. Volume & Activity Inflow: 24h trading volume of ${volFormatted} (${txnsFormatted}, Buy/Sell Ratio: ${caEvidence?.buySellRatio || 'DATA UNAVAILABLE'}) must sustain net buying demand rather than wash trading or speculative churn.`);
+      measurableConditions.push(`4. Holder Concentration Requirements: DATA UNAVAILABLE — on-chain holder distribution cannot be quantified from available records.`);
+      measurableConditions.push(`5. LP & Contract Requirements: DATA UNAVAILABLE — proof of LP token burn/lock and deployer key renunciation cannot be verified from available on-chain indexer records.`);
+    } else {
+      measurableConditions.push(`1. Market-Cap Change: Current market cap of ${caEvidence?.marketCapFormatted || 'DATA UNAVAILABLE'} already matches target ${targetFormatted}.`);
+      measurableConditions.push(`2. Liquidity Conditions: DEX pool liquidity of ${liqFormatted}.`);
+      measurableConditions.push(`3. Volume & Activity: 24h volume of ${volFormatted} (${txnsFormatted}).`);
+      measurableConditions.push(`4. Holder Concentration Requirements: DATA UNAVAILABLE`);
+      measurableConditions.push(`5. LP & Contract Requirements: DATA UNAVAILABLE`);
+    }
+
+    // ── OUTCOME RATIONALE & CONCLUSION ─────────────────────────────────────
     let caReason = '';
-    if (outcome === 'SUPPORTED') {
-      caReason = `Observable 24h trading volume and buy/sell transaction velocity provide initial secondary market support for pursuing the ${targetFormatted} market cap (${multFormatted}), though reaching this target is not guaranteed and requires substantial liquidity pool expansion.`;
+    if (isTargetBelow) {
+      const pctDecrease = currentMcNum && targetMcNum ? ((currentMcNum - targetMcNum) / currentMcNum * 100).toFixed(1) : '88.9';
+      caReason = `The ${targetFormatted} target is below the current market cap. Reaching ${targetFormatted} would represent approximately an ${pctDecrease}% decrease in market capitalization from the current level, not a required increase.`;
+    } else if (outcome === 'SUPPORTED') {
+      caReason = `Observable 24h trading activity (${txnsFormatted}) provides initial secondary market turnover. Note: 24h volume (${volFormatted}) reflects turnover, NOT executable pool depth — high volume does not equal sufficient liquidity. The ${multFormatted} growth to ${targetFormatted} requires proportional liquidity pool expansion.`;
     } else if (outcome === 'NOT_SUPPORTED') {
-      caReason = `Current observable DEX liquidity of ${liqFormatted} is insufficient to support the required ${multFormatted} market-cap growth without severe price impact and slippage.`;
+      caReason = `Current observable DEX liquidity of ${liqFormatted} is insufficient to support the required ${multFormatted} market-cap growth to ${targetFormatted} without severe price impact and slippage. High 24h volume (${volFormatted}) does not compensate for thin pool depth.`;
     } else if (outcome === 'INSUFFICIENT_EVIDENCE') {
       caReason = `Critical on-chain evidence (contract verification, deployer permissions, LP lock status, holder concentration) is DATA UNAVAILABLE, precluding a conclusive feasibility determination for ${targetFormatted}.`;
     } else {
-      caReason = `The Chamber is deadlocked with no single feasibility stance commanding a majority (${supC} SUPPORTED, ${notSupC} NOT_SUPPORTED, ${insC} INSUFFICIENT_EVIDENCE). While trading volume reflects active interest, available DEX liquidity of ${liqFormatted} and missing LP lock verification prevent consensus on the ${targetFormatted} target (${multFormatted}).`;
+      caReason = `The Chamber is deadlocked (${supC} SUPPORTED, ${notSupC} NOT_SUPPORTED, ${insC} INSUFFICIENT_EVIDENCE). Available DEX liquidity of ${liqFormatted} and missing LP lock verification prevent consensus on the ${targetFormatted} target.`;
     }
 
-    const conclusion = `Can this CA reach ${targetFormatted} market cap based on currently available evidence? Chamber Assessment: ${outcome === 'DIVIDED' ? 'DIVIDED — NO MAJORITY' : outcome}. ${caReason}`;
+    const conclusion = `TARGET INTERPRETATION:
+${targetInterpretation}
+
+MARKET-CAP CHANGE REQUIRED:
+${marketCapChangeRequired}
+
+GREATEST OBSERVABLE CONSTRAINT:
+${greatestObservableConstraint}
+
+EVIDENCE:
+${greatestConstraintEvidence}
+
+CHAMBER ASSESSMENT: ${outcome === 'DIVIDED' ? 'DIVIDED — NO MAJORITY' : outcome}. ${caReason}`;
 
     const parsedCa = extractContractAddress(question);
     const resolvedCa = caEvidence?.contractAddress || parsedCa || 'DATA UNAVAILABLE';
     const caDetails: TokenCaSynthesisDetails = {
       ca: resolvedCa,
+      contractAddress: resolvedCa,
       network: caEvidence?.network || 'NETWORK UNKNOWN',
       currentMarketCap: caEvidence?.marketCapFormatted || 'DATA UNAVAILABLE',
       targetMarketCap: targetFormatted,
-      requiredMultiple: caEvidence?.requiredMultiple ?? null,
+      requiredMultiple: targetRatio,
       requiredMultipleFormatted: multFormatted,
-      liquidity: caEvidence?.liquidityFormatted || 'DATA UNAVAILABLE',
-      volume24h: caEvidence?.volume24hFormatted || 'DATA UNAVAILABLE',
+      liquidity: liqFormatted,
+      currentLiquidity: liqFormatted,
+      volume24h: volFormatted,
       buysSells: (caEvidence && typeof caEvidence.txns24h.buys === 'number')
         ? `${caEvidence.txns24h.buys} buys / ${caEvidence.txns24h.sells} sells (Buy/Sell Ratio: ${caEvidence.buySellRatio})`
         : 'DATA UNAVAILABLE',
@@ -979,18 +1082,21 @@ export async function generateFinalSynthesis(
             'LP lockup / burn audit verification unavailable',
             'Deployer mint authority & contract verification unavailable'
           ],
-      conditionsRequired: [
-        '1. Secondary DEX liquidity depth must expand proportionally to absorb buying toward the target without prohibitive slippage.',
-        '2. Provable on-chain liquidity pool lock/burn and deployer mint authority revocation to eliminate rug risk.',
-        '3. Sustained organic buy volume with decentralized holder distribution rather than wash trading or deployer concentration.'
-      ],
+      conditionsRequired: measurableConditions,
       weakestConditions: [
-        '1. Available DEX liquidity depth relative to the required market-cap growth multiple.',
-        '2. Unverified on-chain holder distribution and unverified deployer mint/pause privileges.'
+        greatestObservableConstraint,
+        greatestConstraintEvidence
       ],
       chamberAssessment: outcome,
+      overallFeasibility: outcome,
       confidence: (caEvidence && caEvidence.isAvailable) ? 'MEDIUM' : 'LOW',
-      reason: caReason
+      confidenceScore: (caEvidence && caEvidence.isAvailable) ? 'MEDIUM' : 'LOW',
+      reason: caReason,
+      confidenceReason: caReason,
+      targetInterpretation,
+      marketCapChangeRequired,
+      greatestObservableConstraint,
+      greatestConstraintEvidence
     };
 
     const keyEvidence = (caEvidence && caEvidence.isAvailable)
@@ -999,10 +1105,13 @@ export async function generateFinalSynthesis(
           `Network: ${caDetails.network}`,
           `Current Market Cap: ${caDetails.currentMarketCap}`,
           `Target Market Cap: ${caDetails.targetMarketCap}`,
+          `Target Interpretation: ${targetInterpretation}`,
+          `Market-Cap Change Required: ${marketCapChangeRequired}`,
           `Required Multiple: ${caDetails.requiredMultipleFormatted}`,
           `DEX Liquidity: ${caDetails.liquidity}`,
-          `24h Volume: ${caDetails.volume24h}`,
-          `Transactions: ${caDetails.buysSells}`
+          `24h Volume (turnover velocity, NOT pool depth): ${caDetails.volume24h}`,
+          `24h Transactions: ${caDetails.buysSells}`,
+          `Greatest Observable Constraint: ${greatestObservableConstraint}`
         ]
       : (evidenceSummary
           ? evidenceSummary.split('\n').map(l => l.trim()).filter(l => l.length > 0)
@@ -1015,10 +1124,12 @@ export async function generateFinalSynthesis(
       question,
       keyEvidence,
       keyFindings: [
-        `Target Multiple: ${caDetails.requiredMultipleFormatted} from current market cap of ${caDetails.currentMarketCap}`,
-        `Liquidity Pool: ${caDetails.liquidity} available on ${caDetails.network}`,
+        `Target Interpretation: ${targetInterpretation}`,
+        `Market-Cap Change Required: ${marketCapChangeRequired}`,
+        `DEX Liquidity: ${caDetails.liquidity} available on ${caDetails.network} (24h volume of ${caDetails.volume24h} reflects turnover, NOT pool depth)`,
         `Trading Activity: ${caDetails.buysSells}`,
-        `Critical Gaps: LP lock status and holder concentration remain DATA UNAVAILABLE`
+        `Greatest Observable Constraint: ${greatestObservableConstraint}`,
+        `Critical Evidence Gaps: LP lock status, holder concentration, and contract verification remain DATA UNAVAILABLE`
       ],
       areasOfAgreement,
       areasOfDisagreement,

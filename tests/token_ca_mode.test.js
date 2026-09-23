@@ -16,7 +16,8 @@ const {
 const {
   detectQuestionTopic,
   aggregateVotes,
-  validateDeterministicTokenCa
+  validateDeterministicTokenCa,
+  generateFinalSynthesis
 } = require('../src/lib/openrouter');
 const { CRYPTO_AGENTS } = require('../src/lib/crypto-agents');
 
@@ -254,3 +255,50 @@ test('TOKEN_CA Deterministic Validation: Corrects Hallucinated LLM Values', () =
   assert.strictEqual(mockVerdict.tokenCaDetails.liquidity, '$8.2K');
   assert.strictEqual(mockVerdict.tokenCaDetails.volume24h, '$1.4K');
 });
+
+test('TOKEN_CA Synthesis: Target Direction (Below MC) and Greatest Constraint', async () => {
+  const caDataBelow = {
+    isAvailable: true,
+    contractAddress: '0x63Ee32Ac3077d1fbd8a77eBBA2a6ed4b8e9c1e18',
+    network: 'Robinhood',
+    marketCap: 8973793,
+    marketCapFormatted: '$8,973,793',
+    targetMarketCap: 1000000,
+    targetMarketCapFormatted: '$1M',
+    requiredMultiple: 0.1114,
+    requiredMultipleFormatted: '0.11x',
+    liquidityFormatted: '$998.8K',
+    volume24hFormatted: '$1.25M',
+    txns24h: { buys: 2000, sells: 2200 },
+    buySellRatio: '0.91',
+    holders: 'DATA UNAVAILABLE',
+    holderConcentration: 'DATA UNAVAILABLE',
+    liquidityLock: 'DATA UNAVAILABLE',
+    contractVerification: 'DATA UNAVAILABLE',
+    source: 'DexScreener API',
+    retrievalDate: '2026-09-23',
+    retrievedAt: new Date().toISOString()
+  };
+
+  const seats = [CRYPTO_AGENTS[0], CRYPTO_AGENTS[1]];
+  const round1Analyses = new Map([
+    [1, { persona: 'Satoshi Nakamoto', analysis: 'Analysis', key_claims: [], risk: '', stance: 'INSUFFICIENT_EVIDENCE' }],
+    [2, { persona: 'Vitalik Buterin', analysis: 'Analysis', key_claims: [], risk: '', stance: 'NOT_SUPPORTED' }]
+  ]);
+  const votes = [
+    { seat: 1, persona: 'Satoshi Nakamoto', shortName: 'Satoshi', vote: 'INSUFFICIENT_EVIDENCE', weight: 1, rationale: 'r' },
+    { seat: 2, persona: 'Vitalik Buterin', shortName: 'Vitalik', vote: 'NOT_SUPPORTED', weight: 1, rationale: 'r' }
+  ];
+
+  const query = 'Can CASHCAT reach $1M market cap?';
+  const synth = await generateFinalSynthesis(query, seats, round1Analyses, votes, '', caDataBelow);
+
+  assert.strictEqual(synth.caDetails.targetInterpretation, 'Below current market cap');
+  assert.ok(synth.caDetails.marketCapChangeRequired.includes('decrease in market capitalization'));
+  assert.ok(synth.caDetails.marketCapChangeRequired.includes('88.9%'));
+  assert.ok(synth.conclusion.includes('TARGET INTERPRETATION:\nBelow current market cap'));
+  assert.ok(synth.conclusion.includes('MARKET-CAP CHANGE REQUIRED:'));
+  assert.ok(synth.conclusion.includes('GREATEST OBSERVABLE CONSTRAINT:'));
+  assert.ok(synth.conclusion.includes('INSUFFICIENT EVIDENCE — no single greatest constraint can be reliably identified'));
+});
+

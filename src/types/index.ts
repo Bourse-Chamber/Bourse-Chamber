@@ -30,6 +30,15 @@ export interface TokenCaSynthesisDetails {
   chamberAssessment: TokenCaAssessment;
   confidence: 'LOW' | 'MEDIUM' | 'HIGH';
   reason: string;
+  targetInterpretation?: string;
+  marketCapChangeRequired?: string;
+  greatestObservableConstraint?: string;
+  greatestConstraintEvidence?: string;
+  contractAddress?: string;
+  currentLiquidity?: string;
+  overallFeasibility?: TokenCaAssessment;
+  confidenceScore?: 'LOW' | 'MEDIUM' | 'HIGH';
+  confidenceReason?: string;
 }
 
 export interface FinalChamberSynthesis {

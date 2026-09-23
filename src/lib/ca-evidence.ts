@@ -234,7 +234,38 @@ export async function fetchCaEvidence(addressOrQuery: string): Promise<CaEvidenc
         return defaultUnavailable;
       }
 
-      pair = data.pairs.slice().sort((a: any, b: any) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))[0];
+      // 4. Token & Network Validation: Verify CA, Network, Token belong to the same asset
+      const matchingPairs = data.pairs.filter((p: any) =>
+        p.baseToken?.address?.toLowerCase() === resolvedAddress.toLowerCase()
+      );
+
+      if (matchingPairs.length === 0) {
+        defaultUnavailable.name = 'CA NOT FOUND';
+        defaultUnavailable.isNotFound = true;
+        return defaultUnavailable;
+      }
+
+      // If query mentions a specific network, prioritize pairs on that network
+      const queryLower = addressOrQuery.toLowerCase();
+      let networkMatchedPairs = matchingPairs;
+      if (queryLower.includes('robinhood')) {
+        const rh = matchingPairs.filter((p: any) => formatNetworkName(p.chainId) === 'Robinhood');
+        if (rh.length > 0) networkMatchedPairs = rh;
+      } else if (queryLower.includes('solana')) {
+        const sol = matchingPairs.filter((p: any) => formatNetworkName(p.chainId) === 'Solana');
+        if (sol.length > 0) networkMatchedPairs = sol;
+      } else if (queryLower.includes('base')) {
+        const base = matchingPairs.filter((p: any) => formatNetworkName(p.chainId) === 'Base');
+        if (base.length > 0) networkMatchedPairs = base;
+      } else if (queryLower.includes('ethereum') || queryLower.includes('eth')) {
+        const eth = matchingPairs.filter((p: any) => formatNetworkName(p.chainId) === 'Ethereum');
+        if (eth.length > 0) networkMatchedPairs = eth;
+      } else if (queryLower.includes('arbitrum')) {
+        const arb = matchingPairs.filter((p: any) => formatNetworkName(p.chainId) === 'Arbitrum');
+        if (arb.length > 0) networkMatchedPairs = arb;
+      }
+
+      pair = networkMatchedPairs.slice().sort((a: any, b: any) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))[0];
       if (!pair) return defaultUnavailable;
     } catch (_) {
       return defaultUnavailable;
