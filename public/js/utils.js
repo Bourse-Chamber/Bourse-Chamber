@@ -75,6 +75,9 @@ const BourseUtils = (() => {
     if (/\bwood\b|cathie/i.test(name)) {
       return faceZoom('/img/wood.png', 'Cathie Wood', 'img/wood.png');
     }
+    if (/munger/i.test(name)) {
+      return faceZoom('/img/munger.png', 'Charlie Munger', 'img/munger.png');
+    }
     const hash = hashString(name);
     const gridSize = 8;
     const halfGrid = 4;
