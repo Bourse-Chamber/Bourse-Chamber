@@ -87,6 +87,9 @@ const BourseUtils = (() => {
     if (/taleb/i.test(name)) {
       return faceZoom('/img/taleb.png', 'Nassim Nicholas Taleb', 'img/taleb.png');
     }
+    if (/lynch/i.test(name)) {
+      return faceZoom('/img/lynch.png', 'Peter Lynch', 'img/lynch.png');
+    }
     const hash = hashString(name);
     const gridSize = 8;
     const halfGrid = 4;
