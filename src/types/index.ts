@@ -3,9 +3,18 @@
  * Based on Dev Brief specifications (@bim 18 Sept 2026)
  */
 
-export type VoteOutcome = 'ADD' | 'REDUCE' | 'PASS';
+export type VoteOutcome = 'ADD' | 'REDUCE' | 'PASS' | 'DIVIDED';
 
 export type SeatNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+
+export interface FinalChamberSynthesis {
+  question: string;
+  keyFindings: string[];
+  areasOfAgreement: string;
+  areasOfDisagreement: string;
+  unresolvedIssues: string;
+  conclusion: string;
+}
 
 export interface AgentPersona {
   seat: SeatNumber;
@@ -52,7 +61,7 @@ export interface MarketEvidence {
 }
 
 export interface TranscriptMessage {
-  type: 'chair' | 'speaking' | 'challenge' | 'response' | 'vote' | 'verdict' | 'system';
+  type: 'chair' | 'speaking' | 'challenge' | 'response' | 'vote' | 'verdict' | 'system' | 'final-synthesis';
   who: string;
   seat?: SeatNumber;
   time: string;
@@ -85,6 +94,9 @@ export interface VerdictRecord {
   unresolvedQuestion: string;
   reviewTriggers: string[];
   votes: SeatVote[];
+  synthesis?: FinalChamberSynthesis;
+  totalParticipants?: number;
+  isSizingRequested?: boolean;
   timestamp: string;
 }
 

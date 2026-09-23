@@ -6,7 +6,8 @@ import {
   Round1Analysis,
   Round2Duel,
   AggregatedVerdict,
-  Round3Vote
+  Round3Vote,
+  FinalChamberSynthesis
 } from '../types';
 
 export const OPENROUTER_DEFAULT_MODEL = 'openrouter/free';
@@ -155,6 +156,7 @@ MANDATE: ${mandate}
 
 CRITICAL RULES:
 - Answer the EXACT question the user asked. Do NOT replace it with a different question.
+- NEVER parrot, repeat, or quote the user's question. Do NOT begin with phrases like "On the question...", "Regarding...", "Addressing...", or quote the user's inquiry back. Start directly with your substantive argument, claim, or analysis.
 - Analyze strictly through your crypto-native discipline. Do NOT use stock/equity frameworks.
 - Do NOT mention: margin of safety, balance sheet, cash flow, intrinsic value, shareholder returns.
 - Every sentence must be directly responsive to the question asked, not a generic architecture lecture.
@@ -163,7 +165,7 @@ CRITICAL RULES:
 You MUST respond strictly with a valid JSON object matching this schema:
 {
   "persona": "${agent.name}",
-  "analysis": "2-3 concise, unhedged sentences directly answering the question from your crypto-native discipline.",
+  "analysis": "2-3 concise, unhedged sentences directly answering the question from your crypto-native discipline without echoing the question text.",
   "key_claims": ["specific claim 1 relevant to the question", "specific claim 2 relevant to the question"],
   "risk": "primary risk relevant to the question, from your perspective",
   "stance": "ADD" | "REDUCE" | "PASS"
@@ -178,7 +180,7 @@ ${userMotion}
 ${evidenceSummary}
 </market_snapshot>
 
-Answer the question above directly from your Seat 0${agent.seat} perspective as ${agent.name}. Do NOT substitute a different question.`;
+Answer the question above directly from your Seat 0${agent.seat} perspective as ${agent.name}. Do NOT repeat the question text. Start directly with your answer.`;
 
   let rawContent = '';
 
@@ -212,7 +214,7 @@ Answer the question above directly from your Seat 0${agent.seat} perspective as 
       analysis: cleanModelText(parsed.analysis).trim(),
       key_claims: Array.isArray(parsed.key_claims) && parsed.key_claims.length > 0
         ? parsed.key_claims.map((c: any) => String(c).trim()).filter(Boolean)
-        : [`${agent.discipline} applied to: ${userMotion}`],
+        : [`${agent.discipline} evaluation`],
       risk: String(parsed.risk || `${agent.discipline} risk identified`).trim(),
       stance: validStance
     };
@@ -224,16 +226,16 @@ Answer the question above directly from your Seat 0${agent.seat} perspective as 
     return {
       persona: agent.name,
       analysis: cleanedRaw,
-      key_claims: [`${agent.discipline} applied`, `Question: ${userMotion}`],
-      risk: `Primary ${agent.discipline} risk on this question`,
+      key_claims: [`${agent.discipline} assessment`],
+      risk: `Primary ${agent.discipline} risk`,
       stance: defaultStance
     };
   }
 
-  // Fallback 2: Question-referenced, persona-voiced, never generic boilerplate
+  // Fallback 2: Question-focused, persona-voiced, never repeating the question
   const fallbackAnalysis = isMarketQuestion
-    ? `${agent.firstQuestion} Regarding "${userMotion}": from the ${agent.discipline} lens, the decisive market factor is whether current ${agent.primaryMetric} readings support or undermine the premise of the question. ${agent.fatalFlaw} is the primary risk to watch here.`
-    : `${agent.firstQuestion} On the question — "${userMotion}" — the ${agent.discipline} framework demands verifying ${agent.primaryMetric} before forming a conviction. The key risk: ${agent.fatalFlaw}.`;
+    ? `From my ${agent.discipline} discipline, current ${agent.primaryMetric} conditions represent the primary variable. The decisive tail risk to monitor is ${agent.fatalFlaw}.`
+    : `From a ${agent.discipline} standpoint, ${agent.primaryMetric} must serve as the governing criterion. The primary operational risk remains ${agent.fatalFlaw}.`;
 
   return {
     persona: agent.name,
@@ -265,7 +267,9 @@ The question under debate is: "${userMotion}"
 Your challenge MUST directly attack a weakness in ${defender.name}'s answer to THAT SPECIFIC QUESTION, not a generic architecture debate.
 ${defender.name}'s response must defend their answer using their own discipline (${defender.discipline}).
 
-CRITICAL: Stay on-topic. Do NOT use stock/equity frameworks. Do NOT mention: cash flows, earnings, balance sheets, intrinsic value, or shareholder returns.
+CRITICAL RULES:
+- Do NOT quote or repeat the user's question. Formulate challenge and response directly.
+- Stay strictly on-topic. Do NOT use stock/equity frameworks. Do NOT mention: cash flows, earnings, balance sheets, intrinsic value, or shareholder returns.
 
 You MUST respond strictly with a valid JSON object matching this schema:
 {
@@ -280,7 +284,7 @@ Market snapshot: ${evidenceSummary}.
 ${defender.name} stated in Round 1: "${defenderRound1.analysis}"
 (Stance: ${defenderRound1.stance}, Risk flagged: ${defenderRound1.risk}).
 
-Deliver the cross-examination on THIS question now.`;
+Deliver the cross-examination on this topic now without repeating the question.`;
 
   let rawContent = '';
 
@@ -313,9 +317,9 @@ Deliver the cross-examination on THIS question now.`;
     };
   }
 
-  // Question-referenced deterministic fallback
-  const challenge = `To ${defender.name}: On "${userMotion}" — your ${defender.discipline} reading overlooks the ${challenger.discipline} dimension entirely. From where I stand, that's the decisive factor the floor cannot ignore.`;
-  const response = `To ${challenger.name}: The ${defender.discipline} lens addresses exactly what matters for this question. Your ${challenger.discipline} concern is real, but it doesn't change the direction of my analysis here.`;
+  // Question-focused deterministic fallback without quoting the question
+  const challenge = `To ${defender.name}: Your ${defender.discipline} reading overlooks the ${challenger.discipline} constraint entirely. From where I stand, that remains the decisive factor the floor cannot ignore.`;
+  const response = `To ${challenger.name}: The ${defender.discipline} lens addresses the operational reality directly. Your ${challenger.discipline} concern is acknowledged, but it does not change the core conclusion.`;
 
   return {
     persona: challenger.name,
@@ -327,7 +331,7 @@ Deliver the cross-examination on THIS question now.`;
 
 /**
  * ROUND 3: Final Voting Ballot
- * Each of the 9 personas casts: ADD, REDUCE, or PASS with concise rationale.
+ * Each participating persona casts: ADD, REDUCE, or PASS with concise rationale.
  * Strictly validates that vote is one of 'ADD', 'REDUCE', or 'PASS'.
  */
 export async function generateRound3Vote(
@@ -340,19 +344,20 @@ export async function generateRound3Vote(
 Cast your final binding ballot on the EXACT question submitted to the floor.
 Your vote MUST directly reflect your analysis of the question from your ${agent.discipline} discipline.
 Do NOT use stock/equity frameworks. Do NOT mention: cash flows, balance sheets, intrinsic value, shareholder returns.
+Do NOT quote or repeat the user's question. State your voting reason directly.
 
 You MUST respond strictly with a valid JSON object matching this schema:
 {
   "persona": "${agent.name}",
   "vote": "ADD" | "REDUCE" | "PASS",
-  "reason": "One concise sentence under 35 words that answers WHY you vote this way on THIS specific question, from your ${agent.discipline} perspective."
+  "reason": "One concise sentence under 35 words that answers WHY you vote this way from your ${agent.discipline} perspective without repeating the question text."
 }
 Only 'ADD', 'REDUCE', or 'PASS' are valid vote values. Output JSON only.`;
 
   const userPrompt = `Question on the floor: "${userMotion}".
 Your Round 1 analysis was: "${round1Text}".
 ${round2Context ? `Cross-examination context: "${round2Context}".` : ''}
-Cast your final ballot now as ${agent.name}. Your reason must speak to the question above.`;
+Cast your final ballot now as ${agent.name}. Do NOT repeat the question text.`;
 
   let rawContent = '';
 
@@ -391,10 +396,10 @@ Cast your final ballot now as ${agent.name}. Your reason must speak to the quest
     agent.seat === 2 || agent.seat === 5 || agent.seat === 6 || agent.seat === 9 ? 'REDUCE' : 'PASS';
 
   const finalVote: VoteOutcome = cleanVote || defaultVote;
-  // Fallback reason references the actual question directly without truncation
+  // Fallback reason references persona discipline directly without repeating the question
   const reason = (parsed && typeof parsed.reason === 'string' && parsed.reason.trim().length > 0)
     ? cleanModelText(parsed.reason).trim()
-    : `${agent.discipline} analysis of "${userMotion}" supports ${finalVote === 'ADD' ? 'an affirmative stance' : finalVote === 'REDUCE' ? 'a cautious reduction' : 'holding and monitoring'} on this question.`;
+    : `From a ${agent.discipline} perspective, an ${finalVote} stance is justified based on ${agent.primaryMetric}.`;
 
   return {
     seat: agent.seat,
@@ -408,9 +413,31 @@ Cast your final ballot now as ${agent.name}. Your reason must speak to the quest
 
 
 /**
+ * Detect whether query explicitly asks for investment position sizing
+ */
+export function asksForInvestmentSizing(query: string): boolean {
+  if (!query) return false;
+  return /\b(allocation|portfolio weight|position size|sizing|how much to invest|percentage allocation|how much should i (buy|invest|allocate)|risk budget)\b/i.test(query);
+}
+
+/**
+ * Detect general topic category of the question
+ */
+export function detectQuestionTopic(query: string): 'TECHNICAL' | 'MARKET' | 'GENERAL' {
+  const qL = (query || '').toLowerCase();
+  if (/\b(architecture|technical|tps|throughput|validator|consensus|decentrali|proof.of|layer|rollup|scaling|smart contract|bridge|sequencer|node|mev|fork|exploit|bug|code|liveness)\b/.test(qL)) {
+    return 'TECHNICAL';
+  }
+  if (/\b(liquidity|leverage|etf|liquidat|exchange|cex|dex|flow|institutional|macro|regulation|interest rate|fed|spread|volume|price|crash|drop|pump|bear|bull|rally|drawdown|correction|sell.off|buy|support|resistance|orderbook|market maker|margin|funding)\b/.test(qL)) {
+    return 'MARKET';
+  }
+  return 'GENERAL';
+}
+
+/**
  * Deterministic Vote Aggregator
  * Calculates addCount, reduceCount, passCount.
- * totalVotes MUST equal 9.
+ * Dynamic denominator based on actual participating votes.
  * Resolves majority, ties, and position-size bands deterministically.
  */
 export function aggregateVotes(
@@ -420,97 +447,110 @@ export function aggregateVotes(
   assetName: string = 'Asset',
   question: string = 'Thesis Deliberation'
 ): AggregatedVerdict {
-  if (!Array.isArray(votes) || votes.length !== 9) {
-    throw new Error(`aggregateVotes requires exactly 9 votes. Received: ${votes ? votes.length : 0}`);
+  if (!Array.isArray(votes) || votes.length === 0) {
+    throw new Error(`aggregateVotes requires at least 1 vote. Received: ${votes ? votes.length : 0}`);
   }
 
+  const totalVotes = votes.length;
   const addCount = votes.filter((v) => v.vote === 'ADD').length;
   const reduceCount = votes.filter((v) => v.vote === 'REDUCE').length;
   const passCount = votes.filter((v) => v.vote === 'PASS').length;
-  const totalVotes = addCount + reduceCount + passCount;
-
-  if (totalVotes !== 9) {
-    throw new Error(`Total votes must equal 9. Calculated: ${totalVotes}`);
-  }
 
   const maxCount = Math.max(addCount, reduceCount, passCount);
+  const majorityThreshold = Math.floor(totalVotes / 2) + 1;
 
   // Find all outcomes that share the max count
   const topOutcomes: VoteOutcome[] = [];
-  if (passCount === maxCount) topOutcomes.push('PASS');
-  if (reduceCount === maxCount) topOutcomes.push('REDUCE');
   if (addCount === maxCount) topOutcomes.push('ADD');
+  if (reduceCount === maxCount) topOutcomes.push('REDUCE');
+  if (passCount === maxCount) topOutcomes.push('PASS');
 
   let outcome: VoteOutcome;
   let majority = false;
   let tie = false;
 
-  if (topOutcomes.length === 1) {
-    // Single winner
+  if (topOutcomes.length === 1 && maxCount >= majorityThreshold) {
+    // Single decisive majority
     outcome = topOutcomes[0];
+    majority = true;
     tie = false;
-    // Strict majority requires more than 4.5 (> 4, i.e. >= 5 out of 9)
-    majority = maxCount >= 5;
-  } else {
-    // Tie occurred! Deterministic tie-breaker precedence: 1. PASS, 2. REDUCE, 3. ADD
-    tie = true;
+  } else if (topOutcomes.length > 1) {
+    // Multi-way tie -> DIVIDED
+    outcome = 'DIVIDED';
     majority = false;
-    if (topOutcomes.includes('PASS')) {
-      outcome = 'PASS';
-    } else if (topOutcomes.includes('REDUCE')) {
-      outcome = 'REDUCE';
-    } else {
-      outcome = 'ADD';
-    }
+    tie = true;
+  } else {
+    // Single leader but plurality without strict majority
+    outcome = topOutcomes[0];
+    majority = false;
+    tie = false;
   }
 
   const majorityCount = maxCount;
-  const majorityRatio = `${majorityCount} / 9`;
+  const majorityRatio = `${majorityCount} / ${totalVotes}`;
 
-  const dissentBreakdown = outcome === 'ADD'
-    ? `${reduceCount} REDUCE, ${passCount} PASS`
-    : outcome === 'REDUCE'
-    ? `${addCount} ADD, ${passCount} PASS`
-    : `${addCount} ADD, ${reduceCount} REDUCE`;
-
-  // Conservative position size band based on vote distribution (Taleb criteria)
-  let positionSizeBand = '0.0%';
+  let dissentBreakdown = '';
   if (outcome === 'ADD') {
-    positionSizeBand = majorityCount >= 7 ? '2.0 – 3.5%' : (majorityCount >= 5 ? '1.5 – 2.5%' : '1.0 – 2.0%');
+    const parts = [];
+    if (reduceCount > 0) parts.push(`${reduceCount} REDUCE`);
+    if (passCount > 0) parts.push(`${passCount} PASS`);
+    dissentBreakdown = parts.length > 0 ? parts.join(', ') : 'Unanimous';
   } else if (outcome === 'REDUCE') {
-    positionSizeBand = majorityCount >= 7 ? '0.0 – 0.5%' : '0.5 – 1.0%';
+    const parts = [];
+    if (addCount > 0) parts.push(`${addCount} ADD`);
+    if (passCount > 0) parts.push(`${passCount} PASS`);
+    dissentBreakdown = parts.length > 0 ? parts.join(', ') : 'Unanimous';
+  } else if (outcome === 'PASS') {
+    const parts = [];
+    if (addCount > 0) parts.push(`${addCount} ADD`);
+    if (reduceCount > 0) parts.push(`${reduceCount} REDUCE`);
+    dissentBreakdown = parts.length > 0 ? parts.join(', ') : 'Unanimous';
   } else {
-    positionSizeBand = '0.0%';
+    dissentBreakdown = `${addCount} ADD, ${reduceCount} REDUCE, ${passCount} PASS`;
   }
 
-  // Dynamic verdict summary — derived from the actual question, not a boilerplate
-  const qL = question.toLowerCase();
-  const isMarket = /\b(liquidity|leverage|etf|liquidat|exchange|flow|institutional|macro|regulation|price|crash|drop|pump|bear|bull|rally|drawdown|correction)\b/.test(qL);
-  const isTech = /\b(architecture|tps|throughput|validator|consensus|decentrali|proof.of|layer|rollup|scaling|node|mev|fork)\b/.test(qL);
+  // Position sizing band: computed against downside risk
+  const ratio = maxCount / totalVotes;
+  let computedSizeBand = '0.0%';
+  if (outcome === 'ADD') {
+    computedSizeBand = ratio >= 0.75 ? '2.0 – 3.5%' : (ratio >= 0.5 ? '1.5 – 2.5%' : '1.0 – 2.0%');
+  } else if (outcome === 'REDUCE') {
+    computedSizeBand = ratio >= 0.75 ? '0.0 – 0.5%' : '0.5 – 1.0%';
+  } else {
+    computedSizeBand = '0.0%';
+  }
+
+  const isSizing = asksForInvestmentSizing(question);
+  const positionSizeBand = computedSizeBand;
+
+  // Dynamic verdict summary — derived from question type and participating outcome
+  const qTopic = detectQuestionTopic(question);
+  const isMarket = qTopic === 'MARKET';
+  const isTech = qTopic === 'TECHNICAL';
 
   const keyAgreement = isMarket
-    ? `The floor agrees the question of "${question}" is driven by real market dynamics. Conviction requires monitoring actual on-chain flows, exchange liquidity, and macro conditions rather than technical architecture alone.`
+    ? `The floor agrees this inquiry is driven by market dynamics. Conviction requires monitoring actual on-chain flows, exchange liquidity, and macro conditions.`
     : isTech
-    ? `${assetName} shows technical promise, but the floor agrees core protocol guarantees — decentralization, liveness, and censorship resistance — must be verified before high conviction.`
-    : `The floor's ${outcome} verdict on "${question}" reflects the balance of crypto-native evidence and each seat's discipline-specific reading of the question.`;
+    ? `${assetName} demonstrates technical capability, but participating seats agree protocol guarantees — decentralization, liveness, and censorship resistance — govern.`
+    : `The floor's ${outcome} verdict reflects each participating seat's reading of the question.`;
 
   const keyDisagreement = isMarket
-    ? `Whether current ${assetName} market conditions — leverage, institutional positioning, and exchange health — favor entry, reduction, or patience at this stage.`
+    ? `Whether current ${assetName} conditions — leverage, institutional positioning, and exchange health — favor entry, reduction, or patience.`
     : isTech
-    ? `Whether ${assetName}'s architectural tradeoffs constitute genuine decentralization or disguised institutional centralization.`
-    : `How each discipline interprets the risk/opportunity balance embedded in the question: "${question}".`;
+    ? `Whether architectural tradeoffs between execution velocity and decentralized verifiability are acceptable.`
+    : `How each discipline balances potential upside against systemic downside risks.`;
 
   const unresolvedQuestion = isMarket
-    ? `Will ${assetName} liquidity conditions and institutional flows remain supportive, or does macro pressure and leverage overhang reverse current momentum?`
+    ? `Will ${assetName} liquidity conditions remain supportive, or does macro pressure reverse momentum?`
     : isTech
-    ? `Can ${assetName} maintain liveness, censorship resistance, and permissionless access at full load without concentrating validator power in institutional data centers?`
-    : `What new information — on-chain, macro, or regulatory — would most decisively shift the floor's verdict on: "${question}"?`;
+    ? `Can ${assetName} maintain liveness, censorship resistance, and permissionless access under peak adversarial stress?`
+    : `What evidentiary change would most decisively shift the floor's verdict?`;
 
   const reviewTriggers = isMarket
     ? [
         `${assetName} spot volume or open interest drops more than 40% from current levels on a 7-day rolling basis.`,
         `A major regulated exchange announces delistings, withdrawal halts, or regulatory action targeting ${ticker}.`,
-        `Macro regime shifts — Federal Reserve pivot, major sovereign default, or risk-off credit event — alter crypto correlation structure.`
+        `Macro regime shifts alter crypto market correlation structure.`
       ]
     : [
         `Network suffers an unscheduled halt, validator outage, or consensus failure exceeding 4 hours.`,
@@ -528,7 +568,7 @@ export function aggregateVotes(
     addCount,
     reduceCount,
     passCount,
-    totalVotes: 9,
+    totalVotes,
     majorityCount,
     majority,
     tie,
@@ -540,7 +580,118 @@ export function aggregateVotes(
     unresolvedQuestion,
     reviewTriggers,
     votes,
+    totalParticipants: totalVotes,
+    isSizingRequested: isSizing,
     timestamp: new Date().toISOString()
+  };
+}
+
+/**
+ * Generate Final Chamber Synthesis summarizing ONLY participating personas
+ */
+export async function generateFinalSynthesis(
+  question: string,
+  participatingAgents: AgentPersona[],
+  round1Analyses: Map<number, Round1Analysis>,
+  votes: SeatVote[],
+  evidenceSummary: string
+): Promise<FinalChamberSynthesis> {
+  const personaNames = participatingAgents.map(a => a.name).join(', ');
+  const participantsSummary = participatingAgents.map(a => {
+    const r1 = round1Analyses.get(a.seat);
+    const vote = votes.find(v => v.seat === a.seat);
+    return `${a.name} (Discipline: ${a.discipline}):
+- Round 1 Reading: ${r1?.analysis || 'N/A'}
+- Risk Flagged: ${r1?.risk || 'N/A'}
+- Key Claims: ${(r1?.key_claims || []).join('; ')}
+- Final Vote: ${vote?.vote || 'N/A'} (Reason: ${vote?.rationale || 'N/A'})`;
+  }).join('\n\n');
+
+  const systemPrompt = `You are the Chief Clerk of the Bourse Crypto Chamber.
+Produce the authoritative FINAL CHAMBER SYNTHESIS on the floor's deliberation.
+
+CRITICAL INSTRUCTION:
+- Synthesize ONLY based on the deliberations and votes of the PARTICIPATING seats: ${personaNames}.
+- Do NOT mention, cite, or extrapolate views from any council members who were NOT present.
+- Answer the user's EXACT question directly.
+
+You MUST respond strictly with a valid JSON object matching this schema:
+{
+  "question": "${question.replace(/"/g, '\\"')}",
+  "keyFindings": ["Finding 1 relevant to question", "Finding 2 relevant to question", "Finding 3"],
+  "areasOfAgreement": "1-2 concise sentences on where the participating seats aligned.",
+  "areasOfDisagreement": "1-2 concise sentences on core fault lines between the participating seats.",
+  "unresolvedIssues": "1-2 concise sentences on critical open questions or tail risks.",
+  "conclusion": "1-2 definitive sentences summarizing the floor's conclusion on the question."
+}
+Output JSON only. Do NOT output markdown code fences.`;
+
+  const userPrompt = `Question: "${question}"
+Evidence: ${evidenceSummary}
+
+Participating Seats & Arguments:
+${participantsSummary}
+
+Deliver the FINAL CHAMBER SYNTHESIS now.`;
+
+  try {
+    const res = await callOpenRouter({ systemPrompt, userPrompt, stream: false, maxTokens: 400 });
+    if (res && res.ok) {
+      const json = await res.json();
+      const content = json.choices?.[0]?.message?.content || '';
+      const parsed = extractJsonFromModelResponse(content);
+      if (parsed && typeof parsed.conclusion === 'string' && parsed.conclusion.trim().length > 0) {
+        return {
+          question,
+          keyFindings: Array.isArray(parsed.keyFindings) && parsed.keyFindings.length > 0
+            ? parsed.keyFindings.map((f: any) => String(f).trim())
+            : [`${participatingAgents[0]?.discipline || 'Discipline'} analysis completed`],
+          areasOfAgreement: String(parsed.areasOfAgreement || '').trim(),
+          areasOfDisagreement: String(parsed.areasOfDisagreement || '').trim(),
+          unresolvedIssues: String(parsed.unresolvedIssues || '').trim(),
+          conclusion: String(parsed.conclusion || '').trim()
+        };
+      }
+    }
+  } catch (err: any) {
+    console.warn('[OpenRouter FinalSynthesis] Error:', err.message);
+  }
+
+  // Deterministic, topic-specific fallback synthesis from ONLY participating seats
+  const qTopic = detectQuestionTopic(question);
+  const keyFindings: string[] = [];
+  participatingAgents.forEach(a => {
+    const r1 = round1Analyses.get(a.seat);
+    if (r1?.risk) keyFindings.push(`${a.shortName}: ${r1.risk}`);
+    else keyFindings.push(`${a.discipline} constraint on ${a.primaryMetric}`);
+  });
+
+  const voteStances = votes.map(v => `${v.shortName} (${v.vote})`);
+  const isUnanimous = votes.every(v => v.vote === votes[0]?.vote);
+
+  const areasOfAgreement = isUnanimous
+    ? `The participating seats (${personaNames}) aligned unanimously in their ${votes[0]?.vote} ballot on this question.`
+    : `The participating seats (${personaNames}) concurred that current ${participatingAgents[0]?.primaryMetric || 'core'} metrics serve as the primary barometer.`;
+
+  const areasOfDisagreement = isUnanimous
+    ? `Disagreement was minimal; minor divergence centered on the severity of operational versus market tail risks.`
+    : `The bench divided between ${voteStances.join(', ')}, reflecting divergent disciplinary thresholds.`;
+
+  const unresolvedIssues = `Whether ongoing developments will alter the risk balance flagged by ${participatingAgents.map(a => a.shortName).join(' and ')}.`;
+
+  const addC = votes.filter(v => v.vote === 'ADD').length;
+  const redC = votes.filter(v => v.vote === 'REDUCE').length;
+  const passC = votes.filter(v => v.vote === 'PASS').length;
+
+  const conclusion = `Based strictly on the deliberations of ${personaNames}, the chamber registers ${votes.length > 1 ? (isUnanimous ? `a unanimous ${votes[0]?.vote} (${votes.length} / ${votes.length})` : `a floor outcome of ${addC >= Math.floor(votes.length/2)+1 ? 'ADD' : redC >= Math.floor(votes.length/2)+1 ? 'REDUCE' : passC >= Math.floor(votes.length/2)+1 ? 'PASS' : 'DIVIDED'} (${Math.max(addC, redC, passC)} / ${votes.length})`) : `Seat 0${participatingAgents[0]?.seat} (${participatingAgents[0]?.shortName})'s ${votes[0]?.vote} ballot`} on the question.`;
+
+  return {
+    question,
+    keyFindings: keyFindings.slice(0, 4),
+    areasOfAgreement,
+    areasOfDisagreement,
+    unresolvedIssues,
+    conclusion
   };
 }
 

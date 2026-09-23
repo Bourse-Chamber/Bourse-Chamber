@@ -162,7 +162,7 @@ test('Engine Test 6: Deterministic Aggregator — Strict Majority, Tie-Breaking,
   ];
 
   const verdictB = aggregateVotes(votesB, 'BC-TEST-B', 'BTC', 'Bitcoin', 'Tie Motion');
-  assert.strictEqual(verdictB.outcome, 'PASS', 'Tie must resolve to PASS per precedence');
+  assert.strictEqual(verdictB.outcome, 'DIVIDED', 'Tie must resolve to DIVIDED per dynamic majority rules');
   assert.strictEqual(verdictB.tie, true);
   assert.strictEqual(verdictB.majority, false);
   assert.strictEqual(verdictB.totalVotes, 9);
@@ -185,17 +185,20 @@ test('Engine Test 6: Deterministic Aggregator — Strict Majority, Tie-Breaking,
   assert.strictEqual(verdictC.majority, false, 'Winning count of 4 is plurality, not strict majority > 4');
   assert.strictEqual(verdictC.tie, false);
 
-  // Scenario D: Rejection of invalid vote counts
+  // Scenario D: Rejection of invalid vote counts (0 or >9) and acceptance of dynamic votes
+  const verdict8 = aggregateVotes(votesA.slice(0, 8), 'BC-TEST-D8', 'BTC', 'Bitcoin', '8 seats');
+  assert.strictEqual(verdict8.totalVotes, 8);
   assert.throws(() => {
-    aggregateVotes(votesA.slice(0, 8));
-  }, /aggregateVotes requires exactly 9 votes/);
+    aggregateVotes([]);
+  }, /aggregateVotes requires at least 1 vote/);
 });
 
 test('Engine Test 7: Full Multi-Round Session Deliberation & Database Persistence (Bitcoin Scenario)', async () => {
   const req = {
     method: 'POST',
     body: {
-      input: 'Is Bitcoin still fundamentally strong enough to justify long-term adoption, or is its value increasingly driven by speculation?'
+      input: 'Is Bitcoin still fundamentally strong enough to justify long-term adoption, or is its value increasingly driven by speculation?',
+      selectedSeats: [1, 2, 3, 4, 5, 6, 7, 8, 9]
     }
   };
   const res = createMockRes();

@@ -4,7 +4,8 @@ import {
   generateRound1Analysis,
   generateRound2CrossExam,
   generateRound3Vote,
-  aggregateVotes
+  aggregateVotes,
+  generateFinalSynthesis
 } from '../../../lib/openrouter';
 import { fetchCryptoEvidence, extractTickerFromQuery } from '../../../lib/coingecko';
 import { db } from '../../../lib/db';
@@ -46,6 +47,27 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // 3. Mandatory Participant Seat Selection
+    const rawSeats = Array.isArray(body.selectedSeats) && body.selectedSeats.length > 0
+      ? body.selectedSeats
+      : (Array.isArray(body.directedSeats) && body.directedSeats.length > 0 ? body.directedSeats : []);
+    const seatNums = rawSeats.map((s: any) => parseInt(s, 10)).filter((s: number) => s >= 1 && s <= 9);
+
+    if (seatNums.length === 0) {
+      return new Response(JSON.stringify({ error: 'Select at least one seat to convene.', code: 'NO_SEATS_SELECTED' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const participatingAgents = AGENTS.filter(a => seatNums.includes(a.seat));
+    if (participatingAgents.length === 0) {
+      return new Response(JSON.stringify({ error: 'No matching council seats found for selection.' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const ticker = extractTickerFromQuery(query);
     const evidence = await fetchCryptoEvidence(ticker);
     const sessionId = `BC-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -69,6 +91,8 @@ export async function POST(req: NextRequest) {
             sessionId,
             asset: ticker,
             motion: query,
+            totalParticipants: participatingAgents.length,
+            participatingSeats: participatingAgents.map(a => a.seat),
             llmProvider: process.env.OPENROUTER_API_KEY ? 'OpenRouter Real LLM Engine' : 'Deterministic Cognitive Simulator',
           });
 
@@ -76,10 +100,8 @@ export async function POST(req: NextRequest) {
 
           const evidenceSummary = `${evidence.name} ($${evidence.priceFormatted || evidence.price}), 24h Change: ${evidence.change24h}%, MCap: $${evidence.marketCapFormatted || evidence.marketCap}`;
 
-          // --- ROUND 1: Strictly Independent Readings (All 9 Personas) ---
-          // All 9 personas receive the IDENTICAL Evidence Pack.
-          // Never allows empty analysis.
-          for (const agent of AGENTS) {
+          // --- ROUND 1: Strictly Independent Readings (Selected Personas Only) ---
+          for (const agent of participatingAgents) {
             emit('seat_start', { seat: agent.seat, seatId: agent.seat, name: agent.name });
 
             const r1 = await generateRound1Analysis(agent, query, evidenceSummary);
@@ -114,66 +136,70 @@ export async function POST(req: NextRequest) {
             emit('speech', { seat: agent.seat, who: agent.name, text: r1.analysis });
           }
 
-          if (round1Analyses.size !== 9) {
-            throw new Error(`Round 1 incomplete: ${round1Analyses.size}/9 analyses recorded.`);
+          if (round1Analyses.size !== participatingAgents.length) {
+            throw new Error(`Round 1 incomplete: ${round1Analyses.size}/${participatingAgents.length} analyses recorded.`);
           }
 
-          // --- ROUND 2: Cross-Examination Duel ---
-          // Identify opposing personas based on Round 1 stances
-          const addAgent = AGENTS.find((a) => round1Analyses.get(a.seat)?.stance === 'ADD') || AGENTS.find((a) => a.seat === 4) || AGENTS[3];
-          const reduceAgent = AGENTS.find((a) => round1Analyses.get(a.seat)?.stance === 'REDUCE' && a.seat !== addAgent.seat) || AGENTS.find((a) => a.seat === 6) || AGENTS[5];
+          // --- ROUND 2: Cross-Examination Duel (Only if >= 2 participants) ---
+          let duelChallenge = '';
+          if (participatingAgents.length >= 2) {
+            const addAgent = participatingAgents.find((a) => round1Analyses.get(a.seat)?.stance === 'ADD') || participatingAgents[0];
+            const reduceAgent = participatingAgents.find((a) => round1Analyses.get(a.seat)?.stance === 'REDUCE' && a.seat !== addAgent.seat) || participatingAgents.find(a => a.seat !== addAgent.seat) || participatingAgents[1];
 
-          const challenger = reduceAgent;
-          const defender = addAgent;
-          const defenderR1 = round1Analyses.get(defender.seat)!;
+            const challenger = reduceAgent;
+            const defender = addAgent;
+            const defenderR1 = round1Analyses.get(defender.seat)!;
 
-          emit('duel_start', { seatA: challenger.seat, seatB: defender.seat });
+            emit('duel_start', { seatA: challenger.seat, seatB: defender.seat });
 
-          const duel = await generateRound2CrossExam(
-            challenger,
-            defender,
-            defenderR1,
-            query,
-            evidenceSummary
-          );
+            const duel = await generateRound2CrossExam(
+              challenger,
+              defender,
+              defenderR1,
+              query,
+              evidenceSummary
+            );
+            duelChallenge = duel.challenge;
 
-          emit('rebuttal', {
-            type: 'rebuttal',
-            seatId: challenger.seat,
-            targetSeatId: defender.seat,
-            seatA: challenger.seat,
-            seatB: defender.seat,
-            persona: challenger.name,
-            challenger: challenger.name,
-            defender: defender.name,
-            challenge: duel.challenge,
-            response: duel.response,
-          });
+            const duelPayload = {
+              type: 'rebuttal',
+              seatId: challenger.seat,
+              targetSeatId: defender.seat,
+              seatA: challenger.seat,
+              seatB: defender.seat,
+              persona: challenger.name,
+              challenger: challenger.name,
+              defender: defender.name,
+              challenge: duel.challenge,
+              response: duel.response,
+            };
+            emit('rebuttal', duelPayload);
+            emit('cross_exam', duelPayload);
 
-          transcript.push({
-            type: 'challenge',
-            who: `${challenger.name} (CHALLENGE TO SEAT 0${defender.seat})`,
-            seat: challenger.seat,
-            time: new Date().toLocaleTimeString('en-US', { hour12: false }),
-            text: duel.challenge,
-          });
+            transcript.push({
+              type: 'challenge',
+              who: `${challenger.name} (CHALLENGE TO SEAT 0${defender.seat})`,
+              seat: challenger.seat,
+              time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+              text: duel.challenge,
+            });
 
-          transcript.push({
-            type: 'response',
-            who: `${defender.name} (RESPONSE TO SEAT 0${challenger.seat})`,
-            seat: defender.seat,
-            time: new Date().toLocaleTimeString('en-US', { hour12: false }),
-            text: duel.response,
-          });
+            transcript.push({
+              type: 'response',
+              who: `${defender.name} (RESPONSE TO SEAT 0${challenger.seat})`,
+              seat: defender.seat,
+              time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+              text: duel.response,
+            });
 
-          emit('speech', { seat: challenger.seat, who: `${challenger.name} [CROSS-EXAM]`, text: duel.challenge });
-          emit('speech', { seat: defender.seat, who: `${defender.name} [REBUTTAL]`, text: duel.response });
+            emit('speech', { seat: challenger.seat, who: `${challenger.name} [CROSS-EXAM]`, text: duel.challenge });
+            emit('speech', { seat: defender.seat, who: `${defender.name} [REBUTTAL]`, text: duel.response });
+          }
 
-          // --- ROUND 3: Voting Ballot & Aggregation ---
-          // Ask ALL 9 personas to cast ADD / REDUCE / PASS
-          for (const agent of AGENTS) {
+          // --- ROUND 3: Voting Ballot & Aggregation (Selected Personas Only) ---
+          for (const agent of participatingAgents) {
             const r1 = round1Analyses.get(agent.seat)?.analysis || '';
-            const ballot = await generateRound3Vote(agent, query, r1, duel.challenge);
+            const ballot = await generateRound3Vote(agent, query, r1, duelChallenge);
             votes.push(ballot);
 
             emit('vote', {
@@ -189,12 +215,28 @@ export async function POST(req: NextRequest) {
             });
           }
 
-          if (votes.length !== 9) {
-            throw new Error(`Round 3 incomplete: received ${votes.length}/9 votes.`);
+          if (votes.length !== participatingAgents.length) {
+            throw new Error(`Round 3 incomplete: received ${votes.length}/${participatingAgents.length} votes.`);
           }
 
-          // Deterministic Aggregator
+          // Deterministic Aggregator (Dynamic Denominator)
           const verdict = aggregateVotes(votes, sessionId, ticker, evidence.name, query);
+
+          // Final Chamber Synthesis
+          const synthesis = await generateFinalSynthesis(query, participatingAgents, round1Analyses, votes, evidenceSummary);
+          verdict.synthesis = synthesis;
+
+          const synthesisText = `FINAL CHAMBER SYNTHESIS\n\nQuestion:\n"${synthesis.question}"\n\nKey Findings:\n${synthesis.keyFindings.map((f: string) => `- ${f}`).join('\n')}\n\nAreas of Agreement:\n${synthesis.areasOfAgreement}\n\nAreas of Disagreement:\n${synthesis.areasOfDisagreement}\n\nUnresolved Issues:\n${synthesis.unresolvedIssues}\n\nConclusion:\n${synthesis.conclusion}`;
+
+          transcript.push({
+            type: 'final-synthesis',
+            who: 'CHAMBER CHAIR · FINAL SYNTHESIS',
+            time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+            text: synthesisText
+          });
+
+          emit('synthesis', synthesis);
+          emit('speech', { seat: 0, who: 'CHAMBER CHAIR · FINAL SYNTHESIS', text: synthesisText });
           emit('verdict', verdict);
 
           // --- PERSISTENCE: Save completed session to Database ---
@@ -208,9 +250,9 @@ export async function POST(req: NextRequest) {
               closedAt: new Date().toISOString(),
               evidence,
               speakingTurns: transcript.length,
-              seatsPresent: '9 / 9',
-              directedMode: 'full_bench',
-              directedSeats: [],
+              seatsPresent: `${participatingAgents.length} / ${participatingAgents.length}`,
+              directedMode: participatingAgents.length === 2 && body.isCrossExam ? 'cross_exam' : (participatingAgents.length < 9 ? 'directed' : 'full_bench'),
+              directedSeats: participatingAgents.map(a => a.seat),
               votes,
               verdict,
               transcript,

@@ -158,8 +158,8 @@
     <div class="chamber-composer-wrap">
       <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;">
         <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-secondary);">
-          <span id="composer-mode-label">What should the bench examine?</span>
-          <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">Tip: Click any avatar on the floor to direct questions to specific seats.</div>
+          <span id="composer-mode-label">Select at least one seat to convene</span>
+          <div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px;">Tip: Click any avatar on the floor to select participating seats.</div>
         </div>
         
         <!-- F13 Answer Budget Counter HUD -->
@@ -190,8 +190,8 @@
       </div>
 
       <form class="composer-form" onsubmit="event.preventDefault();">
-        <input class="composer-input" id="composer-input" type="text" placeholder="Submit a ticker or thesis for the 9 crypto architects to deliberate (e.g. BTC, ETH, SOL)" autocomplete="off">
-        <button class="composer-btn" id="convene-btn" type="button">Ask the full bench (9)</button>
+        <input class="composer-input" id="composer-input" type="text" placeholder="Submit a ticker or thesis for the selected crypto architects to deliberate (e.g. BTC, ETH, SOL)" autocomplete="off">
+        <button class="composer-btn" id="convene-btn" type="button" disabled>Select at least one seat to convene</button>
       </form>
       <div class="hint-chips-row">
         <span class="hint-chip-label">Examples:</span>

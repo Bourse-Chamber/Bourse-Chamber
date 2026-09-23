@@ -91,7 +91,10 @@ test('E2E Flow 4: CRON_SECRET Enforcement & Daily Trigger Evaluation', async () 
 test('E2E Flow 5: Session Deliberation Motion Event Emission', async () => {
   const req = {
     method: 'POST',
-    body: { input: 'BTC Is digital gold superior to sovereign fiat?' }
+    body: {
+      input: 'BTC Is digital gold superior to sovereign fiat?',
+      selectedSeats: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    }
   };
   const res = createMockRes();
 

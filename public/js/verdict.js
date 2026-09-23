@@ -84,6 +84,7 @@ const BourseVerdict = (() => {
 
     renderCaseDetails();
     renderVerdictStamp();
+    renderFinalSynthesis();
     renderVotesTable();
     renderConsensusAndTriggers();
     renderTranscriptReplay();
@@ -118,7 +119,11 @@ const BourseVerdict = (() => {
     const openedDate = session.createdAt ? BourseUtils.formatDate(session.createdAt) : '05 Sep 2026';
     if (openedEl) openedEl.textContent = openedDate;
     if (closedEl) closedEl.textContent = session.closedAt || '10:00';
-    if (seatsEl) seatsEl.textContent = session.seatsPresent || '9 / 9';
+    
+    const targetCount = Array.isArray(session.directedSeats) && session.directedSeats.length > 0
+      ? session.directedSeats.length
+      : (Array.isArray(session.votes) && session.votes.length > 0 ? session.votes.length : 9);
+    if (seatsEl) seatsEl.textContent = session.seatsPresent || `${targetCount} / ${targetCount}`;
     if (turnsEl) turnsEl.textContent = session.speakingTurns || (session.transcript ? session.transcript.length : 14);
   }
 
@@ -128,10 +133,14 @@ const BourseVerdict = (() => {
     const dissentEl = document.getElementById('verdict-dissent');
     const sizeBandEl = document.getElementById('verdict-size-band');
 
+    const targetCount = Array.isArray(session.directedSeats) && session.directedSeats.length > 0
+      ? session.directedSeats.length
+      : (Array.isArray(session.votes) && session.votes.length > 0 ? session.votes.length : 9);
+
     const v = session.verdict || {
       outcome: 'PASS',
-      majorityRatio: '5 / 9',
-      dissentBreakdown: '2 ADD, 2 REDUCE',
+      majorityRatio: `${Math.floor(targetCount / 2) + 1} / ${targetCount}`,
+      dissentBreakdown: 'None',
       positionSizeBand: '1.5 – 3.0%'
     };
 
@@ -140,30 +149,60 @@ const BourseVerdict = (() => {
       outcomeEl.className = `stamp-outcome ${v.outcome ? v.outcome.toLowerCase() : 'pass'}`;
     }
     if (ratioEl) {
-      ratioEl.textContent = `${v.majorityRatio || '5 / 9'} BENCH MAJORITY`;
+      ratioEl.textContent = `${v.majorityRatio || `${v.majorityCount || 1} / ${targetCount}`} BENCH MAJORITY`;
     }
     if (dissentEl) {
       dissentEl.textContent = v.dissentBreakdown ? `DISSENT: ${v.dissentBreakdown}` : 'UNANIMOUS BENCH';
     }
     const stampCard = document.querySelector('.verdict-stamp-card');
     if (stampCard && v.outcome) {
-      stampCard.classList.remove('add', 'reduce', 'pass');
+      stampCard.classList.remove('add', 'reduce', 'pass', 'divided');
       stampCard.classList.add(v.outcome.toLowerCase());
     }
     if (sizeBandEl) {
-      const isSizingQuery = /\b(size|sizing|position|allocation|allocate|portfolio|weight|percentage|percent|how much|risk budget)\b/i.test(session.question || '');
-      if (isSizingQuery) {
+      const isSizingQuery = v.isSizingRequested || /\b(size|sizing|position|allocation|allocate|portfolio|weight|percentage|percent|how much|risk budget)\b/i.test(session.question || '');
+      if (isSizingQuery && v.positionSizeBand && v.positionSizeBand !== 'N/A') {
         sizeBandEl.innerHTML = `
           <strong>POSITION SIZE BAND: ${v.positionSizeBand}</strong>
           <small>Calibrated against tail risk for requested allocation sizing.</small>
         `;
       } else {
         sizeBandEl.innerHTML = `
-          <strong>QUESTION EVALUATION: ${v.outcome === 'ADD' ? 'AFFIRMATIVE / BULLISH CONSENSUS' : v.outcome === 'REDUCE' ? 'SKEPTICAL / RISK-OFF CONSENSUS' : 'DIVIDED / NEUTRAL BENCH'}</strong>
+          <strong>QUESTION EVALUATION: ${v.outcome === 'ADD' ? 'AFFIRMATIVE / BULLISH CONSENSUS' : v.outcome === 'REDUCE' ? 'SKEPTICAL / RISK-OFF CONSENSUS' : v.outcome === 'DIVIDED' ? 'DIVIDED BENCH' : 'NEUTRAL / PASS BENCH'}</strong>
           <small>${session.question ? `Directly answering: "${session.question}"` : 'Deliberation concluded by bench majority.'}</small>
         `;
       }
     }
+  }
+
+  function renderFinalSynthesis() {
+    const qEl = document.getElementById('synthesis-question');
+    const fEl = document.getElementById('synthesis-findings');
+    const aEl = document.getElementById('synthesis-agreement');
+    const dEl = document.getElementById('synthesis-disagreement');
+    const uEl = document.getElementById('synthesis-unresolved');
+    const cEl = document.getElementById('synthesis-conclusion');
+
+    const v = session?.verdict || {};
+    const synth = v.synthesis || session?.synthesis || null;
+    const votes = session?.votes || [];
+    const participants = votes.map(vo => vo.name || vo.persona).join(', ') || 'Participating seats';
+
+    const questionText = synth?.question || session?.question || 'Chamber Motion';
+    if (qEl) qEl.textContent = questionText;
+
+    if (fEl) {
+      if (synth && Array.isArray(synth.keyFindings) && synth.keyFindings.length > 0) {
+        fEl.innerHTML = synth.keyFindings.map(f => `<li>${f}</li>`).join('');
+      } else {
+        fEl.innerHTML = votes.map(vo => `<li><b>${vo.shortName || vo.name}:</b> ${vo.reason || vo.rationale || vo.vote}</li>`).join('') || `<li>Deliberated by participating seats: ${participants}.</li>`;
+      }
+    }
+
+    if (aEl) aEl.textContent = synth?.areasOfAgreement || v.keyAgreement || `Consensus on governing constraints by participating seats (${participants}).`;
+    if (dEl) dEl.textContent = synth?.areasOfDisagreement || v.keyDisagreement || `Divergence across individual discipline thresholds: ${v.dissentBreakdown || 'None'}.`;
+    if (uEl) uEl.textContent = synth?.unresolvedIssues || v.unresolvedQuestion || `Whether key network and market fundamentals maintain structural integrity.`;
+    if (cEl) cEl.textContent = synth?.conclusion || `Floor outcome certified as ${v.outcome || 'PASS'} (${v.majorityRatio || `${votes.length} / ${votes.length}`} Majority) based strictly on participating seats: ${participants}.`;
   }
 
   function renderVotesTable() {
