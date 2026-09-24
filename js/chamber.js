@@ -531,29 +531,113 @@ const BourseChamber = (() => {
     }
   }
 
+  function extractTokenNameFromQuery(query, fallbackTicker) {
+    if (!query || typeof query !== 'string') {
+      return (fallbackTicker && !['CRYPTO', 'TOKEN', 'ASSET', 'UNKNOWN', 'THE TOKEN'].includes(fallbackTicker.toUpperCase())) ? fallbackTicker : '';
+    }
+    const raw = query.trim();
+
+    // Pattern 1: "of <TOKEN> on <Network>" or "of <TOKEN> (CA:" or "of <TOKEN> token"
+    const mOf = raw.match(/\b(?:of|for|on)\s+([A-Za-z0-9$]{2,20})\s+(?:on\b|\(CA:|\btoken\b|\(0x)/i);
+    if (mOf && !/^(the|a|an|current|any|all|our|this|its)$/i.test(mOf[1])) {
+      return mOf[1].replace(/^\$/, '').toUpperCase();
+    }
+
+    // Pattern 2: "<TOKEN> on <Network> [Chain]" e.g. "CASHCAT on Robinhood Chain"
+    const mOn = raw.match(/\b([A-Za-z0-9$]{2,20})\s+on\s+[A-Za-z0-9\s]+(?:Chain|Network|L2)\b/i);
+    if (mOn && !/^(market|cap|liquidity|volume|activity|concentration|status|permissions|contract|trading|holders?)$/i.test(mOn[1])) {
+      return mOn[1].replace(/^\$/, '').toUpperCase();
+    }
+
+    // Pattern 3: "<TOKEN> (CA: 0x...)" or "<TOKEN> (0x...)"
+    const mCa = raw.match(/\b([A-Za-z0-9$]{2,20})\s*\((?:CA:?\s*)?0x[a-fA-F0-9]/i);
+    if (mCa && !/^(chain|network|address|contract|token)$/i.test(mCa[1])) {
+      return mCa[1].replace(/^\$/, '').toUpperCase();
+    }
+
+    // Pattern 4: "can/will/could/should/does/is <TOKEN> reach/sustain/hit/grow/surpass/hold"
+    const mVerb = raw.match(/\b(?:can|will|could|should|does|is)\s+([A-Za-z0-9$]{2,20})\s+(?:reach|sustain|hit|grow|surpass|hold|achieve|maintain)/i);
+    if (mVerb && !/^(the|a|an|it|this|that|we)$/i.test(mVerb[1])) {
+      return mVerb[1].replace(/^\$/, '').toUpperCase();
+    }
+
+    // Pattern 5: "for <TOKEN> to reach"
+    const mFor = raw.match(/\bfor\s+([A-Za-z0-9$]{2,20})\s+to\s+(?:reach|sustain|hit|grow)/i);
+    if (mFor && !/^(the|a|an|it|this|that)$/i.test(mFor[1])) {
+      return mFor[1].replace(/^\$/, '').toUpperCase();
+    }
+
+    // Pattern 6: "<TOKEN> token"
+    const mToken = raw.match(/\b([A-Za-z0-9$]{2,20})\s+token\b/i);
+    if (mToken && !/^(the|a|an|any|this|native|erc20|spl|our)$/i.test(mToken[1])) {
+      return mToken[1].replace(/^\$/, '').toUpperCase();
+    }
+
+    // Pattern 7: Symbol with dollar sign e.g. $CASHCAT
+    const mDollar = raw.match(/\$([A-Za-z0-9]{2,15})\b/);
+    if (mDollar && !/^\d+/.test(mDollar[1])) {
+      return mDollar[1].toUpperCase();
+    }
+
+    // Pattern 8: If fallbackTicker is a real ticker (not generic)
+    if (fallbackTicker && !['CRYPTO', 'TOKEN', 'ASSET', 'UNKNOWN', 'THE TOKEN'].includes(fallbackTicker.toUpperCase())) {
+      return fallbackTicker.toUpperCase();
+    }
+
+    return fallbackTicker || '';
+  }
+
   function makeReadableQuestion(rawQ, ticker, targetFormatted) {
     if (!rawQ || typeof rawQ !== 'string') return '';
     const trimmed = rawQ.trim();
-    if (trimmed.length <= 110) return trimmed;
 
-    // Check for target and asset name
+    // 1. Extract the true token identity from raw query first
+    const tokenName = extractTokenNameFromQuery(trimmed, ticker);
+    const asset = (tokenName && !['CRYPTO', 'TOKEN', 'ASSET', 'UNKNOWN', 'THE TOKEN'].includes(tokenName.toUpperCase()))
+      ? tokenName
+      : (ticker && !['CRYPTO', 'TOKEN', 'ASSET', 'UNKNOWN', 'THE TOKEN'].includes(ticker.toUpperCase()) ? ticker : 'the token');
+
+    // 2. Extract target market cap
     const targetMatch = trimmed.match(/(?:\$|reach\s+)([\d,.]+[kKmMbB]?)/i);
     const target = targetFormatted || (targetMatch ? (targetMatch[1].startsWith('$') ? targetMatch[1] : `$${targetMatch[1]}`) : '');
-    const asset = ticker || 'the token';
 
+    // 3. Detect intent / clauses
+    const asksSpeculative = /without\s+relying\s+on\s+(?:temporary\s+)?speculative\s+volume|speculative\s+volume/i.test(trimmed);
     const asksChanges = /what\s+measurable\s+changes|what\s+changes|which\s+current\s+constraint|greatest\s+obstacle|main\s+factor/i.test(trimmed);
+    const asksSustainOnly = /can\s+.*reach\s+and\s+sustain/i.test(trimmed) || /sustain/i.test(trimmed);
 
-    if (target) {
-      return asksChanges
-        ? `Can ${asset} reach and sustain a ${target} market cap?\nWhat changes would be needed?`
-        : `Can ${asset} reach and sustain a ${target} market cap?`;
+    // If query is short (e.g. <= 120 chars) and does NOT contain generic tokens like CRYPTO/TOKEN
+    if (trimmed.length <= 120 && trimmed.includes('?')) {
+      if (asset !== 'the token') {
+        const cleaned = trimmed.replace(/\b(?:the token|CRYPTO|TOKEN)\b/gi, asset);
+        return cleaned;
+      }
+      return trimmed;
     }
 
-    // Try last question sentence
+    // For longer / complex queries, reconstruct cleanly while preserving identity & intent:
+    if (target) {
+      if (asksSpeculative) {
+        return `Can ${asset} reach and sustain a ${target} market cap without relying on temporary speculative volume?`;
+      }
+      if (asksChanges) {
+        return `Can ${asset} reach and sustain a ${target} market cap?\nWhat changes would be needed?`;
+      }
+      if (asksSustainOnly) {
+        return `Can ${asset} reach and sustain a ${target} market cap?`;
+      }
+      return `Can ${asset} reach a ${target} market cap?`;
+    }
+
+    // Try last question sentence if available
     const parts = trimmed.split(/(?<=[.?!])\s+/);
     const qParts = parts.filter(p => p.includes('?'));
     if (qParts.length > 0 && qParts[qParts.length - 1].length < 130) {
-      return qParts[qParts.length - 1].trim();
+      let lastQ = qParts[qParts.length - 1].trim();
+      if (asset !== 'the token') {
+        lastQ = lastQ.replace(/\b(?:the token|CRYPTO|TOKEN)\b/gi, asset);
+      }
+      return lastQ;
     }
 
     return trimmed.slice(0, 110) + '...';
@@ -1003,10 +1087,20 @@ const BourseChamber = (() => {
           : outcome);
 
     const caDetails = verdictData?.tokenCaDetails || currentSession?.synthesis?.caDetails;
-    const ticker = currentEvidence?.ticker || verdictData?.ticker || currentSession?.ticker || 'the token';
+    const fullQuestion = (currentSession?.question || verdictData?.question || '').trim();
+    let ticker = currentEvidence?.ticker || verdictData?.ticker || currentSession?.ticker;
+    const extractedToken = extractTokenNameFromQuery(fullQuestion, ticker);
+    if (extractedToken && !['CRYPTO', 'TOKEN', 'ASSET', 'UNKNOWN', 'THE TOKEN'].includes(extractedToken.toUpperCase())) {
+      ticker = extractedToken;
+    } else if (!ticker || ['CRYPTO', 'TOKEN', 'ASSET'].includes(ticker.toUpperCase())) {
+      ticker = 'the token';
+    }
     const targetFormatted = caDetails?.targetMarketCap || '$100K';
     const multFormatted = caDetails?.requiredMultipleFormatted || 'DATA UNAVAILABLE';
     const liqFormatted = caDetails?.liquidity || 'DATA UNAVAILABLE';
+
+    const isTargetBelow = caDetails?.targetInterpretation === 'BELOW CURRENT MC' ||
+      (typeof caDetails?.targetMarketCapNum === 'number' && typeof caDetails?.currentMarketCapNum === 'number' && caDetails.targetMarketCapNum < caDetails.currentMarketCapNum);
 
     let conciseConclusion = verdictData?.conciseConclusion ||
       verdictData?.synthesis?.conciseConclusion ||
@@ -1014,7 +1108,9 @@ const BourseChamber = (() => {
       (currentSession?.verdict && currentSession.verdict.conciseConclusion);
 
     if (!conciseConclusion) {
-      if (outcome === 'DIVIDED') {
+      if (isTokenCa && isTargetBelow) {
+        conciseConclusion = `The ${targetFormatted} target is below the current Market Cap of ${caDetails?.currentMarketCap || 'current levels'}, so reaching it would mean a decrease, not growth. However, the available evidence is not enough to confirm whether ${targetFormatted} could be sustained without relying on speculative volume.`;
+      } else if (outcome === 'DIVIDED') {
         conciseConclusion = isTokenCa
           ? `The Chamber could not confirm that ${ticker} can reach and hold a ${targetFormatted} market cap. More evidence is needed on liquidity, LP status, and holder distribution.`
           : 'The Chamber was divided and could not reach a majority. The seats disagreed on whether conditions are strong enough to act.';
@@ -1039,7 +1135,6 @@ const BourseChamber = (() => {
 
     verdictObj.conciseConclusion = conciseConclusion;
 
-    const fullQuestion = (currentSession?.question || verdictData?.question || '').trim();
     const displayQuestion = makeReadableQuestion(fullQuestion, ticker, targetFormatted);
 
     // Build 5-SECTION TOKEN_CA REQUIREMENTS block
@@ -1102,9 +1197,21 @@ const BourseChamber = (() => {
       );
     }
 
-    // Build MAIN FACTOR block
-    const mainFactor = verdictData?.mainFactor || currentSession?.synthesis?.mainFactor;
-    const mainFactorReason = verdictData?.mainFactorReason || currentSession?.synthesis?.mainFactorReason;
+    let mainFactor = verdictData?.mainFactor || currentSession?.synthesis?.mainFactor;
+    let mainFactorReason = verdictData?.mainFactorReason || currentSession?.synthesis?.mainFactorReason;
+    if (!mainFactor && isTokenCa) {
+      const asksAboutFactor = /(?:main\s+(?:factor|obstacle|constraint|driver)|which\s+(?:factor|constraint|obstacle|change)|what\s+(?:factor|change|constraint|obstacle|measurable\s+change)|capital\s+inflow|organic\s+demand|circulating\s+supply|liquidity\s+depth|combination|greatest\s+(?:evidence-based\s+)?obstacle|sustain|speculative\s+volume)/i.test(fullQuestion);
+      if (asksAboutFactor && isTargetBelow) {
+        const asksSustain = /(?:sustain|hold|keep|relying|speculative|maintain|endure)/i.test(fullQuestion);
+        if (asksSustain) {
+          mainFactor = 'INSUFFICIENT EVIDENCE';
+          mainFactorReason = 'The target is below the current market cap, so no additional growth is mathematically required. However, the available evidence is not enough to determine what would be needed to sustain the target.';
+        } else {
+          mainFactor = 'NOT APPLICABLE';
+          mainFactorReason = 'The target is below the current market cap, so no additional growth is mathematically required.';
+        }
+      }
+    }
     const mainFactorLines = [];
     if (mainFactor) {
       mainFactorLines.push(

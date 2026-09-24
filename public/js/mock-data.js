@@ -119,11 +119,23 @@ const BourseMockData = (() => {
 
     // 2. If general question about crypto, market, or conceptual thesis
     if (!matchedTicker) {
-      const isGeneral = /\b(CRYPTO|KRIPTO|MARKET|PASAR|TURUN|NAIK|CRASH|DUMP|PUMP|MEME|MEMECOIN|DEFI|L2|LAYER2|WEB3|SEC|REGULASI)\b/i.test(clean);
-      if (isGeneral || words.length > 2) {
-        matchedTicker = 'CRYPTO';
+      let tokenCandidate = null;
+      const mOf = clean.match(/\b(?:OF|FOR|ON)\s+([A-Z0-9$]{2,20})\s+(?:ON\b|\(CA:|\bTOKEN\b|\(0X)/i);
+      const mVerb = clean.match(/\b(?:CAN|WILL|COULD|SHOULD|DOES|IS)\s+([A-Z0-9$]{2,20})\s+(?:REACH|SUSTAIN|HIT|GROW|SURPASS|HOLD)/i);
+      const mOn = clean.match(/\b([A-Z0-9$]{2,20})\s+ON\s+[A-Z0-9\s]+(?:CHAIN|NETWORK|L2)\b/i);
+      if (mOf && !/^(THE|A|AN|CURRENT|ANY|ALL|OUR|THIS|ITS)$/.test(mOf[1])) tokenCandidate = mOf[1].replace(/^\$/, '');
+      else if (mVerb && !/^(THE|A|AN|IT|THIS|THAT|WE)$/.test(mVerb[1])) tokenCandidate = mVerb[1].replace(/^\$/, '');
+      else if (mOn && !/^(MARKET|CAP|LIQUIDITY|VOLUME|ACTIVITY|STATUS|PERMISSIONS|CONTRACT)$/.test(mOn[1])) tokenCandidate = mOn[1].replace(/^\$/, '');
+
+      if (tokenCandidate) {
+        matchedTicker = tokenCandidate;
       } else {
-        matchedTicker = words[0] && words[0].length <= 8 ? words[0] : 'BTC';
+        const isGeneral = /\b(CRYPTO|KRIPTO|MARKET|PASAR|TURUN|NAIK|CRASH|DUMP|PUMP|MEME|MEMECOIN|DEFI|L2|LAYER2|WEB3|SEC|REGULASI)\b/i.test(clean);
+        if (isGeneral || words.length > 2) {
+          matchedTicker = 'CRYPTO';
+        } else {
+          matchedTicker = words[0] && words[0].length <= 8 ? words[0] : 'BTC';
+        }
       }
     }
 

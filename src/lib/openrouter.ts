@@ -13,7 +13,7 @@ import {
   TokenCaSynthesisDetails,
   CaEvidence
 } from '../types';
-import { extractContractAddress, extractTargetMarketCap } from './ca-evidence';
+import { extractContractAddress, extractTargetMarketCap, extractTokenNameFromQuery } from './ca-evidence';
 
 export const OPENROUTER_DEFAULT_MODEL = 'openrouter/free';
 export const DEFAULT_OPENROUTER_KEY = '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';
@@ -586,6 +586,7 @@ export function buildConciseVerdictConclusion(params: {
   multFormatted?: string;
   liqFormatted?: string;
   criticalFieldsMissing?: boolean;
+  question?: string;
 }): string {
   const {
     isCa,
@@ -596,7 +597,8 @@ export function buildConciseVerdictConclusion(params: {
     currentMcNum = null,
     multFormatted = 'DATA UNAVAILABLE',
     liqFormatted = 'DATA UNAVAILABLE',
-    criticalFieldsMissing = true
+    criticalFieldsMissing = true,
+    question = ''
   } = params;
 
   if (isCa) {
@@ -604,13 +606,7 @@ export function buildConciseVerdictConclusion(params: {
     const isTargetAbove = targetMcNum !== null && currentMcNum !== null && targetMcNum > currentMcNum;
 
     if (isTargetBelow) {
-      const pctDecrease = currentMcNum && targetMcNum
-        ? ((currentMcNum - targetMcNum) / currentMcNum * 100).toFixed(1)
-        : '0';
-      if (outcome === 'DIVIDED') {
-        return `The Chamber was divided because the ${targetFormatted} target is below the current Market Cap of ${currentMcFormatted}. Reaching it would mean a decrease, not growth.`;
-      }
-      return `The ${targetFormatted} target is below the current Market Cap of ${currentMcFormatted}. Reaching it would mean a decrease, not growth.`;
+      return `The ${targetFormatted} target is below the current Market Cap of ${currentMcFormatted}, so reaching it would mean a decrease, not growth. However, the available evidence is not enough to confirm whether ${targetFormatted} could be sustained without relying on speculative volume.`;
     }
 
     if (isTargetAbove) {
@@ -688,14 +684,28 @@ export function determineMainFactor(params: {
 
   const q = question.toLowerCase();
 
-  // Only compute when the question explicitly asks about the main factor / which change is needed
-  const asksAboutFactor = /(?:main\s+(?:factor|obstacle|constraint|driver)|which\s+(?:factor|constraint|obstacle|change)|what\s+(?:factor|change|constraint|obstacle|measurable\s+change)|capital\s+inflow|organic\s+demand|circulating\s+supply|liquidity\s+depth|combination|greatest\s+(?:evidence-based\s+)?obstacle)/i.test(question);
+  // Only compute when the question explicitly asks about the main factor / which change is needed / sustainability
+  const asksAboutFactor = /(?:main\s+(?:factor|obstacle|constraint|driver)|which\s+(?:factor|constraint|obstacle|change)|what\s+(?:factor|change|constraint|obstacle|measurable\s+change)|capital\s+inflow|organic\s+demand|circulating\s+supply|liquidity\s+depth|combination|greatest\s+(?:evidence-based\s+)?obstacle|sustain|speculative\s+volume)/i.test(question);
   if (!asksAboutFactor) return null;
 
   if (isTargetBelow) {
+    const asksSustain = /(?:sustain|hold|keep|relying|speculative|maintain|endure)/i.test(question);
+    if (asksSustain) {
+      const holderMissing = !holderConcentration || holderConcentration === 'DATA UNAVAILABLE';
+      const lpMissing = !lpStatus || lpStatus === 'DATA UNAVAILABLE';
+      const isSustainabilityEvidenceInsufficient = criticalFieldsMissing || holderMissing || lpMissing;
+
+      if (isSustainabilityEvidenceInsufficient) {
+        return {
+          factor: 'INSUFFICIENT EVIDENCE',
+          reason: 'The target is below the current market cap, so no additional growth is mathematically required. However, the available evidence is not enough to determine what would be needed to sustain the target.'
+        };
+      }
+    }
+
     return {
       factor: 'NOT APPLICABLE',
-      reason: `The target is already below the current Market Cap, so no factor needs to drive it higher.`
+      reason: 'The target is below the current market cap, so no additional growth is mathematically required.'
     };
   }
 
@@ -742,6 +752,14 @@ export function aggregateVotes(
   const totalVotes = votes.length;
   const qTopic = detectQuestionTopic(question);
   const isCa = qTopic === 'TOKEN_CA' || Boolean(caEvidence) || votes.some(v => ['SUPPORTED', 'NOT_SUPPORTED', 'INSUFFICIENT_EVIDENCE'].includes(v.vote));
+
+  const tokenFromQuery = extractTokenNameFromQuery(question);
+  const effectiveTicker = (tokenFromQuery && !['CRYPTO', 'TOKEN', 'ASSET', 'UNKNOWN', 'THE TOKEN'].includes(tokenFromQuery.toUpperCase()))
+    ? tokenFromQuery
+    : ((ticker && !['CRYPTO', 'TOKEN', 'ASSET', 'UNKNOWN', 'THE TOKEN'].includes(ticker.toUpperCase())) ? ticker : (tokenFromQuery || 'TOKEN'));
+  const effectiveAssetName = (effectiveTicker !== 'TOKEN' && (!assetName || ['Asset', 'CRYPTO', 'TOKEN', 'Contract Token'].includes(assetName)))
+    ? effectiveTicker
+    : assetName;
 
   if (isCa) {
     const supportedCount = votes.filter(v => v.vote === 'SUPPORTED').length;
@@ -801,11 +819,50 @@ export function aggregateVotes(
       `24h volume drops by more than 50% over a 7-day rolling window.`
     ];
 
+    const conciseConclusion = buildConciseVerdictConclusion({
+      isCa: true,
+      outcome,
+      questionTopic: 'TOKEN_CA',
+      targetFormatted: caEvidence?.targetMarketCapFormatted,
+      currentMcFormatted: caEvidence?.marketCapFormatted,
+      targetMcNum: typeof caEvidence?.targetMarketCap === 'number' ? caEvidence.targetMarketCap : null,
+      currentMcNum: typeof caEvidence?.marketCap === 'number' ? caEvidence.marketCap : null,
+      multFormatted: caEvidence?.requiredMultipleFormatted,
+      liqFormatted: caEvidence?.liquidityFormatted,
+      criticalFieldsMissing: true,
+      question
+    });
+
+    const mainFactorResult = caEvidence ? determineMainFactor({
+      question,
+      isTargetBelow: typeof caEvidence.targetMarketCap === 'number' && typeof caEvidence.marketCap === 'number' && caEvidence.targetMarketCap < caEvidence.marketCap,
+      isTargetAbove: typeof caEvidence.targetMarketCap === 'number' && typeof caEvidence.marketCap === 'number' && caEvidence.targetMarketCap > caEvidence.marketCap,
+      criticalFieldsMissing: caEvidence.holderConcentration === 'DATA UNAVAILABLE' || caEvidence.liquidityLock === 'DATA UNAVAILABLE' || caEvidence.contractVerification === 'DATA UNAVAILABLE',
+      liqFormatted: caEvidence.liquidityFormatted || 'DATA UNAVAILABLE',
+      liquidityUsd: caEvidence.liquidityUsd,
+      targetMcNum: typeof caEvidence.targetMarketCap === 'number' ? caEvidence.targetMarketCap : null,
+      currentMcNum: typeof caEvidence.marketCap === 'number' ? caEvidence.marketCap : null,
+      multFormatted: caEvidence.requiredMultipleFormatted || 'DATA UNAVAILABLE',
+      holderConcentration: caEvidence.holderConcentration,
+      lpStatus: caEvidence.liquidityLock,
+      volFormatted: caEvidence.volume24hFormatted || 'DATA UNAVAILABLE'
+    }) : determineMainFactor({
+      question,
+      isTargetBelow: false,
+      isTargetAbove: true,
+      criticalFieldsMissing: true,
+      liqFormatted: 'DATA UNAVAILABLE',
+      targetMcNum: null,
+      currentMcNum: null,
+      multFormatted: 'DATA UNAVAILABLE',
+      volFormatted: 'DATA UNAVAILABLE'
+    });
+
     return {
       id: `VR-${sessionId}`,
       sessionId,
-      ticker,
-      assetName,
+      ticker: effectiveTicker,
+      assetName: effectiveAssetName,
       question,
       outcome,
       addCount: 0,
@@ -829,6 +886,9 @@ export function aggregateVotes(
       totalParticipants: totalVotes,
       isSizingRequested: false,
       questionTopic: 'TOKEN_CA',
+      conciseConclusion,
+      mainFactor: mainFactorResult?.factor,
+      mainFactorReason: mainFactorResult?.reason,
       timestamp: new Date().toISOString()
     };
   }
@@ -961,7 +1021,8 @@ export function aggregateVotes(
     currentMcNum: typeof caEvidence?.marketCap === 'number' ? caEvidence.marketCap : null,
     multFormatted: caEvidence?.requiredMultipleFormatted,
     liqFormatted: caEvidence?.liquidityFormatted,
-    criticalFieldsMissing: true
+    criticalFieldsMissing: true,
+    question
   });
 
   const mainFactorResult = (isCa && caEvidence) ? determineMainFactor({
@@ -982,8 +1043,8 @@ export function aggregateVotes(
   return {
     id: `VR-${sessionId}`,
     sessionId,
-    ticker,
-    assetName,
+    ticker: effectiveTicker,
+    assetName: effectiveAssetName,
     question,
     outcome,
     addCount,

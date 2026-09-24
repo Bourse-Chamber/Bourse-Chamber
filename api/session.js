@@ -14,7 +14,7 @@ const {
   detectQuestionTopic,
   validateDeterministicTokenCa
 } = require("../src/lib/openrouter");
-const { fetchCaEvidence, formatCaEvidenceSummary, extractContractAddress } = require("../src/lib/ca-evidence");
+const { fetchCaEvidence, formatCaEvidenceSummary, extractContractAddress, extractTokenNameFromQuery } = require("../src/lib/ca-evidence");
 const { db } = require("../src/lib/db");
 const { demoEvidence } = require("../db/engine");
 const { extractTickerFromQuery } = require("../src/lib/coingecko");
@@ -112,7 +112,8 @@ module.exports = async function handler(req, res) {
   }
 
   const sessionId = `BC-${Math.floor(1000 + Math.random() * 9000)}`;
-  const ticker = extractTickerFromQuery(query);
+  const extractedToken = extractTokenNameFromQuery(query);
+  let ticker = extractedToken || extractTickerFromQuery(query);
   const qTopic = detectQuestionTopic(query);
   const caMatch = extractContractAddress(query);
   const isCa = qTopic === 'TOKEN_CA' || Boolean(caMatch);
@@ -125,8 +126,19 @@ module.exports = async function handler(req, res) {
     if (isCa) {
       caData = await fetchCaEvidence(query);
       evidenceSummary = formatCaEvidenceSummary(caData);
+      if (caData.symbol && caData.symbol !== 'DATA UNAVAILABLE') {
+        ticker = caData.symbol;
+      } else if (extractedToken) {
+        ticker = extractedToken;
+        caData.symbol = extractedToken;
+        if (caData.name === 'DATA UNAVAILABLE' || caData.name === 'Contract Token') {
+          caData.name = extractedToken;
+        }
+      } else {
+        ticker = 'TOKEN';
+      }
       evidence = {
-        ticker: caData.symbol !== 'DATA UNAVAILABLE' ? caData.symbol : 'TOKEN',
+        ticker,
         name: caData.name !== 'DATA UNAVAILABLE' ? `${caData.name} (${caData.symbol})` : `Contract ${(caData.contractAddress || '').slice(0, 6)}...${(caData.contractAddress || '').slice(-4)}`,
         price: typeof caData.price === 'number' ? caData.price : 0,
         priceFormatted: caData.priceFormatted,

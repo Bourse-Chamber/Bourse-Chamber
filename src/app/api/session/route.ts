@@ -10,7 +10,7 @@ import {
   validateDeterministicTokenCa
 } from '../../../lib/openrouter';
 import { fetchCryptoEvidence, extractTickerFromQuery } from '../../../lib/coingecko';
-import { fetchCaEvidence, formatCaEvidenceSummary, extractContractAddress } from '../../../lib/ca-evidence';
+import { fetchCaEvidence, formatCaEvidenceSummary, extractContractAddress, extractTokenNameFromQuery } from '../../../lib/ca-evidence';
 import { db } from '../../../lib/db';
 import { redis } from '../../../lib/redis';
 import { SeatVote, TranscriptMessage, Round1Analysis } from '../../../types';
@@ -81,7 +81,8 @@ export async function POST(req: NextRequest) {
 
     let evidence: any;
     let evidenceSummary: string;
-    let ticker = extractTickerFromQuery(query);
+    const extractedTokenName = extractTokenNameFromQuery(query);
+    let ticker = extractedTokenName || extractTickerFromQuery(query);
     let caData: any = null;
 
     if (isCa) {
@@ -99,7 +100,17 @@ export async function POST(req: NextRequest) {
       console.log('[SESSION DEBUG] caData.txns24h:', JSON.stringify(caData.txns24h));
 
       evidenceSummary = formatCaEvidenceSummary(caData);
-      ticker = caData.symbol !== 'DATA UNAVAILABLE' ? caData.symbol : 'TOKEN';
+      if (caData.symbol && caData.symbol !== 'DATA UNAVAILABLE') {
+        ticker = caData.symbol;
+      } else if (extractedTokenName) {
+        ticker = extractedTokenName;
+        caData.symbol = extractedTokenName;
+        if (caData.name === 'DATA UNAVAILABLE' || caData.name === 'Contract Token') {
+          caData.name = extractedTokenName;
+        }
+      } else {
+        ticker = 'TOKEN';
+      }
       evidence = {
         ticker,
         name: caData.name !== 'DATA UNAVAILABLE' ? `${caData.name} (${caData.symbol})` : `Contract ${(caData.contractAddress || '').slice(0, 6)}...${(caData.contractAddress || '').slice(-4)}`,

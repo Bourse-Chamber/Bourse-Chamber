@@ -103,14 +103,74 @@ export function calculateBuySellRatio(buys: number | null | undefined, sells: nu
   return 'DATA UNAVAILABLE';
 }
 
-function createUnavailableEvidence(contractAddress: string, targetMcap: number | null, targetMcapFormatted: string): CaEvidence {
+/**
+ * Extracts the explicit token symbol / name from a query string.
+ * Preserves actual token identity (e.g. CASHCAT) and avoids generic fallbacks like CRYPTO/TOKEN.
+ */
+export function extractTokenNameFromQuery(query: string, fallbackTicker?: string): string {
+  if (!query || typeof query !== 'string') {
+    return (fallbackTicker && !['CRYPTO', 'TOKEN', 'ASSET', 'UNKNOWN', 'THE TOKEN'].includes(fallbackTicker.toUpperCase())) ? fallbackTicker : '';
+  }
+  const raw = query.trim();
+
+  // Pattern 1: "of <TOKEN> on <Network>" or "of <TOKEN> (CA:" or "of <TOKEN> token"
+  const mOf = raw.match(/\b(?:of|for|on)\s+([A-Za-z0-9$]{2,20})\s+(?:on\b|\(CA:|\btoken\b|\(0x)/i);
+  if (mOf && !/^(the|a|an|current|any|all|our|this|its)$/i.test(mOf[1])) {
+    return mOf[1].replace(/^\$/, '').toUpperCase();
+  }
+
+  // Pattern 2: "<TOKEN> on <Network> [Chain]" e.g. "CASHCAT on Robinhood Chain"
+  const mOn = raw.match(/\b([A-Za-z0-9$]{2,20})\s+on\s+[A-Za-z0-9\s]+(?:Chain|Network|L2)\b/i);
+  if (mOn && !/^(market|cap|liquidity|volume|activity|concentration|status|permissions|contract|trading|holders?)$/i.test(mOn[1])) {
+    return mOn[1].replace(/^\$/, '').toUpperCase();
+  }
+
+  // Pattern 3: "<TOKEN> (CA: 0x...)" or "<TOKEN> (0x...)"
+  const mCa = raw.match(/\b([A-Za-z0-9$]{2,20})\s*\((?:CA:?\s*)?0x[a-fA-F0-9]/i);
+  if (mCa && !/^(chain|network|address|contract|token)$/i.test(mCa[1])) {
+    return mCa[1].replace(/^\$/, '').toUpperCase();
+  }
+
+  // Pattern 4: "can/will/could/should/does/is <TOKEN> reach/sustain/hit/grow/surpass/hold"
+  const mVerb = raw.match(/\b(?:can|will|could|should|does|is)\s+([A-Za-z0-9$]{2,20})\s+(?:reach|sustain|hit|grow|surpass|hold|achieve|maintain)/i);
+  if (mVerb && !/^(the|a|an|it|this|that|we)$/i.test(mVerb[1])) {
+    return mVerb[1].replace(/^\$/, '').toUpperCase();
+  }
+
+  // Pattern 5: "for <TOKEN> to reach"
+  const mFor = raw.match(/\bfor\s+([A-Za-z0-9$]{2,20})\s+to\s+(?:reach|sustain|hit|grow)/i);
+  if (mFor && !/^(the|a|an|it|this|that)$/i.test(mFor[1])) {
+    return mFor[1].replace(/^\$/, '').toUpperCase();
+  }
+
+  // Pattern 6: "<TOKEN> token"
+  const mToken = raw.match(/\b([A-Za-z0-9$]{2,20})\s+token\b/i);
+  if (mToken && !/^(the|a|an|any|this|native|erc20|spl|our)$/i.test(mToken[1])) {
+    return mToken[1].replace(/^\$/, '').toUpperCase();
+  }
+
+  // Pattern 7: Symbol with dollar sign e.g. $CASHCAT
+  const mDollar = raw.match(/\$([A-Za-z0-9]{2,15})\b/);
+  if (mDollar && !/^\d+/.test(mDollar[1])) {
+    return mDollar[1].toUpperCase();
+  }
+
+  // Pattern 8: If fallbackTicker is a real ticker (not generic)
+  if (fallbackTicker && !['CRYPTO', 'TOKEN', 'ASSET', 'UNKNOWN', 'THE TOKEN'].includes(fallbackTicker.toUpperCase())) {
+    return fallbackTicker.toUpperCase();
+  }
+
+  return fallbackTicker || '';
+}
+
+function createUnavailableEvidence(contractAddress: string, targetMcap: number | null, targetMcapFormatted: string, tokenFallback?: string): CaEvidence {
   const retrievalDate = new Date().toISOString().split('T')[0];
   const retrievedAt = new Date().toISOString();
 
   return {
     contractAddress: contractAddress || 'UNKNOWN',
-    name: 'DATA UNAVAILABLE',
-    symbol: 'DATA UNAVAILABLE',
+    name: tokenFallback || 'DATA UNAVAILABLE',
+    symbol: tokenFallback || 'DATA UNAVAILABLE',
     network: 'NETWORK UNKNOWN',
     chainId: 'DATA UNAVAILABLE',
     pairDex: 'DATA UNAVAILABLE',
@@ -153,8 +213,9 @@ function createUnavailableEvidence(contractAddress: string, targetMcap: number |
 export async function fetchCaEvidence(addressOrQuery: string): Promise<CaEvidence> {
   const contractAddress = extractContractAddress(addressOrQuery) || addressOrQuery.trim();
   const { targetMcap, targetMcapFormatted } = extractTargetMarketCap(addressOrQuery);
+  const tokenFallback = extractTokenNameFromQuery(addressOrQuery);
 
-  const defaultUnavailable = createUnavailableEvidence(contractAddress, targetMcap, targetMcapFormatted);
+  const defaultUnavailable = createUnavailableEvidence(contractAddress, targetMcap, targetMcapFormatted, tokenFallback);
 
   if (!contractAddress || (!contractAddress.startsWith('0x') && contractAddress.length < 32)) {
     return defaultUnavailable;
@@ -303,7 +364,7 @@ export async function fetchCaEvidence(addressOrQuery: string): Promise<CaEvidenc
   const buySellRatio = calculateBuySellRatio(buysNum, sellsNum);
 
   const network = formatNetworkName(pair.chainId);
-  const baseSymbol = pair.baseToken?.symbol || 'TOKEN';
+  const baseSymbol = (pair.baseToken?.symbol && pair.baseToken.symbol !== 'TOKEN') ? pair.baseToken.symbol : (tokenFallback || 'TOKEN');
   const quoteSymbol = pair.quoteToken?.symbol || 'ETH';
   const tradingPair = `${baseSymbol} / ${quoteSymbol}`;
   const retrievalDate = new Date().toISOString().split('T')[0];
@@ -311,7 +372,7 @@ export async function fetchCaEvidence(addressOrQuery: string): Promise<CaEvidenc
 
   return {
     contractAddress: pair.baseToken?.address || resolvedAddress,
-    name: pair.baseToken?.name || 'Contract Token',
+    name: (pair.baseToken?.name && pair.baseToken.name !== 'Contract Token') ? pair.baseToken.name : (tokenFallback || 'Contract Token'),
     symbol: baseSymbol,
     network,
     chainId: pair.chainId || 'UNKNOWN',
@@ -388,6 +449,7 @@ if (typeof module !== 'undefined' && module.exports) {
     formatNetworkName,
     calculateBuySellRatio,
     fetchCaEvidence,
-    formatCaEvidenceSummary
+    formatCaEvidenceSummary,
+    extractTokenNameFromQuery
   };
 }

@@ -11,7 +11,8 @@ const {
   extractTargetMarketCap,
   formatNetworkName,
   calculateBuySellRatio,
-  fetchCaEvidence
+  fetchCaEvidence,
+  extractTokenNameFromQuery
 } = require('../src/lib/ca-evidence');
 const {
   detectQuestionTopic,
@@ -401,4 +402,67 @@ test('MAIN FACTOR determination logic for TOKEN_CA questions', () => {
   });
   assert.strictEqual(factorIrrelevant, null);
 });
+
+test('TOKEN_CA Below Target: Evaluates sustainability and produces 1-2 sentence conclusion', () => {
+  // Test sustainability evaluation when target is below current MC
+  const mainFactorSustain = determineMainFactor({
+    question: 'Can CASHCAT reach and sustain a $10M market cap without relying on temporary speculative volume?',
+    isTargetBelow: true,
+    isTargetAbove: false,
+    criticalFieldsMissing: true,
+    liqFormatted: '$1.25M',
+    liquidityUsd: 1250000,
+    targetMcNum: 10000000,
+    currentMcNum: 19450000,
+    multFormatted: '0.51x',
+    volFormatted: '$500K'
+  });
+
+  assert.ok(mainFactorSustain, 'Must return a factor when question asks about sustainability');
+  assert.strictEqual(mainFactorSustain.factor, 'INSUFFICIENT EVIDENCE');
+  assert.strictEqual(
+    mainFactorSustain.reason,
+    'The target is below the current market cap, so no additional growth is mathematically required. However, the available evidence is not enough to determine what would be needed to sustain the target.'
+  );
+
+  // Test 1-2 sentence conclusion for below-target
+  const concBelow = buildConciseVerdictConclusion({
+    isCa: true,
+    outcome: 'INSUFFICIENT_EVIDENCE',
+    targetFormatted: '$10M',
+    currentMcFormatted: '$19.45M',
+    targetMcNum: 10000000,
+    currentMcNum: 19450000,
+    multFormatted: '0.51x',
+    liqFormatted: '$1.25M',
+    criticalFieldsMissing: true,
+    question: 'Can CASHCAT reach and sustain a $10M market cap without relying on temporary speculative volume?'
+  });
+
+  assert.strictEqual(
+    concBelow,
+    'The $10M target is below the current Market Cap of $19.45M, so reaching it would mean a decrease, not growth. However, the available evidence is not enough to confirm whether $10M could be sustained without relying on speculative volume.'
+  );
+  const sentences = concBelow.split(/(?<=[.!?])\s+/).filter(Boolean);
+  assert.strictEqual(sentences.length, 2, 'Must be exactly 2 simple sentences');
+});
+
+test('TOKEN_CA Question Identity: Preserves exact token name from user query', () => {
+  const query1 = 'Given the current market cap, liquidity, 24h volume, buy/sell activity, holder concentration, LP status, and contract permissions of CASHCAT on Robinhood Chain (CA: 0x63Ee32Ac3077d1fbd8a77eBBA2a6ed4b8e9c1e18), what measurable changes would be required to reach a $1M market cap, and which current constraint represents the greatest evidence-based obstacle?';
+  const token1 = extractTokenNameFromQuery(query1);
+  assert.strictEqual(token1, 'CASHCAT', 'Must extract CASHCAT from complex query');
+
+  const query2 = 'Can CASHCAT reach and sustain a $10M market cap without relying on temporary speculative volume?';
+  const token2 = extractTokenNameFromQuery(query2);
+  assert.strictEqual(token2, 'CASHCAT', 'Must extract CASHCAT from direct query');
+
+  // Verify aggregateVotes sets effectiveTicker to CASHCAT instead of generic TOKEN/CRYPTO
+  const votes = [
+    { seat: 1, persona: 'Satoshi Nakamoto', shortName: 'Satoshi', vote: 'INSUFFICIENT_EVIDENCE', weight: 1, rationale: 'r' }
+  ];
+  const verdict = aggregateVotes(votes, 'BC-9999', 'TOKEN', 'Asset', query2);
+  assert.strictEqual(verdict.ticker, 'CASHCAT', 'Ticker must be preserved as CASHCAT, not TOKEN');
+  assert.strictEqual(verdict.assetName, 'CASHCAT', 'AssetName must be preserved as CASHCAT, not Asset');
+});
+
 
