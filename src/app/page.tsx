@@ -1,5 +1,5 @@
 import React from 'react';
-import { AGENTS } from '../lib/agents';
+import { CRYPTO_AGENTS } from '../lib/crypto-agents';
 
 export default function HomePage() {
   return (
@@ -10,11 +10,11 @@ export default function HomePage() {
           BOURSE CHAMBER · NINE PERSONAS · ONE VERDICT
         </div>
         <h1 style={{ fontSize: 'clamp(2.2rem, 5vw, 3.8rem)', fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 20px 0' }}>
-          Nine economists.<br />
+          Nine crypto architects.<br />
           One market that refuses to behave.
         </h1>
         <p style={{ fontSize: '1.1rem', color: '#9A9A9A', maxWidth: '640px', lineHeight: 1.5, margin: '0 0 32px 0' }}>
-          The courtroom where Graham, Munger, Lynch, Wood, Damodaran, Taleb, Pabrai, Ackman, and Burry debate your crypto thesis in real time, cast immutable ballots, and generate a permanent ledger verdict.
+          The courtroom where Satoshi, Vitalik, Anatoly, Szabo, CZ, Hayes, Cronje, Adams, and Christensen debate your crypto thesis in real time, cast immutable ballots, and generate a permanent ledger verdict.
         </p>
 
         <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
@@ -60,7 +60,7 @@ export default function HomePage() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
-          {AGENTS.map((agent) => (
+          {CRYPTO_AGENTS.map((agent) => (
             <div
               key={agent.seat}
               style={{

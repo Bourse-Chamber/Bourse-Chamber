@@ -324,7 +324,7 @@ const BourseVerdict = (() => {
       const row = document.createElement('div');
       row.className = 'vote-item-row';
 
-      const council = (typeof BourseAgents !== 'undefined') ? BourseAgents : (typeof BourseCryptoAgents !== 'undefined' ? BourseCryptoAgents : null);
+      const council = (typeof BourseCryptoAgents !== 'undefined') ? BourseCryptoAgents : (typeof BourseAgents !== 'undefined' ? BourseAgents : null);
       const agent = (council && typeof council.getAgentByName === 'function')
         ? council.getAgentByName(item.name)
         : null;

@@ -327,7 +327,6 @@
       <nav class="nav-links">
         <a class="nav-link active" href="/overview">Overview</a>
         <a class="nav-link" href="/chamber">Council Chamber</a>
-        <a class="nav-link" href="/bench">The Bench</a>
         <a class="nav-link" href="/crypto-bench">Crypto Bench</a>
         <a class="nav-link" href="/ledger">Ledger</a>
         <div class="nav-cta-cell">
@@ -416,11 +415,11 @@
               </div>
               <div class="jump-tile-arrow">Enter Chamber →</div>
             </a>
-            <a class="jump-tile" href="/bench">
+            <a class="jump-tile" href="/crypto-bench">
               <div>
                 <span class="jump-tile-label">Canonical Personas</span>
-                <div class="jump-tile-title">The 9 Economists</div>
-                <div class="jump-tile-desc">Inspect philosophical disciplines, questioning criteria, and historical voting track records.</div>
+                <div class="jump-tile-title">The 9 Crypto Architects</div>
+                <div class="jump-tile-desc">Inspect crypto disciplines, questioning criteria, and historical voting track records.</div>
               </div>
               <div class="jump-tile-arrow">Inspect Dossiers →</div>
             </a>
@@ -604,11 +603,11 @@
         </div>
       </section>
  
-      <!-- Section: 9 Economists Preview -->
+      <!-- Section: 9 Crypto Architects Preview -->
       <section class="wrap" style="padding-top:50px;">
         <div class="section-header" style="padding-top:10px;">
-          <div class="section-pretitle">The Bench Matrix</div>
-          <h2 class="section-title">Nine Competing Disciplines</h2>
+          <div class="section-pretitle">The Crypto Bench Matrix</div>
+          <h2 class="section-title">Nine Competing Crypto Disciplines</h2>
         </div>
         <div class="bench-preview-grid" id="landing-bench-preview">
           <!-- Populated dynamically -->
@@ -616,7 +615,7 @@
 
         <div style="display:flex;gap:14px;justify-content:center;margin-bottom:60px;flex-wrap:wrap;">
           <a class="btn btn-primary" href="/chamber" style="text-decoration:none;">Open Active Session Floor →</a>
-          <a class="btn btn-outline" href="/bench" style="text-decoration:none;">Inspect All 9 Economists →</a>
+          <a class="btn btn-outline" href="/crypto-bench" style="text-decoration:none;">Inspect All 9 Crypto Architects →</a>
         </div>
       </section>
 
@@ -725,7 +724,6 @@
           <h4>Protocol</h4>
           <ul class="dust-footer-links">
             <li><a href="/chamber">Council Chamber</a></li>
-            <li><a href="/bench">The Bench (9 Seats)</a></li>
             <li><a href="/crypto-bench">Crypto Bench (9 Seats)</a></li>
             <li><a href="/ledger">Verdict Ledger</a></li>
             <li><a href="/method">Methodology</a></li>
@@ -745,7 +743,7 @@
           <h4>Community</h4>
           <ul class="dust-footer-links">
             <li><a href="/chamber">Floor Sessions</a></li>
-            <li><a href="/bench">Dossier Vault</a></li>
+            <li><a href="/crypto-bench">Dossier Vault</a></li>
           </ul>
         </div>
       </div>
@@ -759,6 +757,7 @@
 
   <!-- Unified Architecture Scripts -->
   <script src="js/utils.js"></script>
+  <script src="js/crypto-agents.js"></script>
   <script src="js/agents.js"></script>
   <script src="js/mock-data.js"></script>
   <script src="js/storage.js"></script>
@@ -770,8 +769,9 @@
     document.addEventListener('DOMContentLoaded', () => {
       // Populate landing bench preview cards on overview
       const previewGrid = document.getElementById('landing-bench-preview');
-      if (previewGrid && typeof BourseAgents !== 'undefined') {
-        BourseAgents.AGENTS.forEach(agent => {
+      const cryptoBench = (typeof BourseCryptoAgents !== 'undefined') ? BourseCryptoAgents : null;
+      if (previewGrid && cryptoBench && Array.isArray(cryptoBench.AGENTS)) {
+        cryptoBench.AGENTS.forEach(agent => {
           const card = document.createElement('div');
           card.className = 'preview-card';
           card.style.cursor = 'pointer';

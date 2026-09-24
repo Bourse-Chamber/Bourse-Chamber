@@ -93,9 +93,6 @@ export default function RootLayout({
             <a href="/chamber" style={{ color: '#9A9A9A', textDecoration: 'none', fontSize: '0.85rem' }}>
               Council Chamber
             </a>
-            <a href="/bench" style={{ color: '#9A9A9A', textDecoration: 'none', fontSize: '0.85rem' }}>
-              The Bench
-            </a>
             <a href="/crypto-bench" style={{ color: '#9A9A9A', textDecoration: 'none', fontSize: '0.85rem' }}>
               Crypto Bench
             </a>

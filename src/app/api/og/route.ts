@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
   <line x1="60" y1="470" x2="1140" y2="470" stroke="#242424" stroke-width="1" />
 
   <g transform="translate(60, 520)">
-    <text x="0" y="0" fill="#9A9A9A" class="mono" font-size="14">Permanent Unalterable Verdict Record · Nine Economists · One Market</text>
+    <text x="0" y="0" fill="#9A9A9A" class="mono" font-size="14">Permanent Unalterable Verdict Record · Nine Crypto Architects · One Market</text>
     <text x="0" y="24" fill="#6E6E6E" class="mono" font-size="12">bourse-chamber.vercel.app/verdict.html?id=${id}</text>
   </g>
 </svg>`;

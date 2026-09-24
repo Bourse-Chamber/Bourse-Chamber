@@ -26,7 +26,7 @@ app.get("/chamber", (req, res) => {
 });
 
 app.get("/bench", (req, res) => {
-  res.sendFile(path.join(__dirname, "bench.html"));
+  res.redirect(301, "/crypto-bench");
 });
 
 app.get("/crypto-bench", (req, res) => {

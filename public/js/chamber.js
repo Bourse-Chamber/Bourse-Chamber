@@ -1076,7 +1076,7 @@ const BourseChamber = (() => {
 
   async function finalizeSessionVerdict(outcome, majorityCount, addTally, reduceTally, passTally, verdictData = null, dbSaved = true) {
     const sessionId = currentSession ? currentSession.id : BourseUtils.generateSessionId();
-    const sizingSeat = getChamberCouncil().getAgentBySeat(6) || { name: 'Nassim Nicholas Taleb', shortName: 'Taleb', discipline: 'Antifragility & tail risk' };
+    const sizingSeat = getChamberCouncil().getAgentBySeat(6) || { name: 'Arthur Hayes', shortName: 'Hayes', discipline: 'Macro liquidity & reflexivity' };
 
     const totalParticipants = Array.isArray(currentSession?.directedSeats) && currentSession.directedSeats.length > 0
       ? currentSession.directedSeats.length
@@ -2247,7 +2247,7 @@ const BourseChamber = (() => {
             const council = getChamberCouncil();
             const found = (council && typeof council.getAgentByName === 'function')
               ? council.getAgentByName(name)
-              : BourseAgents.getAgentByName(name);
+              : (typeof BourseCryptoAgents !== 'undefined' ? BourseCryptoAgents.getAgentByName(name) : null);
             if (found && !selectedSeats.has(found.seat)) {
               selectedSeats.add(found.seat);
               updateChamberSeatVisuals();

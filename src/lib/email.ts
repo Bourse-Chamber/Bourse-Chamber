@@ -37,7 +37,7 @@ The floor may now be formally reconvened by presenting updated evidence at:
 https://bourse-chamber.vercel.app/chamber.html?q=${encodeURIComponent(params.asset)}
 
 Timestamp: ${new Date().toISOString()}
-© 2026 Bourse Chamber — Nine Economists. One Market That Refuses to Behave.`;
+© 2026 Bourse Chamber — Nine Crypto Architects. One Market That Refuses to Behave.`;
 
   try {
     const res = await fetch('https://api.resend.com/emails', {

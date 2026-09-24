@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
         { source: "/", destination: "/index.html" },
         { source: "/overview", destination: "/index.html" },
         { source: "/chamber", destination: "/chamber.html" },
-        { source: "/bench", destination: "/bench.html" },
+        { source: "/bench", destination: "/crypto-bench.html" },
         { source: "/crypto-bench", destination: "/crypto-bench.html" },
         { source: "/crypto", destination: "/crypto-bench.html" },
         { source: "/ledger", destination: "/ledger.html" },
