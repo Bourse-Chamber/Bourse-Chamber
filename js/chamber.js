@@ -643,6 +643,109 @@ const BourseChamber = (() => {
     return trimmed.slice(0, 110) + '...';
   }
 
+  function formatFinalChamberSynthesis(synthesis, verdict, evidence) {
+    if (!synthesis) return '';
+    const caDetails = synthesis.caDetails || verdict?.tokenCaDetails || evidence?.tokenCaDetails;
+    const isCa = Boolean(caDetails) || Boolean(evidence?.isCa) || verdict?.questionTopic === 'TOKEN_CA';
+
+    if (isCa) {
+      const tgtMc = caDetails?.targetMarketCap || evidence?.targetMarketCapFormatted || 'DATA UNAVAILABLE';
+      const curMc = caDetails?.currentMarketCap || evidence?.marketCapFormatted || 'DATA UNAVAILABLE';
+      const mult = caDetails?.requiredMultipleFormatted || evidence?.requiredMultipleFormatted || (caDetails?.requiredMultiple ? `${caDetails.requiredMultiple}x` : 'DATA UNAVAILABLE');
+      const mcChange = caDetails?.marketCapDiffFormatted || 'DATA UNAVAILABLE';
+
+      const liq = caDetails?.liquidity || caDetails?.currentLiquidity || evidence?.liquidityFormatted || 'DATA UNAVAILABLE';
+      const vol = caDetails?.volume24h || evidence?.volume24hFormatted || 'DATA UNAVAILABLE';
+
+      let buys = 'DATA UNAVAILABLE';
+      let sells = 'DATA UNAVAILABLE';
+      if (evidence && typeof evidence.txns24h?.buys === 'number') {
+        buys = String(evidence.txns24h.buys);
+        sells = String(evidence.txns24h.sells);
+      } else if (caDetails?.buysSells && caDetails.buysSells !== 'DATA UNAVAILABLE') {
+        const match = caDetails.buysSells.match(/(\d+)\s+buys\s*\/\s*(\d+)\s+sells/i);
+        if (match) {
+          buys = match[1];
+          sells = match[2];
+        }
+      }
+
+      const buySellRatio = caDetails?.buySellRatio || evidence?.buySellRatio || 'DATA UNAVAILABLE';
+      const holderConcentration = caDetails?.holderConcentration || evidence?.holderConcentration || 'DATA UNAVAILABLE';
+      const lpStatus = caDetails?.lpStatus || evidence?.liquidityLock || 'DATA UNAVAILABLE';
+      const contractVerification = caDetails?.contractRisks || caDetails?.contractVerification || evidence?.contractVerification || 'DATA UNAVAILABLE';
+
+      const mainConstraint = synthesis.mainFactor || verdict?.mainFactor || 'INSUFFICIENT EVIDENCE';
+      const reason = synthesis.mainFactorReason || verdict?.mainFactorReason || 'Critical holder, LP, and contract data are unavailable.';
+
+      const outcome = verdict?.outcome || 'DIVIDED';
+      const majorityRatio = verdict?.majorityRatio;
+      let chamberAssessment = 'DIVIDED — NO MAJORITY';
+      if (outcome === 'DIVIDED' || majorityRatio === 'NO MAJORITY') {
+        chamberAssessment = 'DIVIDED — NO MAJORITY';
+      } else if (outcome) {
+        chamberAssessment = majorityRatio ? `${outcome} (${majorityRatio})` : outcome;
+      }
+
+      return [
+        'FINAL CHAMBER SYNTHESIS',
+        '',
+        'TARGET',
+        `Target Market Cap: ${tgtMc}`,
+        `Current Market Cap: ${curMc}`,
+        `Required Multiple: ${mult}`,
+        `Market-Cap Change: ${mcChange}`,
+        '',
+        'LIQUIDITY',
+        `DEX Liquidity: ${liq}`,
+        `24h Volume: ${vol}`,
+        'Note: Volume ≠ Liquidity',
+        '',
+        'ACTIVITY',
+        `Buys: ${buys}`,
+        `Sells: ${sells}`,
+        `Buy/Sell Ratio: ${buySellRatio}`,
+        '',
+        'EVIDENCE GAPS',
+        `Holder Concentration: ${holderConcentration}`,
+        `LP Lock Status: ${lpStatus}`,
+        `Contract Verification: ${contractVerification}`,
+        '',
+        'MAIN CONSTRAINT',
+        mainConstraint,
+        '',
+        'REASON',
+        reason,
+        '',
+        'CHAMBER ASSESSMENT',
+        chamberAssessment
+      ].join('\n');
+    }
+
+    const keyFindingsList = (synthesis.keyFindings || []).map(f => `- ${f}`).join('\n');
+    return [
+      'FINAL CHAMBER SYNTHESIS',
+      '',
+      'QUESTION',
+      `"${synthesis.question || ''}"`,
+      '',
+      'KEY FINDINGS',
+      keyFindingsList || '- Deliberation completed across participating seats.',
+      '',
+      'AREAS OF AGREEMENT',
+      synthesis.areasOfAgreement || 'No clear consensus.',
+      '',
+      'AREAS OF DISAGREEMENT',
+      synthesis.areasOfDisagreement || 'Competing risk thresholds and valuation horizons.',
+      '',
+      'UNRESOLVED ISSUES',
+      synthesis.unresolvedIssues || 'Ongoing market volatility and macro conditions.',
+      '',
+      'CONCLUSION',
+      synthesis.conclusion || ''
+    ].join('\n');
+  }
+
   function formatVerdictRecordHtml(rawText) {
     if (!rawText || typeof rawText !== 'string') return '';
     const normalizedText = rawText.replace(/\r\n/g, '\n');
@@ -658,48 +761,43 @@ const BourseChamber = (() => {
     const sessionMatch = normalizedText.match(/SESSION\s+([^\n\r]+)/i);
     const sessionStr = sessionMatch ? sessionMatch[1].trim() : '';
 
-    const extractSection = (heading, nextHeadings) => {
-      const lookahead = nextHeadings.length > 0
-        ? `(?=(?:\\n(?:${nextHeadings.join('|')})\\b)|$)`
-        : '$';
-      const pattern = new RegExp(`${heading}\\s*\\n([\\s\\S]*?)${lookahead}`, 'i');
-      const m = normalizedText.match(pattern);
-      return m ? m[1].trim() : '';
-    };
-
-    const allSections = [
+    const allKnownHeadings = [
+      'QUESTION',
       'OUTCOME',
-      'VOTE',
+      'ANSWER',
+      'SUMMARY',
+      'KEY RESULT',
+      'WHY',
+      'MAIN FACTOR',
+      'REASON',
+      'CONCLUSION',
       'MATHEMATICAL REQUIREMENTS',
       'LIQUIDITY REQUIREMENTS',
       'DEMAND REQUIREMENTS',
       'SUPPLY / DILUTION REQUIREMENTS',
       'SECURITY / TRUST REQUIREMENTS',
-      'KEY RESULT',
-      'MAIN FACTOR',
-      'REASON',
-      'CONCLUSION',
+      'VOTE',
       'STATUS'
     ];
 
-    const getNextHeadings = (heading) => {
-      const idx = allSections.indexOf(heading);
-      return idx >= 0 ? allSections.slice(idx + 1) : [];
+    const extractSection = (heading) => {
+      const otherHeadings = allKnownHeadings.filter(h => h.toUpperCase() !== heading.toUpperCase());
+      const lookahead = '(?=\\n(?:' + otherHeadings.map(h => h.replace(/\//g, '\\/')).join('|') + ')(?:\\s*\\n|$)|$)';
+      const pattern = new RegExp('(?:^|\\n)' + heading.replace(/\//g, '\\/') + '\\s*\\n([\\s\\S]*?)' + lookahead, 'i');
+      const m = normalizedText.match(pattern);
+      return m ? m[1].trim() : '';
     };
 
-    const question = extractSection('QUESTION', allSections);
-    const outcome = extractSection('OUTCOME', getNextHeadings('OUTCOME'));
-    const vote = extractSection('VOTE', getNextHeadings('VOTE'));
-    const mathReq = extractSection('MATHEMATICAL REQUIREMENTS', getNextHeadings('MATHEMATICAL REQUIREMENTS'));
-    const liqReq = extractSection('LIQUIDITY REQUIREMENTS', getNextHeadings('LIQUIDITY REQUIREMENTS'));
-    const demandReq = extractSection('DEMAND REQUIREMENTS', getNextHeadings('DEMAND REQUIREMENTS'));
-    const supplyReq = extractSection('SUPPLY / DILUTION REQUIREMENTS', getNextHeadings('SUPPLY / DILUTION REQUIREMENTS'));
-    const securityReq = extractSection('SECURITY / TRUST REQUIREMENTS', getNextHeadings('SECURITY / TRUST REQUIREMENTS'));
-    const keyResult = extractSection('KEY RESULT', getNextHeadings('KEY RESULT'));
-    const mainFactor = extractSection('MAIN FACTOR', getNextHeadings('MAIN FACTOR'));
-    const reason = extractSection('REASON', getNextHeadings('REASON'));
-    const conclusion = extractSection('CONCLUSION', getNextHeadings('CONCLUSION'));
-    const status = extractSection('STATUS', []) || 'Record closed and saved to the Verdict Ledger.';
+    const question = extractSection('QUESTION');
+    const outcome = extractSection('OUTCOME');
+    const answer = extractSection('ANSWER');
+    const summary = extractSection('SUMMARY') || extractSection('CONCLUSION');
+    const keyResult = extractSection('KEY RESULT');
+    const why = extractSection('WHY') || extractSection('REASON');
+    const mainFactor = extractSection('MAIN FACTOR');
+    const reason = extractSection('REASON');
+    const vote = extractSection('VOTE');
+    const status = extractSection('STATUS') || 'Record closed and saved to the Verdict Ledger.';
 
     if (!question && !outcome) {
       return `<div style="white-space: pre-wrap; word-break: break-word;">${escape(rawText)}</div>`;
@@ -719,38 +817,16 @@ const BourseChamber = (() => {
           <div class="vr-label">OUTCOME</div>
           <div class="vr-text vr-outcome">${escape(outcome)}</div>
         </div>
+        ${answer ? `
         <div class="vr-section">
-          <div class="vr-label">VOTE</div>
-          <div class="vr-text vr-vote">${escape(vote).replace(/\n/g, '<br>')}</div>
-        </div>
-        ${mathReq ? `
-        <div class="vr-section">
-          <div class="vr-label">MATHEMATICAL REQUIREMENTS</div>
-          <div class="vr-text vr-math-req">${escape(mathReq).replace(/\n/g, '<br>')}</div>
+          <div class="vr-label">ANSWER</div>
+          <div class="vr-text vr-answer">${escape(answer).replace(/\n/g, '<br>')}</div>
         </div>
         ` : ''}
-        ${liqReq ? `
+        ${summary ? `
         <div class="vr-section">
-          <div class="vr-label">LIQUIDITY REQUIREMENTS</div>
-          <div class="vr-text vr-liq-req">${escape(liqReq).replace(/\n/g, '<br>')}</div>
-        </div>
-        ` : ''}
-        ${demandReq ? `
-        <div class="vr-section">
-          <div class="vr-label">DEMAND REQUIREMENTS</div>
-          <div class="vr-text vr-demand-req">${escape(demandReq).replace(/\n/g, '<br>')}</div>
-        </div>
-        ` : ''}
-        ${supplyReq ? `
-        <div class="vr-section">
-          <div class="vr-label">SUPPLY / DILUTION REQUIREMENTS</div>
-          <div class="vr-text vr-supply-req">${escape(supplyReq).replace(/\n/g, '<br>')}</div>
-        </div>
-        ` : ''}
-        ${securityReq ? `
-        <div class="vr-section">
-          <div class="vr-label">SECURITY / TRUST REQUIREMENTS</div>
-          <div class="vr-text vr-security-req">${escape(securityReq).replace(/\n/g, '<br>')}</div>
+          <div class="vr-label">SUMMARY</div>
+          <div class="vr-text vr-summary">${escape(summary).replace(/\n/g, '<br>')}</div>
         </div>
         ` : ''}
         ${keyResult ? `
@@ -759,21 +835,26 @@ const BourseChamber = (() => {
           <div class="vr-text vr-key-result">${escape(keyResult).replace(/\n/g, '<br>')}</div>
         </div>
         ` : ''}
-        ${mainFactor ? `
+        ${why ? `
+        <div class="vr-section">
+          <div class="vr-label">WHY</div>
+          <div class="vr-text vr-why">${escape(why).replace(/\n/g, '<br>')}</div>
+        </div>
+        ` : (mainFactor ? `
         <div class="vr-section">
           <div class="vr-label">MAIN FACTOR</div>
           <div class="vr-text vr-main-factor">${escape(mainFactor)}</div>
         </div>
-        ` : ''}
         ${reason ? `
         <div class="vr-section">
           <div class="vr-label">REASON</div>
           <div class="vr-text vr-reason">${escape(reason)}</div>
         </div>
         ` : ''}
+        ` : '')}
         <div class="vr-section">
-          <div class="vr-label">CONCLUSION</div>
-          <div class="vr-text vr-conclusion">${escape(conclusion)}</div>
+          <div class="vr-label">VOTE</div>
+          <div class="vr-text vr-vote">${escape(vote).replace(/\n/g, '<br>')}</div>
         </div>
         <div class="vr-section">
           <div class="vr-label">STATUS</div>
@@ -1137,66 +1218,6 @@ const BourseChamber = (() => {
 
     const displayQuestion = makeReadableQuestion(fullQuestion, ticker, targetFormatted);
 
-    // Build 5-SECTION TOKEN_CA REQUIREMENTS block
-    const fiveRequirementLines = [];
-    if (isTokenCa && caDetails && (caDetails.currentMarketCap || caDetails.targetMarketCap)) {
-      const curMc = caDetails.currentMarketCap || 'DATA UNAVAILABLE';
-      const tgtMc = caDetails.targetMarketCap || 'DATA UNAVAILABLE';
-      const mult = caDetails.requiredMultipleFormatted || (caDetails.requiredMultiple ? `${caDetails.requiredMultiple}x` : 'DATA UNAVAILABLE');
-      const mcChange = caDetails.marketCapDiffFormatted || 'DATA UNAVAILABLE';
-      const tgtInterp = caDetails.targetInterpretation || 'DATA UNAVAILABLE';
-      const liq = caDetails.liquidity || 'DATA UNAVAILABLE';
-      const vol = caDetails.volume24h || 'DATA UNAVAILABLE';
-      const buySell = caDetails.buySellRatio || (currentEvidence?.buySellRatio || 'DATA UNAVAILABLE');
-      const txns = caDetails.buysSells || (currentEvidence?.txns24h?.buys ? `${currentEvidence.txns24h.buys} buys / ${currentEvidence.txns24h.sells} sells` : 'DATA UNAVAILABLE');
-
-      let holderDist = 'DATA UNAVAILABLE';
-      if (caDetails.holderCount && caDetails.holderCount !== 'DATA UNAVAILABLE') {
-        holderDist = `${caDetails.holderCount} holders`;
-        if (caDetails.holderConcentration && caDetails.holderConcentration !== 'DATA UNAVAILABLE') {
-          holderDist += ` (Top 10: ${caDetails.holderConcentration})`;
-        }
-      } else if (caDetails.holderConcentration && caDetails.holderConcentration !== 'DATA UNAVAILABLE') {
-        holderDist = caDetails.holderConcentration;
-      }
-
-      const fdv = caDetails.fdvFormatted || (currentEvidence?.fdvFormatted || curMc || 'DATA UNAVAILABLE');
-      const lpStatus = caDetails.lpStatus || 'DATA UNAVAILABLE';
-      const contractPermissions = caDetails.contractRisks || 'DATA UNAVAILABLE';
-
-      fiveRequirementLines.push(
-        'MATHEMATICAL REQUIREMENTS',
-        `Current Market Cap: ${curMc}`,
-        `Target Market Cap: ${tgtMc}`,
-        `Required Multiple: ${mult}`,
-        `Market-Cap Change: ${mcChange}`,
-        `Target: ${tgtInterp}`,
-        '',
-        'LIQUIDITY REQUIREMENTS',
-        `Current DEX Liquidity: ${liq}`,
-        'Required Liquidity: DATA UNAVAILABLE',
-        '',
-        'DEMAND REQUIREMENTS',
-        `24h Volume: ${vol}`,
-        `Buy/Sell Ratio: ${buySell}`,
-        `Transactions: ${txns}`,
-        'Required Organic Demand: DATA UNAVAILABLE',
-        `Holder Distribution: ${holderDist}`,
-        '',
-        'SUPPLY / DILUTION REQUIREMENTS',
-        `Current FDV: ${fdv}`,
-        'Circulating Supply: DATA UNAVAILABLE',
-        'Total Supply: DATA UNAVAILABLE',
-        'Required Supply Change: DATA UNAVAILABLE',
-        '',
-        'SECURITY / TRUST REQUIREMENTS',
-        `LP Lock Status: ${lpStatus}`,
-        `Contract Permissions: ${contractPermissions}`,
-        'Deployer / Admin Risk: DATA UNAVAILABLE',
-        ''
-      );
-    }
-
     let mainFactor = verdictData?.mainFactor || currentSession?.synthesis?.mainFactor;
     let mainFactorReason = verdictData?.mainFactorReason || currentSession?.synthesis?.mainFactorReason;
     if (!mainFactor && isTokenCa) {
@@ -1212,15 +1233,85 @@ const BourseChamber = (() => {
         }
       }
     }
-    const mainFactorLines = [];
-    if (mainFactor) {
-      mainFactorLines.push(
-        'MAIN FACTOR',
-        mainFactor,
-        '',
-        'REASON',
-        mainFactorReason || 'Available evidence does not show that one factor alone is sufficient.',
-        ''
+
+    let answerText = '';
+    let summaryText = '';
+    let keyResultText = '';
+    let whyText = '';
+
+    if (isTokenCa) {
+      const curMc = caDetails?.currentMarketCap || 'DATA UNAVAILABLE';
+      const tgtMc = caDetails?.targetMarketCap || targetFormatted || 'DATA UNAVAILABLE';
+      const mult = caDetails?.requiredMultipleFormatted || (caDetails?.requiredMultiple ? `${caDetails.requiredMultiple}x` : 'DATA UNAVAILABLE');
+
+      // 1. Direct ANSWER (1-2 short sentences answering the user question)
+      if (isTargetBelow) {
+        const asksSustain = /(?:sustain|hold|keep|relying|speculative|maintain|endure)/i.test(fullQuestion);
+        if (asksSustain) {
+          answerText = `The target is below the current market cap, so reaching it would represent a decrease rather than growth. No additional market-cap growth is required to reach the target, but available evidence is insufficient to confirm whether the level can be sustained.`;
+        } else {
+          answerText = `The target is below the current market cap, so reaching it would represent a decrease rather than growth. No additional market-cap growth is required to reach the target.`;
+        }
+      } else {
+        if (outcome === 'SUPPORTED') {
+          answerText = `The target requires a measurable increase of ${mult} from the current market cap. Trading activity supports the target, but additional liquidity and confirmed LP locking are required.`;
+        } else if (outcome === 'NOT_SUPPORTED') {
+          answerText = `The target requires a measurable increase of ${mult} from the current market cap. Available evidence does not support reaching the target because current liquidity is insufficient.`;
+        } else {
+          answerText = `The target requires a measurable increase of ${mult} from the current market cap. However, the available evidence is insufficient to confirm that the increase can be sustained.`;
+        }
+      }
+
+      // 2. SUMMARY (2-3 short sentences)
+      if (isTargetBelow) {
+        summaryText = `The target is below the current market cap of ${curMc}. Current liquidity and trading activity are visible, but holder, LP-lock, and contract data remain unavailable, so the Chamber cannot confirm whether the target can be sustained.`;
+      } else {
+        summaryText = `The target requires an ${mult} increase from the current market cap. Current liquidity and trading activity are visible, but holder, LP-lock, and contract data are unavailable, so the Chamber cannot confirm whether the target can be sustained.`;
+      }
+
+      // 3. KEY RESULT
+      const resolvedFactor = mainFactor || 'INSUFFICIENT EVIDENCE';
+      keyResultText = [
+        `Current MC: ${curMc}`,
+        `Target MC: ${tgtMc}`,
+        `Required Multiple: ${mult}`,
+        `Main Factor: ${resolvedFactor}`
+      ].join('\n');
+
+      // 4. WHY
+      if (mainFactorReason && mainFactorReason.trim().length > 0) {
+        whyText = mainFactorReason;
+      } else if (resolvedFactor === 'INSUFFICIENT EVIDENCE') {
+        whyText = 'Critical holder, LP-lock, and contract data are unavailable. No single constraint can be confirmed from the available evidence.';
+      } else if (isTargetBelow) {
+        whyText = 'The target is below the current market cap, so no additional growth is mathematically required. Critical holder, LP-lock, and contract data are unavailable to evaluate sustainability.';
+      } else {
+        whyText = 'Available evidence does not confirm that required conditions can be met.';
+      }
+    } else {
+      // Non-CA deliberation
+      if (outcome === 'ADD') {
+        answerText = 'The Chamber votes to add exposure. Market indicators and valuation models support expanding exposure within established risk limits.';
+      } else if (outcome === 'REDUCE') {
+        answerText = 'The Chamber votes to reduce exposure. Elevated risk metrics and macro headwinds indicate that exposure should be lowered.';
+      } else if (outcome === 'PASS') {
+        answerText = 'The Chamber votes to pass. Current evidence does not provide sufficient clarity to justify an allocation at this time.';
+      } else {
+        answerText = 'The Chamber is divided with no clear majority. Divergent risk thresholds among the seats preclude taking action.';
+      }
+
+      summaryText = conciseConclusion || 'A majority consensus could not be formed under current market conditions.';
+
+      keyResultText = [
+        `Asset: ${ticker}`,
+        `Consensus: ${outcome}`,
+        `Majority: ${verdictData?.majorityRatio || outcomeText}`
+      ].join('\n');
+
+      whyText = verdictData?.keyAgreement || verdictData?.keyDisagreement || (
+        outcome === 'DIVIDED'
+          ? 'The bench divided across competing risk tolerances and time horizons.'
+          : 'Floor consensus reached based on current fundamental and macro indicators.'
       );
     }
 
@@ -1234,26 +1325,24 @@ const BourseChamber = (() => {
       'OUTCOME',
       outcomeText,
       '',
+      'ANSWER',
+      answerText,
+      '',
+      'SUMMARY',
+      summaryText,
+      '',
+      'KEY RESULT',
+      keyResultText,
+      '',
+      'WHY',
+      whyText,
+      '',
       'VOTE',
       voteLines,
-      ''
-    ];
-
-    if (fiveRequirementLines.length > 0) {
-      verdictTextParts.push(...fiveRequirementLines);
-    }
-
-    if (mainFactorLines.length > 0) {
-      verdictTextParts.push(...mainFactorLines);
-    }
-
-    verdictTextParts.push(
-      'CONCLUSION',
-      conciseConclusion,
       '',
       'STATUS',
       'Record closed and saved to the Verdict Ledger.'
-    );
+    ];
 
     const verdictText = verdictTextParts.join('\n');
 
@@ -1519,14 +1608,11 @@ const BourseChamber = (() => {
                 }
               } else if (currentEvent === 'synthesis') {
                 if (currentSession) currentSession.synthesis = data;
-                const evidenceList = Array.isArray(data.keyEvidence) && data.keyEvidence.length > 0
-                  ? `\n\nKey Evidence:\n${data.keyEvidence.map(e => `- ${e}`).join('\n')}`
-                  : '';
-                const agreement = data.areasOfAgreement || (pendingVerdict?.outcome === 'DIVIDED' ? 'No clear consensus.' : '');
+                const synthesisText = formatFinalChamberSynthesis(data, pendingVerdict, currentEvidence);
                 appendTranscriptMsg({
                   type: 'final-synthesis',
                   who: 'CHAMBER CHAIR · FINAL SYNTHESIS',
-                  text: `FINAL CHAMBER SYNTHESIS\n\nQuestion:\n"${data.question || ''}"${evidenceList}\n\nKey Findings:\n${(data.keyFindings || []).map(f => `- ${f}`).join('\n')}\n\nAreas of Agreement:\n${agreement}\n\nAreas of Disagreement:\n${data.areasOfDisagreement || ''}\n\nUnresolved Issues:\n${data.unresolvedIssues || ''}\n\nConclusion:\n${data.conclusion || ''}`
+                  text: synthesisText
                 });
               } else if (currentEvent === 'verdict') {
                 updateChamberState(STATES.AGGREGATING);
@@ -2037,10 +2123,11 @@ const BourseChamber = (() => {
         };
         currentSession.synthesis = synthesis;
 
+        const synthesisText = formatFinalChamberSynthesis(synthesis, verdictData, currentEvidence);
         appendTranscriptMsg({
           type: 'final-synthesis',
           who: 'CHAMBER CHAIR · FINAL SYNTHESIS',
-          text: `FINAL CHAMBER SYNTHESIS\n\nQuestion:\n"${synthesis.question}"\n\nKey Findings:\n${synthesis.keyFindings.map(f => `- ${f}`).join('\n')}\n\nAreas of Agreement:\n${synthesis.areasOfAgreement}\n\nAreas of Disagreement:\n${synthesis.areasOfDisagreement}\n\nUnresolved Issues:\n${synthesis.unresolvedIssues}\n\nConclusion:\n${synthesis.conclusion}`
+          text: synthesisText
         });
 
         const isSizing = asksForInvestmentSizing(query);

@@ -12,7 +12,8 @@ const {
   aggregateVotes,
   generateFinalSynthesis,
   detectQuestionTopic,
-  validateDeterministicTokenCa
+  validateDeterministicTokenCa,
+  formatFinalChamberSynthesis
 } = require("../src/lib/openrouter");
 const { fetchCaEvidence, formatCaEvidenceSummary, extractContractAddress, extractTokenNameFromQuery } = require("../src/lib/ca-evidence");
 const { db } = require("../src/lib/db");
@@ -389,7 +390,7 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    const synthesisText = `FINAL CHAMBER SYNTHESIS\n\nQuestion:\n"${synthesis.question}"\n\nKey Findings:\n${synthesis.keyFindings.map(f => `- ${f}`).join('\n')}\n\nAreas of Agreement:\n${synthesis.areasOfAgreement}\n\nAreas of Disagreement:\n${synthesis.areasOfDisagreement}\n\nUnresolved Issues:\n${synthesis.unresolvedIssues}\n\nConclusion:\n${synthesis.conclusion}`;
+    const synthesisText = formatFinalChamberSynthesis(synthesis, verdict, caData);
 
     transcript.push({
       type: 'final-synthesis',

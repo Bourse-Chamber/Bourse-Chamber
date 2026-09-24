@@ -1709,6 +1709,117 @@ export async function* streamRound2Duel(
   }
 }
 
+/**
+ * Formats the final Chamber synthesis into a scannable, cleanly sectioned text block.
+ * For TOKEN_CA: Structured TARGET, LIQUIDITY, ACTIVITY, EVIDENCE GAPS, MAIN CONSTRAINT, REASON, CHAMBER ASSESSMENT.
+ * For standard queries: Scannable QUESTION, KEY FINDINGS, AREAS OF AGREEMENT/DISAGREEMENT, UNRESOLVED ISSUES, CONCLUSION.
+ */
+export function formatFinalChamberSynthesis(
+  synthesis: FinalChamberSynthesis,
+  verdict?: AggregatedVerdict | null,
+  caEvidence?: CaEvidence | null
+): string {
+  const isCa = Boolean(synthesis.caDetails) || Boolean(caEvidence) || verdict?.questionTopic === 'TOKEN_CA';
+
+  if (isCa) {
+    const caDetails = synthesis.caDetails;
+    const tgtMc = caDetails?.targetMarketCap || caEvidence?.targetMarketCapFormatted || 'DATA UNAVAILABLE';
+    const curMc = caDetails?.currentMarketCap || caEvidence?.marketCapFormatted || 'DATA UNAVAILABLE';
+    const mult = caDetails?.requiredMultipleFormatted || caEvidence?.requiredMultipleFormatted || (caDetails?.requiredMultiple ? `${caDetails.requiredMultiple}x` : 'DATA UNAVAILABLE');
+    const mcChange = caDetails?.marketCapDiffFormatted || 'DATA UNAVAILABLE';
+
+    const liq = caDetails?.liquidity || caDetails?.currentLiquidity || caEvidence?.liquidityFormatted || 'DATA UNAVAILABLE';
+    const vol = caDetails?.volume24h || caEvidence?.volume24hFormatted || 'DATA UNAVAILABLE';
+
+    let buys = 'DATA UNAVAILABLE';
+    let sells = 'DATA UNAVAILABLE';
+    if (caEvidence && typeof caEvidence.txns24h?.buys === 'number') {
+      buys = String(caEvidence.txns24h.buys);
+      sells = String(caEvidence.txns24h.sells);
+    } else if (caDetails?.buysSells && caDetails.buysSells !== 'DATA UNAVAILABLE') {
+      const match = caDetails.buysSells.match(/(\d+)\s+buys\s*\/\s*(\d+)\s+sells/i);
+      if (match) {
+        buys = match[1];
+        sells = match[2];
+      }
+    }
+
+    const buySellRatio = caDetails?.buySellRatio || caEvidence?.buySellRatio || 'DATA UNAVAILABLE';
+    const holderConcentration = caDetails?.holderConcentration || caEvidence?.holderConcentration || 'DATA UNAVAILABLE';
+    const lpStatus = caDetails?.lpStatus || caEvidence?.liquidityLock || 'DATA UNAVAILABLE';
+    const contractVerification = caDetails?.contractRisks || caEvidence?.contractVerification || 'DATA UNAVAILABLE';
+
+    const mainConstraint = synthesis.mainFactor || verdict?.mainFactor || 'INSUFFICIENT EVIDENCE';
+    const reason = synthesis.mainFactorReason || verdict?.mainFactorReason || 'Critical holder, LP, and contract data are unavailable.';
+
+    const outcome = verdict?.outcome || 'DIVIDED';
+    const majorityRatio = verdict?.majorityRatio;
+    let chamberAssessment = 'DIVIDED — NO MAJORITY';
+    if (outcome === 'DIVIDED' || majorityRatio === 'NO MAJORITY') {
+      chamberAssessment = 'DIVIDED — NO MAJORITY';
+    } else if (outcome) {
+      chamberAssessment = majorityRatio ? `${outcome} (${majorityRatio})` : outcome;
+    }
+
+    return [
+      'FINAL CHAMBER SYNTHESIS',
+      '',
+      'TARGET',
+      `Target Market Cap: ${tgtMc}`,
+      `Current Market Cap: ${curMc}`,
+      `Required Multiple: ${mult}`,
+      `Market-Cap Change: ${mcChange}`,
+      '',
+      'LIQUIDITY',
+      `DEX Liquidity: ${liq}`,
+      `24h Volume: ${vol}`,
+      'Note: Volume ≠ Liquidity',
+      '',
+      'ACTIVITY',
+      `Buys: ${buys}`,
+      `Sells: ${sells}`,
+      `Buy/Sell Ratio: ${buySellRatio}`,
+      '',
+      'EVIDENCE GAPS',
+      `Holder Concentration: ${holderConcentration}`,
+      `LP Lock Status: ${lpStatus}`,
+      `Contract Verification: ${contractVerification}`,
+      '',
+      'MAIN CONSTRAINT',
+      mainConstraint,
+      '',
+      'REASON',
+      reason,
+      '',
+      'CHAMBER ASSESSMENT',
+      chamberAssessment
+    ].join('\n');
+  }
+
+  const keyFindingsList = (synthesis.keyFindings || []).map((f: string) => `- ${f}`).join('\n');
+  return [
+    'FINAL CHAMBER SYNTHESIS',
+    '',
+    'QUESTION',
+    `"${synthesis.question || ''}"`,
+    '',
+    'KEY FINDINGS',
+    keyFindingsList || '- Deliberation completed across participating seats.',
+    '',
+    'AREAS OF AGREEMENT',
+    synthesis.areasOfAgreement || 'No clear consensus.',
+    '',
+    'AREAS OF DISAGREEMENT',
+    synthesis.areasOfDisagreement || 'Competing risk thresholds and valuation horizons.',
+    '',
+    'UNRESOLVED ISSUES',
+    synthesis.unresolvedIssues || 'Ongoing market volatility and macro conditions.',
+    '',
+    'CONCLUSION',
+    synthesis.conclusion || ''
+  ].join('\n');
+}
+
 // CommonJS export for Node.js scripts and serverless handlers
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
@@ -1729,6 +1840,7 @@ if (typeof module !== 'undefined' && module.exports) {
     validateDeterministicTokenCa,
     buildConciseVerdictConclusion,
     determineMainFactor,
+    formatFinalChamberSynthesis,
     streamRound1Reading,
     streamRound2Duel
   };

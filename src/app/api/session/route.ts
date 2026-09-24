@@ -7,7 +7,8 @@ import {
   aggregateVotes,
   generateFinalSynthesis,
   detectQuestionTopic,
-  validateDeterministicTokenCa
+  validateDeterministicTokenCa,
+  formatFinalChamberSynthesis
 } from '../../../lib/openrouter';
 import { fetchCryptoEvidence, extractTickerFromQuery } from '../../../lib/coingecko';
 import { fetchCaEvidence, formatCaEvidenceSummary, extractContractAddress, extractTokenNameFromQuery } from '../../../lib/ca-evidence';
@@ -366,7 +367,7 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          const synthesisText = `FINAL CHAMBER SYNTHESIS\n\nQuestion:\n"${synthesis.question}"\n\nKey Findings:\n${synthesis.keyFindings.map((f: string) => `- ${f}`).join('\n')}\n\nAreas of Agreement:\n${synthesis.areasOfAgreement}\n\nAreas of Disagreement:\n${synthesis.areasOfDisagreement}\n\nUnresolved Issues:\n${synthesis.unresolvedIssues}\n\nConclusion:\n${synthesis.conclusion}`;
+          const synthesisText = formatFinalChamberSynthesis(synthesis, verdict, caData);
 
           transcript.push({
             type: 'final-synthesis',

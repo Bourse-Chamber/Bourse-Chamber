@@ -813,11 +813,19 @@
   padding: 6px 10px;
 }
 
-.transcript-msg.vote-call .msg-body {
-  border-color: var(--border-main);
+.transcript-msg.final-synthesis .msg-meta {
+  color: #FFFFFF;
+}
+
+.transcript-msg.final-synthesis .msg-body {
+  border-color: #FFFFFF;
+  color: #E2E2E2;
+  white-space: pre-wrap;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--text-secondary);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px 12px;
 }
 
 .transcript-msg.verdict-announcement {
@@ -911,6 +919,40 @@
   letter-spacing: 0.02em;
 }
 
+.vr-answer {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: #050505;
+  font-weight: 500;
+}
+
+.vr-summary {
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: #222222;
+}
+
+.vr-key-result {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: #111111;
+  white-space: pre-line;
+  background: #F8F8F8;
+  padding: 6px 8px;
+  border-left: 2px solid #000000;
+}
+
+.vr-why,
+.vr-reason {
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: #222222;
+}
+
 .vr-vote {
   font-family: var(--font-mono);
   font-size: 0.74rem;
@@ -923,8 +965,7 @@
 .vr-liq-req,
 .vr-demand-req,
 .vr-supply-req,
-.vr-security-req,
-.vr-key-result {
+.vr-security-req {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   line-height: 1.45;
@@ -937,13 +978,6 @@
   font-size: 0.82rem;
   font-weight: 700;
   color: #000000;
-}
-
-.vr-reason {
-  font-family: var(--font-sans);
-  font-size: 0.76rem;
-  line-height: 1.45;
-  color: #222222;
 }
 
 .vr-conclusion {
