@@ -59,19 +59,23 @@ export default function ChamberPage() {
       {/* Composer Section */}
       <div style={{ background: '#0A0A0A', border: '1px solid #242424', padding: '16px 20px' }}>
         <form style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }} onSubmit={(e) => e.preventDefault()}>
-          <input
-            type="text"
+          <textarea
+            rows={3}
             placeholder="Present a ticker or a thesis to the committee (e.g. BTC, or @satoshi is SOL an enduring moat?)"
             style={{
               flex: 1,
               minWidth: '280px',
+              minHeight: '72px',
               background: '#050505',
               border: '1px solid #242424',
               color: '#FFFFFF',
               padding: '12px 16px',
               fontFamily: "'JetBrains Mono', monospace",
               fontSize: '0.82rem',
+              lineHeight: 1.5,
+              resize: 'vertical',
               outline: 'none',
+              boxSizing: 'border-box',
             }}
           />
           <button
@@ -85,6 +89,11 @@ export default function ChamberPage() {
               fontSize: '0.82rem',
               fontWeight: 600,
               cursor: 'pointer',
+              minHeight: '72px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxSizing: 'border-box',
             }}
           >
             Ask the full bench (9)

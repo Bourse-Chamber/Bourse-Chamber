@@ -625,10 +625,10 @@ header.site-header {
    Global Footer
    ========================================================================== */
 footer.site-footer {
-  margin-top: auto;
+  margin-top: 80px;
   border-top: 1px solid var(--border-main);
   background: var(--bg-black);
-  padding: 32px 0 36px;
+  padding: 40px 0 48px;
   position: relative;
   z-index: 1;
 }

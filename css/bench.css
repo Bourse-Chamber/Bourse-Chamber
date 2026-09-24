@@ -267,6 +267,8 @@
   align-items: center;
   gap: 20px;
   flex-wrap: wrap;
+  margin-top: 48px;
+  margin-bottom: 80px;
 }
 
 .bench-floor-cta h2 {

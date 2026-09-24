@@ -876,6 +876,157 @@ const BourseChamber = (() => {
     `.trim();
   }
 
+  function formatFinalSynthesisHtml(rawText) {
+    if (!rawText || typeof rawText !== 'string') return '';
+    const normalizedText = rawText.replace(/\r\n/g, '\n').trim();
+
+    const escape = (str) => {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+
+    if (!normalizedText) return '';
+
+    const headings = [
+      'TARGET',
+      'MATHEMATICAL REQUIREMENTS',
+      'LIQUIDITY',
+      'LIQUIDITY REQUIREMENTS',
+      'ACTIVITY',
+      'DEMAND REQUIREMENTS',
+      'SUPPLY / DILUTION REQUIREMENTS',
+      'SECURITY / TRUST REQUIREMENTS',
+      'EVIDENCE GAPS',
+      'CRITICAL EVIDENCE GAPS',
+      'MAIN CONSTRAINT',
+      'GREATEST OBSERVABLE CONSTRAINT',
+      'REASON',
+      'CHAMBER ASSESSMENT',
+      'QUESTION',
+      'KEY EVIDENCE',
+      'KEY FINDINGS',
+      'AREAS OF AGREEMENT',
+      'AREAS OF DISAGREEMENT',
+      'UNRESOLVED ISSUES',
+      'CONCLUSION'
+    ];
+
+    let textToParse = normalizedText;
+    if (/^FINAL CHAMBER SYNTHESIS/i.test(textToParse)) {
+      textToParse = textToParse.replace(/^FINAL CHAMBER SYNTHESIS\s*:?\s*/i, '').trim();
+    }
+
+    const sections = [];
+    const lines = textToParse.split('\n');
+
+    let matchedHeadingsCount = 0;
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      const isMatch = headings.some(h => {
+        const u = trimmed.toUpperCase();
+        return u === h || u === `${h}:`;
+      });
+      if (isMatch) matchedHeadingsCount++;
+    }
+
+    if (matchedHeadingsCount >= 2) {
+      let currentSection = null;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
+        const matchedHeading = headings.find(h => {
+          const u = line.toUpperCase();
+          return u === h || u === `${h}:`;
+        });
+
+        if (matchedHeading) {
+          currentSection = { heading: matchedHeading, lines: [] };
+          sections.push(currentSection);
+        } else if (currentSection) {
+          currentSection.lines.push(line);
+        } else {
+          currentSection = { heading: 'SUMMARY', lines: [line] };
+          sections.push(currentSection);
+        }
+      }
+    } else {
+      const headingSplitRegex = new RegExp(
+        '\\b(' + headings.map(h => h.replace(/\//g, '\\/')).join('|') + '):?\\s+',
+        'gi'
+      );
+
+      let lastIndex = 0;
+      let lastHeading = 'SUMMARY';
+      let match;
+
+      while ((match = headingSplitRegex.exec(textToParse)) !== null) {
+        const content = textToParse.substring(lastIndex, match.index).trim();
+        if (content) {
+          sections.push({ heading: lastHeading, lines: content.split('\n').map(l => l.trim()).filter(Boolean) });
+        }
+        lastHeading = match[1].toUpperCase();
+        lastIndex = match.index + match[0].length;
+      }
+
+      const remainder = textToParse.substring(lastIndex).trim();
+      if (remainder) {
+        sections.push({ heading: lastHeading, lines: remainder.split('\n').map(l => l.trim()).filter(Boolean) });
+      }
+    }
+
+    if (sections.length === 0) {
+      const paragraphs = normalizedText.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+      return `
+        <div class="synth-container">
+          <div class="synth-header">FINAL CHAMBER SYNTHESIS</div>
+          ${paragraphs.map(p => `<p class="synth-paragraph">${escape(p).replace(/\n/g, '<br>')}</p>`).join('')}
+        </div>
+      `.trim();
+    }
+
+    const sectionsHtml = sections.map(sec => {
+      const heading = escape(sec.heading.toUpperCase());
+      const contentHtml = sec.lines.map(line => {
+        if (line.startsWith('- ') || line.startsWith('• ')) {
+          const rawBullet = line.replace(/^[-•]\s*/, '').trim();
+          const kvMatch = rawBullet.match(/^([^:]+):\s*(.+)$/);
+          if (kvMatch && kvMatch[1].length < 40 && !kvMatch[1].includes('"')) {
+            return `<div class="synth-bullet-line"><span class="synth-bullet">•</span><div class="synth-data-line"><span class="synth-key">${escape(kvMatch[1].trim())}:</span> <span class="synth-val">${escape(kvMatch[2].trim())}</span></div></div>`;
+          }
+          return `<div class="synth-bullet-line"><span class="synth-bullet">•</span><span class="synth-bullet-text">${escape(rawBullet)}</span></div>`;
+        }
+
+        const kvMatch = line.match(/^([^:]+):\s*(.+)$/);
+        if (kvMatch && kvMatch[1].length < 40 && !kvMatch[1].includes('"')) {
+          const key = escape(kvMatch[1].trim());
+          const val = escape(kvMatch[2].trim());
+          return `<div class="synth-data-line"><span class="synth-key">${key}:</span> <span class="synth-val">${val}</span></div>`;
+        }
+
+        return `<div class="synth-text-line">${escape(line)}</div>`;
+      }).join('');
+
+      return `
+        <div class="synth-section">
+          <div class="synth-label">${heading}</div>
+          <div class="synth-content">${contentHtml}</div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="synth-container">
+        <div class="synth-header">FINAL CHAMBER SYNTHESIS</div>
+        ${sectionsHtml}
+      </div>
+    `.trim();
+  }
+
   function appendTranscriptMsg({ type, who, text, time = null }) {
     if (!feedEl) return null;
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
@@ -886,9 +1037,12 @@ const BourseChamber = (() => {
     const msg = document.createElement('div');
     msg.className = `transcript-msg ${type || ''}`;
 
-    const bodyContent = type === 'verdict-announcement'
-      ? formatVerdictRecordHtml(text)
-      : text;
+    let bodyContent = text;
+    if (type === 'verdict-announcement') {
+      bodyContent = formatVerdictRecordHtml(text);
+    } else if (type === 'final-synthesis') {
+      bodyContent = formatFinalSynthesisHtml(text);
+    }
 
     msg.innerHTML = `
       <div class="msg-meta">
@@ -966,6 +1120,8 @@ const BourseChamber = (() => {
     bodyEl.classList.remove('typing');
     if (type === 'verdict-announcement') {
       bodyEl.innerHTML = formatVerdictRecordHtml(text);
+    } else if (type === 'final-synthesis') {
+      bodyEl.innerHTML = formatFinalSynthesisHtml(text);
     }
 
     if (currentSession && currentSession.transcript) {
@@ -2231,7 +2387,7 @@ const BourseChamber = (() => {
 
     if (composerInput) {
       composerInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();
           conveneSession();
         }
