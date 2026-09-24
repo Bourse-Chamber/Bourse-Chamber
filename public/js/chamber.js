@@ -791,7 +791,8 @@ const BourseChamber = (() => {
     const question = extractSection('QUESTION');
     const outcome = extractSection('OUTCOME');
     const answer = extractSection('ANSWER');
-    const summary = extractSection('SUMMARY') || extractSection('CONCLUSION');
+    const conclusion = extractSection('CONCLUSION');
+    const summary = extractSection('SUMMARY');
     const keyResult = extractSection('KEY RESULT');
     const why = extractSection('WHY') || extractSection('REASON');
     const mainFactor = extractSection('MAIN FACTOR');
@@ -823,12 +824,23 @@ const BourseChamber = (() => {
           <div class="vr-text vr-answer">${escape(answer).replace(/\n/g, '<br>')}</div>
         </div>
         ` : ''}
-        ${summary ? `
+        ${summary && conclusion && summary.trim() !== conclusion.trim() ? `
         <div class="vr-section">
           <div class="vr-label">SUMMARY</div>
           <div class="vr-text vr-summary">${escape(summary).replace(/\n/g, '<br>')}</div>
         </div>
         ` : ''}
+        ${conclusion ? `
+        <div class="vr-section">
+          <div class="vr-label">CONCLUSION</div>
+          <div class="vr-text vr-conclusion">${escape(conclusion).replace(/\n/g, '<br>')}</div>
+        </div>
+        ` : (summary ? `
+        <div class="vr-section">
+          <div class="vr-label">CONCLUSION</div>
+          <div class="vr-text vr-conclusion">${escape(summary).replace(/\n/g, '<br>')}</div>
+        </div>
+        ` : '')}
         ${keyResult ? `
         <div class="vr-section">
           <div class="vr-label">KEY RESULT</div>
@@ -1328,8 +1340,8 @@ const BourseChamber = (() => {
       'ANSWER',
       answerText,
       '',
-      'SUMMARY',
-      summaryText,
+      'CONCLUSION',
+      summaryText || conciseConclusion,
       '',
       'KEY RESULT',
       keyResultText,

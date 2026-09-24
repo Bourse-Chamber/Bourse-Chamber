@@ -927,7 +927,8 @@
   font-weight: 500;
 }
 
-.vr-summary {
+.vr-summary,
+.vr-conclusion {
   font-family: var(--font-sans);
   font-size: 0.76rem;
   line-height: 1.5;
