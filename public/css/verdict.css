@@ -230,14 +230,15 @@
 .votes-table-wrap {
   border: 1px solid var(--border-main);
   background: var(--bg-card);
+  overflow: hidden;
 }
 
 .vote-item-row {
   display: grid;
-  grid-template-columns: 46px 170px 100px 1fr;
+  grid-template-columns: 44px 195px 185px 1fr;
   gap: 16px;
   align-items: center;
-  padding: 14px 20px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -253,11 +254,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .vote-persona-meta {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .vote-persona-name {
@@ -265,18 +268,48 @@
   font-size: 0.88rem;
   color: var(--text-primary);
   font-weight: 500;
+  line-height: 1.3;
 }
 
 .vote-persona-discipline {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.vote-badge-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.vote-badge-cell .badge,
+.vote-item-row .badge {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 4px 8px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.2;
+  box-sizing: border-box;
 }
 
 .vote-reasoning-text {
-  font-size: 0.8rem;
-  color: #B8B8B8;
-  line-height: 1.45;
+  font-size: 0.82rem;
+  color: #CCCCCC;
+  line-height: 1.5;
+  min-width: 0;
+  word-wrap: break-word;
 }
 
 /* Consensus & Review Triggers */
@@ -392,7 +425,7 @@
   line-height: 1.5;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .case-overview-grid {
     grid-template-columns: 1fr;
   }
@@ -400,12 +433,34 @@
     grid-template-columns: 1fr;
   }
   .vote-item-row {
-    grid-template-columns: 38px 1fr 90px;
+    grid-template-columns: 38px 1fr auto;
+    gap: 12px 14px;
+    padding: 14px 16px;
+  }
+  .vote-badge-cell {
+    justify-content: flex-end;
   }
   .vote-reasoning-text {
     grid-column: 1 / -1;
-    padding-top: 6px;
+    padding-top: 10px;
+    margin-top: 2px;
     border-top: 1px solid var(--border-subtle);
+  }
+}
+
+@media (max-width: 520px) {
+  .vote-item-row {
+    grid-template-columns: 36px 1fr;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+  .vote-badge-cell {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+  .vote-reasoning-text {
+    grid-column: 1 / -1;
+    padding-top: 8px;
   }
 }
 

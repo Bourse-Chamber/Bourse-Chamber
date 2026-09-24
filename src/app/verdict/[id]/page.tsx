@@ -100,7 +100,8 @@ export default async function VerdictPage({
               key={v.seat}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '80px 180px 100px 1fr',
+                gridTemplateColumns: '80px 180px 185px 1fr',
+                gap: '16px',
                 padding: '14px 20px',
                 borderBottom: '1px solid #1A1A1A',
                 fontSize: '0.82rem',
@@ -109,21 +110,22 @@ export default async function VerdictPage({
             >
               <span style={{ fontFamily: "'JetBrains Mono', monospace", color: '#6E6E6E' }}>SEAT 0{v.seat}</span>
               <span style={{ fontWeight: 600 }}>{v.persona}</span>
-              <span>
+              <span style={{ display: 'flex', alignItems: 'center' }}>
                 <span
                   style={{
                     fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: '0.75rem',
+                    fontSize: '0.72rem',
                     border: '1px solid #FFFFFF',
-                    padding: '2px 8px',
-                    background: v.vote === 'ADD' ? '#FFFFFF' : 'transparent',
-                    color: v.vote === 'ADD' ? '#000000' : '#FFFFFF',
+                    padding: '3px 8px',
+                    whiteSpace: 'nowrap',
+                    background: v.vote === 'ADD' || v.vote === 'SUPPORTED' ? '#FFFFFF' : 'transparent',
+                    color: v.vote === 'ADD' || v.vote === 'SUPPORTED' ? '#000000' : '#FFFFFF',
                   }}
                 >
                   {v.vote}
                 </span>
               </span>
-              <span style={{ color: '#9A9A9A', fontSize: '0.78rem' }}>{v.rationale}</span>
+              <span style={{ color: '#9A9A9A', fontSize: '0.78rem', minWidth: 0, lineHeight: 1.45 }}>{v.rationale}</span>
             </div>
           ))}
         </div>

@@ -339,7 +339,7 @@ const BourseVerdict = (() => {
           <span class="vote-persona-name">${item.name}</span>
           <span class="vote-persona-discipline">${item.discipline || item.school || (agent ? agent.discipline : '')}</span>
         </div>
-        <div>
+        <div class="vote-badge-cell">
           <span class="badge ${voteClass}">${item.vote}</span>
         </div>
         <div class="vote-reasoning-text">
