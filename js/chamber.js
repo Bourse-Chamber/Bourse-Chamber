@@ -531,6 +531,34 @@ const BourseChamber = (() => {
     }
   }
 
+  function makeReadableQuestion(rawQ, ticker, targetFormatted) {
+    if (!rawQ || typeof rawQ !== 'string') return '';
+    const trimmed = rawQ.trim();
+    if (trimmed.length <= 110) return trimmed;
+
+    // Check for target and asset name
+    const targetMatch = trimmed.match(/(?:\$|reach\s+)([\d,.]+[kKmMbB]?)/i);
+    const target = targetFormatted || (targetMatch ? (targetMatch[1].startsWith('$') ? targetMatch[1] : `$${targetMatch[1]}`) : '');
+    const asset = ticker || 'the token';
+
+    const asksChanges = /what\s+measurable\s+changes|what\s+changes|which\s+current\s+constraint|greatest\s+obstacle|main\s+factor/i.test(trimmed);
+
+    if (target) {
+      return asksChanges
+        ? `Can ${asset} reach and sustain a ${target} market cap?\nWhat changes would be needed?`
+        : `Can ${asset} reach and sustain a ${target} market cap?`;
+    }
+
+    // Try last question sentence
+    const parts = trimmed.split(/(?<=[.?!])\s+/);
+    const qParts = parts.filter(p => p.includes('?'));
+    if (qParts.length > 0 && qParts[qParts.length - 1].length < 130) {
+      return qParts[qParts.length - 1].trim();
+    }
+
+    return trimmed.slice(0, 110) + '...';
+  }
+
   function formatVerdictRecordHtml(rawText) {
     if (!rawText || typeof rawText !== 'string') return '';
     const normalizedText = rawText.replace(/\r\n/g, '\n');
@@ -555,11 +583,14 @@ const BourseChamber = (() => {
       return m ? m[1].trim() : '';
     };
 
-    const question = extractSection('QUESTION', ['OUTCOME', 'VOTE', 'CONCLUSION', 'STATUS']);
-    const outcome = extractSection('OUTCOME', ['VOTE', 'CONCLUSION', 'STATUS']);
-    const vote = extractSection('VOTE', ['CONCLUSION', 'STATUS']);
+    const question = extractSection('QUESTION', ['OUTCOME', 'VOTE', 'KEY RESULT', 'MAIN FACTOR', 'REASON', 'CONCLUSION', 'STATUS']);
+    const outcome = extractSection('OUTCOME', ['VOTE', 'KEY RESULT', 'MAIN FACTOR', 'REASON', 'CONCLUSION', 'STATUS']);
+    const vote = extractSection('VOTE', ['KEY RESULT', 'MAIN FACTOR', 'REASON', 'CONCLUSION', 'STATUS']);
+    const keyResult = extractSection('KEY RESULT', ['MAIN FACTOR', 'REASON', 'CONCLUSION', 'STATUS']);
+    const mainFactor = extractSection('MAIN FACTOR', ['REASON', 'CONCLUSION', 'STATUS']);
+    const reason = extractSection('REASON', ['CONCLUSION', 'STATUS']);
     const conclusion = extractSection('CONCLUSION', ['STATUS']);
-    const status = extractSection('STATUS', []) || 'Record officially closed and committed to the permanent Verdict Ledger.';
+    const status = extractSection('STATUS', []) || 'Record closed and saved to the Verdict Ledger.';
 
     if (!question && !outcome) {
       return `<div style="white-space: pre-wrap; word-break: break-word;">${escape(rawText)}</div>`;
@@ -573,7 +604,7 @@ const BourseChamber = (() => {
         </div>
         <div class="vr-section">
           <div class="vr-label">QUESTION</div>
-          <div class="vr-text vr-question">${escape(question)}</div>
+          <div class="vr-text vr-question">${escape(question).replace(/\n/g, '<br>')}</div>
         </div>
         <div class="vr-section">
           <div class="vr-label">OUTCOME</div>
@@ -583,6 +614,24 @@ const BourseChamber = (() => {
           <div class="vr-label">VOTE</div>
           <div class="vr-text vr-vote">${escape(vote).replace(/\n/g, '<br>')}</div>
         </div>
+        ${keyResult ? `
+        <div class="vr-section">
+          <div class="vr-label">KEY RESULT</div>
+          <div class="vr-text vr-key-result">${escape(keyResult).replace(/\n/g, '<br>')}</div>
+        </div>
+        ` : ''}
+        ${mainFactor ? `
+        <div class="vr-section">
+          <div class="vr-label">MAIN FACTOR</div>
+          <div class="vr-text vr-main-factor">${escape(mainFactor)}</div>
+        </div>
+        ` : ''}
+        ${reason ? `
+        <div class="vr-section">
+          <div class="vr-label">REASON</div>
+          <div class="vr-text vr-reason">${escape(reason)}</div>
+        </div>
+        ` : ''}
         <div class="vr-section">
           <div class="vr-label">CONCLUSION</div>
           <div class="vr-text vr-conclusion">${escape(conclusion)}</div>
@@ -898,6 +947,12 @@ const BourseChamber = (() => {
           ? `${outcome} (${verdictObj.majorityRatio} Majority)`
           : outcome);
 
+    const caDetails = verdictData?.tokenCaDetails || currentSession?.synthesis?.caDetails;
+    const ticker = currentEvidence?.ticker || verdictData?.ticker || currentSession?.ticker || 'the token';
+    const targetFormatted = caDetails?.targetMarketCap || '$100K';
+    const multFormatted = caDetails?.requiredMultipleFormatted || 'DATA UNAVAILABLE';
+    const liqFormatted = caDetails?.liquidity || 'DATA UNAVAILABLE';
+
     let conciseConclusion = verdictData?.conciseConclusion ||
       verdictData?.synthesis?.conciseConclusion ||
       currentSession?.synthesis?.conciseConclusion ||
@@ -906,50 +961,99 @@ const BourseChamber = (() => {
     if (!conciseConclusion) {
       if (outcome === 'DIVIDED') {
         conciseConclusion = isTokenCa
-          ? 'The Chamber could not establish that the token can sustainably reach the target because critical liquidity and LP evidence remain unavailable. The available evidence does not support identifying a single dominant constraint.'
-          : 'The Chamber could not establish a majority consensus on this motion, remaining divided between competing discipline thresholds. Available evidence does not resolve whether current conditions favor execution or capital preservation.';
+          ? `The Chamber could not confirm that ${ticker} can reach and hold a ${targetFormatted} market cap. More evidence is needed on liquidity, LP status, and holder distribution.`
+          : 'The Chamber was divided and could not reach a majority. The seats disagreed on whether conditions are strong enough to act.';
       } else if (isTokenCa) {
         if (outcome === 'SUPPORTED') {
-          conciseConclusion = 'The Chamber determined that observable trading activity supports pursuing the target. However, sustainable feasibility requires proportional liquidity pool expansion alongside verified LP locking.';
+          conciseConclusion = `Trading activity supports the ${targetFormatted} target (${multFormatted} higher). More liquidity and confirmed LP locking are still needed.`;
         } else if (outcome === 'NOT_SUPPORTED') {
-          conciseConclusion = 'The Chamber concluded that reaching the target is not supported due to thin observable DEX liquidity relative to required market-cap growth. Critical holder concentration and contract verification data remain unavailable.';
+          conciseConclusion = `The Chamber found that reaching ${targetFormatted} (${multFormatted} higher) is not supported. Current liquidity (${liqFormatted}) is too low for the required growth.`;
         } else {
-          conciseConclusion = 'The Chamber could not establish that the token can reach the target because critical LP lock status, holder concentration, and contract verification remain unavailable. The available evidence does not establish a single dominant constraint.';
+          conciseConclusion = `The Chamber could not confirm that ${ticker} can reach the ${targetFormatted} target. Important holder, LP, and contract data are still unavailable.`;
         }
       } else {
         if (outcome === 'ADD') {
-          conciseConclusion = 'The Chamber established a majority consensus in favor of this motion based on observed market and protocol indicators. Participating seats determined that available evidence supports capital allocation within assigned risk parameters.';
+          conciseConclusion = 'The Chamber voted to add. A majority found that market and protocol conditions support adding exposure within agreed risk limits.';
         } else if (outcome === 'REDUCE') {
-          conciseConclusion = 'The Chamber established a majority consensus to reduce exposure based on elevated risk factors identified across participating disciplines. Observable constraints indicate downside vulnerability outweighs upside potential.';
+          conciseConclusion = 'The Chamber voted to reduce. A majority found that risk is elevated and current conditions do not support holding full exposure.';
         } else {
-          conciseConclusion = 'The Chamber resolved to pass on this motion due to insufficient evidentiary clarity. Participating seats determined that active allocation is not justified under current conditions.';
+          conciseConclusion = 'The Chamber voted to pass. Available data was not clear enough to justify acting at this time.';
         }
       }
     }
 
     verdictObj.conciseConclusion = conciseConclusion;
 
-    const questionText = (currentSession?.question || verdictData?.question || '').trim();
+    const fullQuestion = (currentSession?.question || verdictData?.question || '').trim();
+    const displayQuestion = makeReadableQuestion(fullQuestion, ticker, targetFormatted);
 
-    const verdictText = [
+    // Build KEY RESULT block for TOKEN_CA
+    const keyResultLines = [];
+    if (caDetails && (caDetails.currentMarketCap || caDetails.targetMarketCap)) {
+      const curMc = caDetails.currentMarketCap || 'DATA UNAVAILABLE';
+      const tgtMc = caDetails.targetMarketCap || 'DATA UNAVAILABLE';
+      const mult = caDetails.requiredMultipleFormatted || (caDetails.requiredMultiple ? `${caDetails.requiredMultiple}x` : 'DATA UNAVAILABLE');
+      const liq = caDetails.liquidity || 'DATA UNAVAILABLE';
+      const vol = caDetails.volume24h || 'DATA UNAVAILABLE';
+
+      keyResultLines.push(
+        'KEY RESULT',
+        `Current Market Cap: ${curMc}`,
+        `Target Market Cap: ${tgtMc}`,
+        `Required Multiple: ${mult}`,
+        `Liquidity: ${liq}`,
+        `24h Volume: ${vol}`,
+        ''
+      );
+    }
+
+    // Build MAIN FACTOR block
+    const mainFactor = verdictData?.mainFactor || currentSession?.synthesis?.mainFactor;
+    const mainFactorReason = verdictData?.mainFactorReason || currentSession?.synthesis?.mainFactorReason;
+    const mainFactorLines = [];
+    if (mainFactor) {
+      mainFactorLines.push(
+        'MAIN FACTOR',
+        mainFactor,
+        '',
+        'REASON',
+        mainFactorReason || 'Available evidence does not show that one factor alone is sufficient.',
+        ''
+      );
+    }
+
+    const verdictTextParts = [
       'VERDICT RECORD',
       `SESSION ${sessionId}`,
       '',
       'QUESTION',
-      questionText,
+      displayQuestion,
       '',
       'OUTCOME',
       outcomeText,
       '',
       'VOTE',
       voteLines,
-      '',
+      ''
+    ];
+
+    if (keyResultLines.length > 0) {
+      verdictTextParts.push(...keyResultLines);
+    }
+
+    if (mainFactorLines.length > 0) {
+      verdictTextParts.push(...mainFactorLines);
+    }
+
+    verdictTextParts.push(
       'CONCLUSION',
       conciseConclusion,
       '',
       'STATUS',
-      'Record officially closed and committed to the permanent Verdict Ledger.'
-    ].join('\n');
+      'Record closed and saved to the Verdict Ledger.'
+    );
+
+    const verdictText = verdictTextParts.join('\n');
 
     await streamTranscriptMsg({
       type: 'verdict-announcement',

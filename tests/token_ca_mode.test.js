@@ -18,7 +18,8 @@ const {
   aggregateVotes,
   validateDeterministicTokenCa,
   generateFinalSynthesis,
-  buildConciseVerdictConclusion
+  buildConciseVerdictConclusion,
+  determineMainFactor
 } = require('../src/lib/openrouter');
 const { CRYPTO_AGENTS } = require('../src/lib/crypto-agents');
 
@@ -321,8 +322,8 @@ test('Verdict Record Readability: 1-2 sentence concise conclusion generation', (
     liqFormatted: '$998.8K',
     criticalFieldsMissing: true
   });
-  assert.ok(divCa.includes('decrease rather than required growth'));
-  assert.ok(divCa.includes('The Chamber remained divided'));
+  assert.ok(divCa.includes('below the current Market Cap'));
+  assert.ok(divCa.includes('decrease, not growth'));
 
   // Sentence count check (1 or 2 sentences max)
   const sentences = divCa.split(/(?<=[.!?])\s+/).filter(Boolean);
@@ -333,7 +334,7 @@ test('Verdict Record Readability: 1-2 sentence concise conclusion generation', (
     isCa: false,
     outcome: 'DIVIDED'
   });
-  assert.ok(divNonCa.includes('The Chamber could not establish'));
+  assert.ok(divNonCa.includes('divided'));
 
   // Test aggregateVotes output includes conciseConclusion
   const votes = [
@@ -343,5 +344,54 @@ test('Verdict Record Readability: 1-2 sentence concise conclusion generation', (
   const verdict = aggregateVotes(votes, 'BC-1234', 'BTC', 'Bitcoin', 'Should we accumulate BTC?');
   assert.ok(verdict.conciseConclusion);
   assert.ok(verdict.conciseConclusion.length > 10);
+});
+
+test('MAIN FACTOR determination logic for TOKEN_CA questions', () => {
+  // Question asking about required changes/factors with critical fields missing -> INSUFFICIENT EVIDENCE
+  const factorMissing = determineMainFactor({
+    question: 'What measurable changes would be required to reach a $1M market cap, and which current constraint represents the greatest obstacle?',
+    isTargetBelow: false,
+    isTargetAbove: true,
+    criticalFieldsMissing: true,
+    liqFormatted: '$14,154.99',
+    liquidityUsd: 14154.99,
+    targetMcNum: 1000000,
+    currentMcNum: 19138,
+    multFormatted: '52.25x',
+    volFormatted: '$343,414.58'
+  });
+  assert.ok(factorMissing);
+  assert.strictEqual(factorMissing.factor, 'INSUFFICIENT EVIDENCE');
+  assert.ok(factorMissing.reason.length > 10);
+
+  // Target below current MC -> NOT APPLICABLE
+  const factorBelow = determineMainFactor({
+    question: 'What measurable changes are needed to reach a $1M market cap?',
+    isTargetBelow: true,
+    isTargetAbove: false,
+    criticalFieldsMissing: false,
+    liqFormatted: '$998.8K',
+    liquidityUsd: 998800,
+    targetMcNum: 1000000,
+    currentMcNum: 8973793,
+    multFormatted: '0.11x',
+    volFormatted: '$1.25M'
+  });
+  assert.ok(factorBelow);
+  assert.strictEqual(factorBelow.factor, 'NOT APPLICABLE');
+
+  // Question that does NOT ask about factors or changes -> returns null
+  const factorIrrelevant = determineMainFactor({
+    question: 'Who created Bitcoin?',
+    isTargetBelow: false,
+    isTargetAbove: false,
+    criticalFieldsMissing: false,
+    liqFormatted: 'DATA UNAVAILABLE',
+    targetMcNum: null,
+    currentMcNum: null,
+    multFormatted: 'DATA UNAVAILABLE',
+    volFormatted: 'DATA UNAVAILABLE'
+  });
+  assert.strictEqual(factorIrrelevant, null);
 });
 

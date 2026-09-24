@@ -359,6 +359,10 @@ module.exports = async function handler(req, res) {
     if (synthesis.conciseConclusion) {
       verdict.conciseConclusion = synthesis.conciseConclusion;
     }
+    if (synthesis.mainFactor) {
+      verdict.mainFactor = synthesis.mainFactor;
+      verdict.mainFactorReason = synthesis.mainFactorReason;
+    }
 
     if (isCa && caData) {
       validateDeterministicTokenCa(verdict, caData, participatingAgents.map(a => a.seat));
@@ -366,6 +370,10 @@ module.exports = async function handler(req, res) {
       verdict.questionTopic = 'TOKEN_CA';
       if (synthesis.conciseConclusion) {
         verdict.conciseConclusion = synthesis.conciseConclusion;
+      }
+      if (synthesis.mainFactor) {
+        verdict.mainFactor = synthesis.mainFactor;
+        verdict.mainFactorReason = synthesis.mainFactorReason;
       }
     }
 

@@ -50,6 +50,8 @@ export interface FinalChamberSynthesis {
   unresolvedIssues: string;
   conclusion: string;
   conciseConclusion?: string;
+  mainFactor?: string;
+  mainFactorReason?: string;
   caDetails?: TokenCaSynthesisDetails;
 }
 
@@ -247,5 +249,7 @@ export interface AggregatedVerdict extends VerdictRecord {
   questionTopic?: string;
   tokenCaDetails?: TokenCaSynthesisDetails;
   conciseConclusion?: string;
+  mainFactor?: string;
+  mainFactorReason?: string;
 }
 

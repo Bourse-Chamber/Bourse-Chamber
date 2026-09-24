@@ -919,6 +919,28 @@
   white-space: pre-line;
 }
 
+.vr-key-result {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: #222222;
+  white-space: pre-line;
+}
+
+.vr-main-factor {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #000000;
+}
+
+.vr-reason {
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: #222222;
+}
+
 .vr-conclusion {
   font-family: var(--font-sans);
   font-size: 0.78rem;

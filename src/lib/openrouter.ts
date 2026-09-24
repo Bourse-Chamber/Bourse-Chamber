@@ -572,8 +572,8 @@ Cast your final ballot now as a JSON object starting directly with {:`;
 }
 
 /**
- * Builds a strict 1-2 sentence concise conclusion for the white Verdict Record.
- * Outcome-aware, truthful to evidence, never fabricating thresholds or metrics.
+ * Builds a strict 1-2 sentence plain-English conclusion for the Verdict Record.
+ * Uses simple, direct language. Outcome-aware. Never invents data.
  */
 export function buildConciseVerdictConclusion(params: {
   isCa: boolean;
@@ -607,49 +607,121 @@ export function buildConciseVerdictConclusion(params: {
       const pctDecrease = currentMcNum && targetMcNum
         ? ((currentMcNum - targetMcNum) / currentMcNum * 100).toFixed(1)
         : '0';
-
       if (outcome === 'DIVIDED') {
-        return `The Chamber remained divided as the ${targetFormatted} target is already below the current ${currentMcFormatted} market cap, representing approximately a ${pctDecrease}% decrease rather than required growth. Available evidence does not establish a single dominant constraint because holder concentration and LP lock status remain unavailable.`;
+        return `The Chamber was divided because the ${targetFormatted} target is below the current Market Cap of ${currentMcFormatted}. Reaching it would mean a decrease, not growth.`;
       }
-      return `The ${targetFormatted} target is already below the current ${currentMcFormatted} market cap, representing approximately a ${pctDecrease}% decrease rather than required growth. Critical LP and holder data remain unavailable, preventing identification of a single dominant constraint.`;
+      return `The ${targetFormatted} target is below the current Market Cap of ${currentMcFormatted}. Reaching it would mean a decrease, not growth.`;
     }
 
     if (isTargetAbove) {
       if (outcome === 'DIVIDED') {
-        return `The Chamber could not establish that the token can sustainably reach the target because critical liquidity and LP evidence remain unavailable. The available evidence does not support identifying a single dominant constraint.`;
+        return `The Chamber could not confirm whether the token can reach ${targetFormatted} (${multFormatted} higher). Liquidity, LP lock, and holder data are needed to give a clear answer.`;
       }
       if (outcome === 'INSUFFICIENT_EVIDENCE') {
-        return `The Chamber could not establish that the token can reach the ${targetFormatted} target (${multFormatted}) because critical LP lock status, holder concentration, and contract verification remain unavailable. The available evidence does not establish a single dominant constraint.`;
+        return `The Chamber could not confirm that the token can reach ${targetFormatted} (${multFormatted} higher). LP status, holder data, and contract details are still unavailable.`;
       }
       if (outcome === 'NOT_SUPPORTED') {
-        return `The Chamber concluded that reaching the ${targetFormatted} target (${multFormatted}) is not supported due to thin observable DEX liquidity (${liqFormatted}) relative to required market-cap growth. Critical holder concentration and contract verification data remain unavailable.`;
+        return `The Chamber found that reaching ${targetFormatted} (${multFormatted} higher) is not supported. Current liquidity (${liqFormatted}) is too low for the required growth. Holder and contract data are still unavailable.`;
       }
       if (outcome === 'SUPPORTED') {
-        return `The Chamber determined that observable trading activity supports pursuing the ${targetFormatted} target (${multFormatted}). However, sustainable feasibility requires proportional liquidity pool expansion beyond current observable levels (${liqFormatted}) alongside verified LP locking.`;
+        return `The Chamber found trading activity that supports the ${targetFormatted} target (${multFormatted} higher). More liquidity (currently ${liqFormatted}) and confirmed LP locking are still needed.`;
       }
     }
 
+    // No numeric comparison available
     if (outcome === 'DIVIDED') {
-      return `The Chamber could not establish that the token can sustainably reach the target because critical liquidity and LP evidence remain unavailable. The available evidence does not support identifying a single dominant constraint.`;
+      return `The Chamber could not confirm whether the token can reach the target. Liquidity, LP lock, and holder data are needed to give a clear answer.`;
     }
-    return `Available evidence does not establish a single dominant constraint because holder concentration, LP lock status, and contract verification remain unavailable.`;
+    return `Important data is unavailable — holder distribution, LP lock, and contract details are still missing. No clear conclusion can be made.`;
   }
 
   // Non-CA Deliberation (MARKET, TECHNICAL, PROTOCOL, GENERAL)
   if (outcome === 'DIVIDED') {
-    return `The Chamber could not establish a majority consensus on this motion, remaining divided between competing discipline thresholds. Available evidence does not resolve whether current conditions favor execution or capital preservation.`;
+    return `The Chamber was divided and could not reach a majority. The seats disagreed on whether conditions are strong enough to act.`;
   }
   if (outcome === 'ADD') {
-    return `The Chamber established a majority consensus in favor of this motion based on observed market and protocol indicators. Participating seats determined that available evidence supports capital allocation within assigned risk parameters.`;
+    return `The Chamber voted to add. A majority of seats found that market and protocol conditions support adding exposure within the agreed risk limits.`;
   }
   if (outcome === 'REDUCE') {
-    return `The Chamber established a majority consensus to reduce exposure based on elevated risk factors identified across participating disciplines. Observable constraints indicate downside vulnerability outweighs upside potential.`;
+    return `The Chamber voted to reduce. A majority found that risk is elevated and current conditions do not support holding full exposure.`;
   }
   if (outcome === 'PASS') {
-    return `The Chamber resolved to pass on this motion due to insufficient evidentiary clarity. Participating seats determined that active allocation is not justified under current conditions.`;
+    return `The Chamber voted to pass. The evidence was not clear enough to justify acting at this time.`;
   }
 
-  return `The Chamber concluded its deliberation with a ${outcome} outcome based on participating disciplines.`;
+  return `The Chamber concluded with a ${outcome} outcome.`;
+}
+
+/**
+ * Determines the MAIN FACTOR for a TOKEN_CA question that explicitly asks
+ * about which factor is required (capital inflows, supply reduction, liquidity, demand, or combination).
+ * Returns { factor, reason } based solely on available evidence.
+ */
+export function determineMainFactor(params: {
+  question: string;
+  isTargetBelow: boolean;
+  isTargetAbove: boolean;
+  criticalFieldsMissing: boolean;
+  liqFormatted: string;
+  liquidityUsd?: number | string | null;
+  targetMcNum: number | null;
+  currentMcNum: number | null;
+  multFormatted: string;
+  holderConcentration?: string;
+  lpStatus?: string;
+  volFormatted: string;
+}): { factor: string; reason: string } | null {
+  const {
+    question = '',
+    isTargetBelow,
+    isTargetAbove,
+    criticalFieldsMissing,
+    liqFormatted,
+    liquidityUsd,
+    targetMcNum,
+    currentMcNum,
+    multFormatted,
+    holderConcentration = 'DATA UNAVAILABLE',
+    lpStatus = 'DATA UNAVAILABLE',
+    volFormatted
+  } = params;
+
+  const q = question.toLowerCase();
+
+  // Only compute when the question explicitly asks about the main factor / which change is needed
+  const asksAboutFactor = /(?:main\s+(?:factor|obstacle|constraint|driver)|which\s+(?:factor|constraint|obstacle|change)|what\s+(?:factor|change|constraint|obstacle|measurable\s+change)|capital\s+inflow|organic\s+demand|circulating\s+supply|liquidity\s+depth|combination|greatest\s+(?:evidence-based\s+)?obstacle)/i.test(question);
+  if (!asksAboutFactor) return null;
+
+  if (isTargetBelow) {
+    return {
+      factor: 'NOT APPLICABLE',
+      reason: `The target is already below the current Market Cap, so no factor needs to drive it higher.`
+    };
+  }
+
+  if (criticalFieldsMissing) {
+    return {
+      factor: 'INSUFFICIENT EVIDENCE',
+      reason: `Holder data, LP lock status, and contract details are unavailable. No single factor can be confirmed.`
+    };
+  }
+
+  // All critical data present — try to reason from liquidity
+  const hasLowLiquidity = typeof liquidityUsd === 'number' && targetMcNum !== null && liquidityUsd < targetMcNum * 0.05;
+  const holderDataMissing = !holderConcentration || holderConcentration === 'DATA UNAVAILABLE';
+  const lpDataMissing = !lpStatus || lpStatus === 'DATA UNAVAILABLE';
+
+  if (hasLowLiquidity && !holderDataMissing && !lpDataMissing) {
+    return {
+      factor: 'IMPROVED LIQUIDITY DEPTH',
+      reason: `Current liquidity (${liqFormatted}) is very low compared to the ${multFormatted} growth needed. Deeper liquidity is the clearest visible constraint.`
+    };
+  }
+
+  return {
+    factor: 'COMBINATION OF FACTORS',
+    reason: `Reaching the target likely requires new capital inflows, better liquidity, and confirmed LP locking. The available evidence does not show one factor alone is sufficient.`
+  };
 }
 
 /**
@@ -892,6 +964,21 @@ export function aggregateVotes(
     criticalFieldsMissing: true
   });
 
+  const mainFactorResult = (isCa && caEvidence) ? determineMainFactor({
+    question,
+    isTargetBelow: typeof caEvidence.targetMarketCap === 'number' && typeof caEvidence.marketCap === 'number' && caEvidence.targetMarketCap < caEvidence.marketCap,
+    isTargetAbove: typeof caEvidence.targetMarketCap === 'number' && typeof caEvidence.marketCap === 'number' && caEvidence.targetMarketCap > caEvidence.marketCap,
+    criticalFieldsMissing: caEvidence.holderConcentration === 'DATA UNAVAILABLE' || caEvidence.liquidityLock === 'DATA UNAVAILABLE' || caEvidence.contractVerification === 'DATA UNAVAILABLE',
+    liqFormatted: caEvidence.liquidityFormatted || 'DATA UNAVAILABLE',
+    liquidityUsd: caEvidence.liquidityUsd,
+    targetMcNum: typeof caEvidence.targetMarketCap === 'number' ? caEvidence.targetMarketCap : null,
+    currentMcNum: typeof caEvidence.marketCap === 'number' ? caEvidence.marketCap : null,
+    multFormatted: caEvidence.requiredMultipleFormatted || 'DATA UNAVAILABLE',
+    holderConcentration: caEvidence.holderConcentration,
+    lpStatus: caEvidence.liquidityLock,
+    volFormatted: caEvidence.volume24hFormatted || 'DATA UNAVAILABLE'
+  }) : null;
+
   return {
     id: `VR-${sessionId}`,
     sessionId,
@@ -918,6 +1005,8 @@ export function aggregateVotes(
     isSizingRequested: isSizing,
     questionTopic: qTopic,
     conciseConclusion,
+    mainFactor: mainFactorResult?.factor,
+    mainFactorReason: mainFactorResult?.reason,
     timestamp: new Date().toISOString()
   };
 }
@@ -979,6 +1068,25 @@ export function validateDeterministicTokenCa(
     liqFormatted: caEvidence.liquidityFormatted,
     criticalFieldsMissing: true
   });
+
+  const mainFactorResult = determineMainFactor({
+    question: verdict.question || '',
+    isTargetBelow: typeof caEvidence.targetMarketCap === 'number' && typeof caEvidence.marketCap === 'number' && caEvidence.targetMarketCap < caEvidence.marketCap,
+    isTargetAbove: typeof caEvidence.targetMarketCap === 'number' && typeof caEvidence.marketCap === 'number' && caEvidence.targetMarketCap > caEvidence.marketCap,
+    criticalFieldsMissing: caEvidence.holderConcentration === 'DATA UNAVAILABLE' || caEvidence.liquidityLock === 'DATA UNAVAILABLE' || caEvidence.contractVerification === 'DATA UNAVAILABLE',
+    liqFormatted: caEvidence.liquidityFormatted || 'DATA UNAVAILABLE',
+    liquidityUsd: caEvidence.liquidityUsd,
+    targetMcNum: typeof caEvidence.targetMarketCap === 'number' ? caEvidence.targetMarketCap : null,
+    currentMcNum: typeof caEvidence.marketCap === 'number' ? caEvidence.marketCap : null,
+    multFormatted: caEvidence.requiredMultipleFormatted || 'DATA UNAVAILABLE',
+    holderConcentration: caEvidence.holderConcentration,
+    lpStatus: caEvidence.liquidityLock,
+    volFormatted: caEvidence.volume24hFormatted || 'DATA UNAVAILABLE'
+  });
+  if (mainFactorResult) {
+    verdict.mainFactor = mainFactorResult.factor;
+    verdict.mainFactorReason = mainFactorResult.reason;
+  }
 
   if (verdict.tokenCaDetails) {
     verdict.tokenCaDetails.ca = caEvidence.contractAddress;
@@ -1196,6 +1304,23 @@ export async function generateFinalSynthesis(
       criticalFieldsMissing
     });
 
+    const mainFactorResult = determineMainFactor({
+      question,
+      isTargetBelow,
+      isTargetAbove,
+      criticalFieldsMissing,
+      liqFormatted,
+      liquidityUsd: caEvidence?.liquidityUsd,
+      targetMcNum,
+      currentMcNum,
+      multFormatted,
+      holderConcentration: caEvidence?.holderConcentration,
+      lpStatus: caEvidence?.liquidityLock,
+      volFormatted
+    });
+
+    const mainFactorBlock = mainFactorResult ? `\n\nMAIN FACTOR:\n${mainFactorResult.factor}\n\nREASON:\n${mainFactorResult.reason}` : '';
+
     const conclusion = `TARGET INTERPRETATION:
 ${targetInterpretationText}
 
@@ -1205,7 +1330,7 @@ GREATEST OBSERVABLE CONSTRAINT:
 ${greatestObservableConstraint}
 
 EVIDENCE:
-${greatestConstraintEvidence}
+${greatestConstraintEvidence}${mainFactorBlock}
 
 CHAMBER ASSESSMENT: ${outcome === 'DIVIDED' ? 'DIVIDED — NO MAJORITY' : outcome}. ${caReason}`;
 
@@ -1268,7 +1393,7 @@ CHAMBER ASSESSMENT: ${outcome === 'DIVIDED' ? 'DIVIDED — NO MAJORITY' : outcom
           `Market-Cap Difference: ${marketCapDiffFormatted}`,
           `Required Multiple: ${caDetails.requiredMultipleFormatted}`,
           `DEX Liquidity: ${caDetails.liquidity}`,
-          `24h Volume (turnover velocity, NOT pool depth): ${caDetails.volume24h}`,
+          `24h Volume (shows trading activity, not available liquidity): ${caDetails.volume24h}`,
           `24h Transactions: ${caDetails.buysSells}`,
           `Greatest Observable Constraint: ${greatestObservableConstraint}`
         ]
@@ -1285,7 +1410,7 @@ CHAMBER ASSESSMENT: ${outcome === 'DIVIDED' ? 'DIVIDED — NO MAJORITY' : outcom
       keyFindings: [
         `Target Interpretation: ${targetInterpretation}`,
         `Market-Cap Difference: ${marketCapDiffFormatted} (Multiple: ${multFormatted})`,
-        `DEX Liquidity: ${caDetails.liquidity} available on ${caDetails.network} (24h volume of ${caDetails.volume24h} reflects turnover, NOT pool depth)`,
+        `DEX Liquidity: ${caDetails.liquidity} available on ${caDetails.network} (24h volume of ${caDetails.volume24h} shows trading activity, not available liquidity)`,
         `Trading Activity: ${caDetails.buysSells}`,
         `Greatest Observable Constraint: ${greatestObservableConstraint}`,
         `Critical Evidence Gaps: LP lock status, holder concentration, and contract verification remain DATA UNAVAILABLE`
@@ -1295,6 +1420,8 @@ CHAMBER ASSESSMENT: ${outcome === 'DIVIDED' ? 'DIVIDED — NO MAJORITY' : outcom
       unresolvedIssues,
       conclusion,
       conciseConclusion,
+      mainFactor: mainFactorResult?.factor,
+      mainFactorReason: mainFactorResult?.reason,
       caDetails
     };
   }
@@ -1502,6 +1629,7 @@ if (typeof module !== 'undefined' && module.exports) {
     generateFinalSynthesis,
     validateDeterministicTokenCa,
     buildConciseVerdictConclusion,
+    determineMainFactor,
     streamRound1Reading,
     streamRound2Duel
   };

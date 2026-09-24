@@ -337,6 +337,10 @@ export async function POST(req: NextRequest) {
           if (synthesis.conciseConclusion) {
             verdict.conciseConclusion = synthesis.conciseConclusion;
           }
+          if (synthesis.mainFactor) {
+            verdict.mainFactor = synthesis.mainFactor;
+            verdict.mainFactorReason = synthesis.mainFactorReason;
+          }
 
           if (isCa && caData) {
             validateDeterministicTokenCa(verdict, caData, participatingAgents.map(a => a.seat));
@@ -344,6 +348,10 @@ export async function POST(req: NextRequest) {
             verdict.questionTopic = 'TOKEN_CA';
             if (synthesis.conciseConclusion) {
               verdict.conciseConclusion = synthesis.conciseConclusion;
+            }
+            if (synthesis.mainFactor) {
+              verdict.mainFactor = synthesis.mainFactor;
+              verdict.mainFactorReason = synthesis.mainFactorReason;
             }
           }
 
