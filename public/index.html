@@ -567,13 +567,59 @@
             </div>
           </div>
 
-          <!-- Right Column: 3D Isometric Frosted Cube (Reference Image 2) -->
-          <div class="dust-cube-wrap" style="display:flex;justify-content:center;align-items:center;position:relative;">
-            <div class="dust-cube-glow" style="position:absolute;width:260px;height:260px;background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%);border-radius:50%;filter:blur(24px);"></div>
-            <svg width="270" height="270" viewBox="0 0 260 260" fill="none" style="animation:cubeFloat 6s ease-in-out infinite;">
+          <!-- Right Column: Animated Cute 3D Isometric Companion Cube -->
+          <div class="dust-cube-wrap">
+            <div class="dust-cube-glow"></div>
+            <div class="dust-cube-shadow"></div>
+            <svg class="dust-cube-svg" width="280" height="280" viewBox="0 0 260 260" fill="none">
+              <!-- Cute Orbiting Mini Companion & Sparkles -->
+              <g class="cube-sparkle sparkle-1">
+                <path d="M218 45 Q218 57 206 57 Q218 57 218 69 Q218 57 230 57 Q218 57 218 45 Z" fill="#FFFFFF"/>
+              </g>
+              <g class="cube-sparkle sparkle-2">
+                <path d="M28 140 Q28 148 20 148 Q28 148 28 156 Q28 148 36 148 Q28 148 28 140 Z" fill="#FFFFFF"/>
+              </g>
+              <g class="cube-sparkle sparkle-3">
+                <polygon points="50,42 62,49 50,56 38,49" fill="#FFFFFF" opacity="0.85"/>
+                <polygon points="38,49 50,56 50,68 38,61" fill="#444444" opacity="0.8"/>
+                <polygon points="62,49 50,56 50,68 62,61" fill="#888888" opacity="0.85"/>
+              </g>
+
+              <!-- 3D Cube Body -->
               <polygon points="130,25 225,80 130,135 35,80" fill="url(#cubeTopGrad)" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
               <polygon points="35,80 130,135 130,235 35,180" fill="url(#cubeLeftGrad)" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
               <polygon points="225,80 130,135 130,235 225,180" fill="url(#cubeRightGrad)" stroke="rgba(255,255,255,0.35)" stroke-width="1.5"/>
+
+              <!-- Cute Animated Face -->
+              <g class="cube-cute-face">
+                <!-- Normal Eyes (with blinking animation) -->
+                <g class="cube-eyes">
+                  <ellipse class="cube-eye left-eye" cx="98" cy="158" rx="6.5" ry="7.5" fill="#FFFFFF"/>
+                  <circle cx="96" cy="156" r="2.2" fill="#111111"/>
+                  <circle cx="95" cy="155" r="1.1" fill="#FFFFFF"/>
+
+                  <ellipse class="cube-eye right-eye" cx="162" cy="158" rx="6.5" ry="7.5" fill="#FFFFFF"/>
+                  <circle cx="160" cy="156" r="2.2" fill="#111111"/>
+                  <circle cx="159" cy="155" r="1.1" fill="#FFFFFF"/>
+                </g>
+
+                <!-- Happy Squinting Eyes (visible on hover) -->
+                <g class="cube-happy-eyes">
+                  <path d="M91 161 Q98 152 105 161" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+                  <path d="M155 161 Q162 152 169 161" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+                </g>
+
+                <!-- Normal Cute Smile -->
+                <path class="cube-mouth" d="M125 178 Q130 185 135 178" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+
+                <!-- Happy Open Smile (on hover) -->
+                <path class="cube-happy-mouth" d="M124 177 Q130 188 136 177 Z" fill="#FFFFFF"/>
+
+                <!-- Rosy Cheeks -->
+                <ellipse class="cube-blush" cx="80" cy="168" rx="7.5" ry="4.5" fill="rgba(255, 255, 255, 0.3)"/>
+                <ellipse class="cube-blush" cx="180" cy="168" rx="7.5" ry="4.5" fill="rgba(255, 255, 255, 0.3)"/>
+              </g>
+
               <defs>
                 <linearGradient id="cubeTopGrad" x1="35" y1="25" x2="225" y2="135" gradientUnits="userSpaceOnUse">
                   <stop offset="0%" stop-color="#FFFFFF"/>

@@ -1593,3 +1593,186 @@ footer.site-footer {
   border-color: #FFFFFF;
   background: rgba(255, 255, 255, 0.1);
 }
+
+/* ==========================================================================
+   Cute 3D Companion Cube Animations (Overview Page)
+   ========================================================================== */
+.dust-cube-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  min-height: 320px;
+  user-select: none;
+}
+
+.dust-cube-glow {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 45%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(28px);
+  pointer-events: none;
+  animation: cuteGlowPulse 4.8s ease-in-out infinite;
+}
+
+.dust-cube-shadow {
+  position: absolute;
+  bottom: 14px;
+  width: 150px;
+  height: 20px;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.04) 50%, transparent 75%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: cuteShadowPulse 4.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.dust-cube-svg {
+  display: block;
+  overflow: visible;
+  cursor: pointer;
+  transform-origin: 130px 200px;
+  animation: cuteCubeBounce 4.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  transition: filter 0.3s ease;
+}
+
+/* Playful zero-gravity floating, swaying & squishing */
+@keyframes cuteCubeBounce {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg) scale(1, 1);
+  }
+  20% {
+    transform: translateY(-22px) rotate(-3.5deg) scale(0.97, 1.03);
+  }
+  40% {
+    transform: translateY(-34px) rotate(2.5deg) scale(1.02, 0.98);
+  }
+  60% {
+    transform: translateY(-16px) rotate(4deg) scale(0.98, 1.02);
+  }
+  78% {
+    transform: translateY(6px) rotate(-1deg) scale(1.05, 0.94);
+  }
+  88% {
+    transform: translateY(-2px) rotate(0.5deg) scale(0.99, 1.01);
+  }
+}
+
+@keyframes cuteShadowPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  35%, 45% {
+    transform: scale(0.65);
+    opacity: 0.25;
+    filter: blur(4px);
+  }
+  78% {
+    transform: scale(1.18);
+    opacity: 0.95;
+    filter: blur(1px);
+  }
+}
+
+@keyframes cuteGlowPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  40% {
+    transform: scale(1.15);
+    opacity: 0.9;
+  }
+}
+
+/* Natural cute blinking */
+.cube-eyes {
+  transform-origin: 130px 158px;
+  animation: cuteBlink 4.2s infinite;
+}
+
+@keyframes cuteBlink {
+  0%, 92%, 96%, 100% {
+    transform: scaleY(1);
+  }
+  94% {
+    transform: scaleY(0.08);
+  }
+}
+
+/* Orbiting sparkles */
+.sparkle-1 {
+  animation: cuteSparkleFloat1 3.4s ease-in-out infinite alternate;
+  transform-origin: 218px 57px;
+}
+.sparkle-2 {
+  animation: cuteSparkleFloat2 4.2s ease-in-out infinite alternate;
+  transform-origin: 28px 148px;
+}
+.sparkle-3 {
+  animation: cuteSparkleFloat3 5.2s ease-in-out infinite;
+  transform-origin: 50px 55px;
+}
+
+@keyframes cuteSparkleFloat1 {
+  0% { transform: translateY(0) scale(0.85) rotate(0deg); opacity: 0.45; }
+  100% { transform: translateY(-16px) scale(1.2) rotate(45deg); opacity: 1; }
+}
+
+@keyframes cuteSparkleFloat2 {
+  0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 0.7; }
+  100% { transform: translateY(-18px) translateX(6px) scale(0.8) rotate(-30deg); opacity: 0.35; }
+}
+
+@keyframes cuteSparkleFloat3 {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+  50% { transform: translateY(-14px) rotate(14deg); opacity: 0.95; }
+  100% { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+}
+
+/* Happy smiling hover expression */
+.cube-happy-eyes,
+.cube-happy-mouth {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.dust-cube-wrap:hover .cube-eyes,
+.dust-cube-wrap:hover .cube-mouth {
+  opacity: 0;
+}
+
+.dust-cube-wrap:hover .cube-happy-eyes,
+.dust-cube-wrap:hover .cube-happy-mouth {
+  opacity: 1;
+}
+
+.dust-cube-wrap:hover .cube-blush {
+  fill: rgba(255, 255, 255, 0.65);
+  transform: scale(1.25);
+  transition: all 0.25s ease;
+}
+
+.dust-cube-wrap:hover .dust-cube-svg {
+  animation: cuteJoyJump 0.85s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite alternate;
+  filter: drop-shadow(0 0 24px rgba(255, 255, 255, 0.45));
+}
+
+@keyframes cuteJoyJump {
+  0% {
+    transform: translateY(-16px) scale(1.04, 0.96) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-42px) scale(0.96, 1.05) rotate(3deg);
+  }
+  100% {
+    transform: translateY(-24px) scale(1.02, 0.98) rotate(-2deg);
+  }
+}
+
+.dust-cube-wrap:active .dust-cube-svg {
+  transform: translateY(10px) scale(1.16, 0.84);
+  transition: transform 0.12s ease;
+}
