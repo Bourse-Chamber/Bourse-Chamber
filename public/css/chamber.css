@@ -12,7 +12,7 @@
 
 .chamber-page {
   padding-top: 0;
-  padding-bottom: 80px;
+  padding-bottom: 12px;
 }
 
 /* Floor Header Bar */
@@ -1249,11 +1249,11 @@
    ========================================================================== */
 .chamber-composer-wrap {
   max-width: 820px;
-  margin: 14px auto 0;
+  margin: 10px auto 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 72px;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
 .composer-form {
@@ -1321,7 +1321,7 @@
   gap: 8px;
   flex-wrap: wrap;
   align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 4px;
 }
 
 .hint-chip-label {

@@ -4,7 +4,7 @@
    ========================================================================== */
 
 .bench-page {
-  padding-bottom: 80px;
+  padding-bottom: 16px;
 }
 
 .bench-header {
@@ -267,8 +267,8 @@
   align-items: center;
   gap: 20px;
   flex-wrap: wrap;
-  margin-top: 48px;
-  margin-bottom: 80px;
+  margin-top: 36px;
+  margin-bottom: 14px;
 }
 
 .bench-floor-cta h2 {

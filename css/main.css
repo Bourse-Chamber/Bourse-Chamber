@@ -160,16 +160,132 @@ header.site-header {
 .site-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-family: var(--font-mono);
   font-size: 0.95rem;
   font-weight: 500;
   letter-spacing: -0.02em;
   color: var(--text-primary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
 }
 
-.site-logo svg {
+.logo-mark-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  overflow: visible;
+}
+
+.logo-mark-img {
   display: block;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.35s ease;
+  animation: logoAmbientBreathe 3.6s ease-in-out infinite;
+  will-change: transform, filter;
+}
+
+/* Expanding Radar Ping Ring */
+.logo-mark-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  opacity: 0;
+  transform: scale(0.7);
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Subtle Corner Energy Accents */
+.logo-mark-wrap::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  opacity: 0.6;
+  pointer-events: none;
+  transition: all 0.35s ease;
+  animation: logoBoxPulse 4s ease-in-out infinite;
+}
+
+/* Hover Animation Effects */
+.site-logo:hover .logo-mark-img {
+  transform: scale(1.18) rotate(-6deg);
+  filter: drop-shadow(0 0 6px #FFFFFF) drop-shadow(0 0 16px rgba(255, 255, 255, 0.7)) drop-shadow(0 0 28px rgba(255, 255, 255, 0.4));
+  animation: logoHoverFloat 1.8s ease-in-out infinite alternate;
+}
+
+.site-logo:hover .logo-mark-wrap::before {
+  animation: logoSonarPing 1.5s cubic-bezier(0.1, 0.8, 0.25, 1) infinite;
+}
+
+.site-logo:hover .logo-mark-wrap::after {
+  opacity: 1;
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: scale(1.12);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+}
+
+.site-logo:active .logo-mark-img {
+  transform: scale(0.94) rotate(0deg);
+  filter: drop-shadow(0 0 20px #FFFFFF);
+  transition: transform 0.1s ease;
+}
+
+@keyframes logoAmbientBreathe {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.35));
+  }
+  50% {
+    transform: translateY(-1.5px) scale(1.05);
+    filter: drop-shadow(0 0 9px rgba(255, 255, 255, 0.75));
+  }
+}
+
+@keyframes logoHoverFloat {
+  0% {
+    transform: scale(1.18) rotate(-6deg) translateY(0);
+  }
+  100% {
+    transform: scale(1.22) rotate(-3deg) translateY(-2px);
+  }
+}
+
+@keyframes logoSonarPing {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.9;
+  }
+  60% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1.65);
+    opacity: 0;
+  }
+}
+
+@keyframes logoBoxPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.4;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 0.85;
+    border-color: rgba(255, 255, 255, 0.35);
+  }
 }
 
 .nav-links {
@@ -625,10 +741,10 @@ header.site-header {
    Global Footer
    ========================================================================== */
 footer.site-footer {
-  margin-top: 80px;
+  margin-top: 32px;
   border-top: 1px solid var(--border-main);
   background: var(--bg-black);
-  padding: 40px 0 48px;
+  padding: 24px 0 28px;
   position: relative;
   z-index: 1;
 }

@@ -73,16 +73,9 @@ export default function RootLayout({
               letterSpacing: '0.04em',
             }}
           >
-            <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true">
-              <rect x="0" y="0" width="5" height="5" fill="#fff" />
-              <rect x="10" y="0" width="5" height="5" fill="#fff" />
-              <rect x="5" y="5" width="5" height="5" fill="#fff" />
-              <rect x="15" y="5" width="5" height="5" fill="#fff" />
-              <rect x="0" y="10" width="5" height="5" fill="#fff" />
-              <rect x="10" y="10" width="5" height="5" fill="#fff" />
-              <rect x="5" y="15" width="5" height="5" fill="#fff" />
-              <rect x="15" y="15" width="5" height="5" fill="#fff" />
-            </svg>
+            <span className="logo-mark-wrap">
+              <img className="logo-mark-img" src="/img/logo-icon.png" alt="Bourse Chamber" width={24} height={24} style={{ display: 'block' }} />
+            </span>
             <span>Bourse Chamber</span>
           </a>
 
