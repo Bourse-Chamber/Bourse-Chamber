@@ -919,6 +919,11 @@
   white-space: pre-line;
 }
 
+.vr-math-req,
+.vr-liq-req,
+.vr-demand-req,
+.vr-supply-req,
+.vr-security-req,
 .vr-key-result {
   font-family: var(--font-mono);
   font-size: 0.72rem;

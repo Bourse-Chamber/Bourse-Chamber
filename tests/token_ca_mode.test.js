@@ -306,6 +306,13 @@ test('TOKEN_CA Synthesis: Target Direction (Below MC) and Greatest Constraint', 
   assert.ok(synth.conclusion.includes('- Effective Supply / Dilution:'));
   assert.ok(synth.conclusion.includes('GREATEST OBSERVABLE CONSTRAINT:'));
   assert.ok(synth.conclusion.includes('INSUFFICIENT EVIDENCE — no single greatest constraint can be reliably identified'));
+  assert.ok(synth.conclusion.includes('1. MATHEMATICAL REQUIREMENTS:'));
+  assert.ok(synth.conclusion.includes('2. LIQUIDITY REQUIREMENTS:'));
+  assert.ok(synth.conclusion.includes('3. DEMAND REQUIREMENTS:'));
+  assert.ok(synth.conclusion.includes('4. SUPPLY / DILUTION REQUIREMENTS:'));
+  assert.ok(synth.conclusion.includes('5. SECURITY / TRUST REQUIREMENTS:'));
+  assert.ok(synth.caDetails.marketCapDiffFormatted);
+  assert.strictEqual(synth.caDetails.fdvFormatted, 'DATA UNAVAILABLE');
   assert.ok(typeof synth.conciseConclusion === 'string' && synth.conciseConclusion.length > 20);
 });
 

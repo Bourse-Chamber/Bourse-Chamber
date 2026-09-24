@@ -583,13 +583,38 @@ const BourseChamber = (() => {
       return m ? m[1].trim() : '';
     };
 
-    const question = extractSection('QUESTION', ['OUTCOME', 'VOTE', 'KEY RESULT', 'MAIN FACTOR', 'REASON', 'CONCLUSION', 'STATUS']);
-    const outcome = extractSection('OUTCOME', ['VOTE', 'KEY RESULT', 'MAIN FACTOR', 'REASON', 'CONCLUSION', 'STATUS']);
-    const vote = extractSection('VOTE', ['KEY RESULT', 'MAIN FACTOR', 'REASON', 'CONCLUSION', 'STATUS']);
-    const keyResult = extractSection('KEY RESULT', ['MAIN FACTOR', 'REASON', 'CONCLUSION', 'STATUS']);
-    const mainFactor = extractSection('MAIN FACTOR', ['REASON', 'CONCLUSION', 'STATUS']);
-    const reason = extractSection('REASON', ['CONCLUSION', 'STATUS']);
-    const conclusion = extractSection('CONCLUSION', ['STATUS']);
+    const allSections = [
+      'OUTCOME',
+      'VOTE',
+      'MATHEMATICAL REQUIREMENTS',
+      'LIQUIDITY REQUIREMENTS',
+      'DEMAND REQUIREMENTS',
+      'SUPPLY / DILUTION REQUIREMENTS',
+      'SECURITY / TRUST REQUIREMENTS',
+      'KEY RESULT',
+      'MAIN FACTOR',
+      'REASON',
+      'CONCLUSION',
+      'STATUS'
+    ];
+
+    const getNextHeadings = (heading) => {
+      const idx = allSections.indexOf(heading);
+      return idx >= 0 ? allSections.slice(idx + 1) : [];
+    };
+
+    const question = extractSection('QUESTION', allSections);
+    const outcome = extractSection('OUTCOME', getNextHeadings('OUTCOME'));
+    const vote = extractSection('VOTE', getNextHeadings('VOTE'));
+    const mathReq = extractSection('MATHEMATICAL REQUIREMENTS', getNextHeadings('MATHEMATICAL REQUIREMENTS'));
+    const liqReq = extractSection('LIQUIDITY REQUIREMENTS', getNextHeadings('LIQUIDITY REQUIREMENTS'));
+    const demandReq = extractSection('DEMAND REQUIREMENTS', getNextHeadings('DEMAND REQUIREMENTS'));
+    const supplyReq = extractSection('SUPPLY / DILUTION REQUIREMENTS', getNextHeadings('SUPPLY / DILUTION REQUIREMENTS'));
+    const securityReq = extractSection('SECURITY / TRUST REQUIREMENTS', getNextHeadings('SECURITY / TRUST REQUIREMENTS'));
+    const keyResult = extractSection('KEY RESULT', getNextHeadings('KEY RESULT'));
+    const mainFactor = extractSection('MAIN FACTOR', getNextHeadings('MAIN FACTOR'));
+    const reason = extractSection('REASON', getNextHeadings('REASON'));
+    const conclusion = extractSection('CONCLUSION', getNextHeadings('CONCLUSION'));
     const status = extractSection('STATUS', []) || 'Record closed and saved to the Verdict Ledger.';
 
     if (!question && !outcome) {
@@ -614,6 +639,36 @@ const BourseChamber = (() => {
           <div class="vr-label">VOTE</div>
           <div class="vr-text vr-vote">${escape(vote).replace(/\n/g, '<br>')}</div>
         </div>
+        ${mathReq ? `
+        <div class="vr-section">
+          <div class="vr-label">MATHEMATICAL REQUIREMENTS</div>
+          <div class="vr-text vr-math-req">${escape(mathReq).replace(/\n/g, '<br>')}</div>
+        </div>
+        ` : ''}
+        ${liqReq ? `
+        <div class="vr-section">
+          <div class="vr-label">LIQUIDITY REQUIREMENTS</div>
+          <div class="vr-text vr-liq-req">${escape(liqReq).replace(/\n/g, '<br>')}</div>
+        </div>
+        ` : ''}
+        ${demandReq ? `
+        <div class="vr-section">
+          <div class="vr-label">DEMAND REQUIREMENTS</div>
+          <div class="vr-text vr-demand-req">${escape(demandReq).replace(/\n/g, '<br>')}</div>
+        </div>
+        ` : ''}
+        ${supplyReq ? `
+        <div class="vr-section">
+          <div class="vr-label">SUPPLY / DILUTION REQUIREMENTS</div>
+          <div class="vr-text vr-supply-req">${escape(supplyReq).replace(/\n/g, '<br>')}</div>
+        </div>
+        ` : ''}
+        ${securityReq ? `
+        <div class="vr-section">
+          <div class="vr-label">SECURITY / TRUST REQUIREMENTS</div>
+          <div class="vr-text vr-security-req">${escape(securityReq).replace(/\n/g, '<br>')}</div>
+        </div>
+        ` : ''}
         ${keyResult ? `
         <div class="vr-section">
           <div class="vr-label">KEY RESULT</div>
@@ -987,22 +1042,62 @@ const BourseChamber = (() => {
     const fullQuestion = (currentSession?.question || verdictData?.question || '').trim();
     const displayQuestion = makeReadableQuestion(fullQuestion, ticker, targetFormatted);
 
-    // Build KEY RESULT block for TOKEN_CA
-    const keyResultLines = [];
-    if (caDetails && (caDetails.currentMarketCap || caDetails.targetMarketCap)) {
+    // Build 5-SECTION TOKEN_CA REQUIREMENTS block
+    const fiveRequirementLines = [];
+    if (isTokenCa && caDetails && (caDetails.currentMarketCap || caDetails.targetMarketCap)) {
       const curMc = caDetails.currentMarketCap || 'DATA UNAVAILABLE';
       const tgtMc = caDetails.targetMarketCap || 'DATA UNAVAILABLE';
       const mult = caDetails.requiredMultipleFormatted || (caDetails.requiredMultiple ? `${caDetails.requiredMultiple}x` : 'DATA UNAVAILABLE');
+      const mcChange = caDetails.marketCapDiffFormatted || 'DATA UNAVAILABLE';
+      const tgtInterp = caDetails.targetInterpretation || 'DATA UNAVAILABLE';
       const liq = caDetails.liquidity || 'DATA UNAVAILABLE';
       const vol = caDetails.volume24h || 'DATA UNAVAILABLE';
+      const buySell = caDetails.buySellRatio || (currentEvidence?.buySellRatio || 'DATA UNAVAILABLE');
+      const txns = caDetails.buysSells || (currentEvidence?.txns24h?.buys ? `${currentEvidence.txns24h.buys} buys / ${currentEvidence.txns24h.sells} sells` : 'DATA UNAVAILABLE');
 
-      keyResultLines.push(
-        'KEY RESULT',
+      let holderDist = 'DATA UNAVAILABLE';
+      if (caDetails.holderCount && caDetails.holderCount !== 'DATA UNAVAILABLE') {
+        holderDist = `${caDetails.holderCount} holders`;
+        if (caDetails.holderConcentration && caDetails.holderConcentration !== 'DATA UNAVAILABLE') {
+          holderDist += ` (Top 10: ${caDetails.holderConcentration})`;
+        }
+      } else if (caDetails.holderConcentration && caDetails.holderConcentration !== 'DATA UNAVAILABLE') {
+        holderDist = caDetails.holderConcentration;
+      }
+
+      const fdv = caDetails.fdvFormatted || (currentEvidence?.fdvFormatted || curMc || 'DATA UNAVAILABLE');
+      const lpStatus = caDetails.lpStatus || 'DATA UNAVAILABLE';
+      const contractPermissions = caDetails.contractRisks || 'DATA UNAVAILABLE';
+
+      fiveRequirementLines.push(
+        'MATHEMATICAL REQUIREMENTS',
         `Current Market Cap: ${curMc}`,
         `Target Market Cap: ${tgtMc}`,
         `Required Multiple: ${mult}`,
-        `Liquidity: ${liq}`,
+        `Market-Cap Change: ${mcChange}`,
+        `Target: ${tgtInterp}`,
+        '',
+        'LIQUIDITY REQUIREMENTS',
+        `Current DEX Liquidity: ${liq}`,
+        'Required Liquidity: DATA UNAVAILABLE',
+        '',
+        'DEMAND REQUIREMENTS',
         `24h Volume: ${vol}`,
+        `Buy/Sell Ratio: ${buySell}`,
+        `Transactions: ${txns}`,
+        'Required Organic Demand: DATA UNAVAILABLE',
+        `Holder Distribution: ${holderDist}`,
+        '',
+        'SUPPLY / DILUTION REQUIREMENTS',
+        `Current FDV: ${fdv}`,
+        'Circulating Supply: DATA UNAVAILABLE',
+        'Total Supply: DATA UNAVAILABLE',
+        'Required Supply Change: DATA UNAVAILABLE',
+        '',
+        'SECURITY / TRUST REQUIREMENTS',
+        `LP Lock Status: ${lpStatus}`,
+        `Contract Permissions: ${contractPermissions}`,
+        'Deployer / Admin Risk: DATA UNAVAILABLE',
         ''
       );
     }
@@ -1037,8 +1132,8 @@ const BourseChamber = (() => {
       ''
     ];
 
-    if (keyResultLines.length > 0) {
-      verdictTextParts.push(...keyResultLines);
+    if (fiveRequirementLines.length > 0) {
+      verdictTextParts.push(...fiveRequirementLines);
     }
 
     if (mainFactorLines.length > 0) {

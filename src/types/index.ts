@@ -39,6 +39,10 @@ export interface TokenCaSynthesisDetails {
   overallFeasibility?: TokenCaAssessment;
   confidenceScore?: 'LOW' | 'MEDIUM' | 'HIGH';
   confidenceReason?: string;
+  marketCapDiffFormatted?: string;
+  fdvFormatted?: string;
+  buySellRatio?: string;
+  txnsFormatted?: string;
 }
 
 export interface FinalChamberSynthesis {

@@ -1321,10 +1321,44 @@ export async function generateFinalSynthesis(
 
     const mainFactorBlock = mainFactorResult ? `\n\nMAIN FACTOR:\n${mainFactorResult.factor}\n\nREASON:\n${mainFactorResult.reason}` : '';
 
+    const fiveAnalysisCategoriesBlock = [
+      `1. MATHEMATICAL REQUIREMENTS:`,
+      `Current Market Cap: ${caEvidence?.marketCapFormatted || 'DATA UNAVAILABLE'}`,
+      `Target Market Cap: ${targetFormatted}`,
+      `Required Multiple: ${multFormatted}`,
+      `Market-Cap Change: ${marketCapDiffFormatted}`,
+      `Target: ${targetInterpretation}`,
+      ``,
+      `2. LIQUIDITY REQUIREMENTS:`,
+      `Current DEX Liquidity: ${liqFormatted}`,
+      `Required Liquidity: DATA UNAVAILABLE`,
+      ``,
+      `3. DEMAND REQUIREMENTS:`,
+      `24h Volume: ${volFormatted}`,
+      `Buy/Sell Ratio: ${caEvidence?.buySellRatio || 'DATA UNAVAILABLE'}`,
+      `Transactions: ${txnsFormatted}`,
+      `Required Organic Demand: DATA UNAVAILABLE`,
+      `Holder Distribution: ${caEvidence?.holders && caEvidence.holders !== 'DATA UNAVAILABLE' ? `${caEvidence.holders} holders (Top 10: ${caEvidence.holderConcentration || 'DATA UNAVAILABLE'})` : 'DATA UNAVAILABLE'}`,
+      ``,
+      `4. SUPPLY / DILUTION REQUIREMENTS:`,
+      `Current FDV: ${caEvidence?.fdvFormatted || 'DATA UNAVAILABLE'}`,
+      `Circulating Supply: DATA UNAVAILABLE`,
+      `Total Supply: DATA UNAVAILABLE`,
+      `Required Supply Change: DATA UNAVAILABLE`,
+      ``,
+      `5. SECURITY / TRUST REQUIREMENTS:`,
+      `LP Lock Status: ${caEvidence?.liquidityLock || 'DATA UNAVAILABLE'}`,
+      `Contract Permissions: ${caEvidence?.contractRisks || 'DATA UNAVAILABLE'}`,
+      `Deployer / Admin Risk: DATA UNAVAILABLE`
+    ].join('\n');
+
     const conclusion = `TARGET INTERPRETATION:
 ${targetInterpretationText}
 
 ${measurableChangesRequiredBlock}
+
+EXPLICIT 5-SECTION TOKEN_CA ANALYSIS:
+${fiveAnalysisCategoriesBlock}
 
 GREATEST OBSERVABLE CONSTRAINT:
 ${greatestObservableConstraint}
@@ -1354,6 +1388,10 @@ CHAMBER ASSESSMENT: ${outcome === 'DIVIDED' ? 'DIVIDED — NO MAJORITY' : outcom
       holderConcentration: caEvidence?.holderConcentration || 'DATA UNAVAILABLE',
       lpStatus: caEvidence?.liquidityLock || 'DATA UNAVAILABLE',
       contractRisks: caEvidence?.contractRisks || 'DATA UNAVAILABLE',
+      marketCapDiffFormatted,
+      fdvFormatted: caEvidence?.fdvFormatted || 'DATA UNAVAILABLE',
+      buySellRatio: caEvidence?.buySellRatio || 'DATA UNAVAILABLE',
+      txnsFormatted,
       evidenceGaps: (caEvidence && Array.isArray((caEvidence as any).dataGaps) && (caEvidence as any).dataGaps.length > 0)
         ? (caEvidence as any).dataGaps
         : [
