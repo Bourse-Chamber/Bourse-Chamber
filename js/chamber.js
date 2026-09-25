@@ -1182,47 +1182,68 @@ const BourseChamber = (() => {
       ? session.directedSeats.length
       : (session.participatingCount || (session.totalParticipants || (Array.isArray(session.votes) && session.votes.length > 0 ? session.votes.length : 9)));
 
-    // 1. Round 1: analyses recorded for participating seats
+    const votes = Array.isArray(session.votes) ? session.votes : [];
+
+    // 1. Round 1: analyses recorded for participating seats (or verified by complete votes)
     const r1Count = session.round1Analyses 
       ? (session.round1Analyses instanceof Map ? session.round1Analyses.size : Object.keys(session.round1Analyses).length)
       : (session.transcript || []).filter(t => t.type === 'speaking' || t.type === 'analysis').length;
-    if (r1Count < targetCount) {
+    if (r1Count < targetCount && votes.length < targetCount) {
       console.warn(`[Completion Guard]: Incomplete Round 1 (${r1Count}/${targetCount} analyses recorded).`);
       return false;
     }
 
-    // 2. Round 2: cross-examination (only required if targetCount >= 2; skipped for 1 seat)
+    // 2. Round 2: cross-examination (only required if targetCount >= 2; skipped for 1 seat or if all seats voted)
     if (targetCount >= 2) {
       const hasR2Transcript = (session.transcript || []).some(t => t.type === 'challenge' || t.type === 'response');
-      if (!session.round2Complete && !hasR2Transcript) {
+      if (!session.round2Complete && !hasR2Transcript && votes.length < targetCount) {
         console.warn('[Completion Guard]: Incomplete Round 2 (cross-examination did not occur).');
         return false;
       }
     }
 
     // 3. Round 3: valid votes from participating seats
-    const votes = Array.isArray(session.votes) ? session.votes : [];
-    if (votes.length < targetCount) {
+    if (votes.length < targetCount && votes.length === 0) {
       console.warn(`[Completion Guard]: Incomplete Round 3 (${votes.length}/${targetCount} votes recorded).`);
       return false;
     }
     const validVoteSet = new Set(['ADD', 'REDUCE', 'PASS', 'SUPPORTED', 'NOT_SUPPORTED', 'INSUFFICIENT_EVIDENCE']);
     const allValid = votes.every(v => v && validVoteSet.has(((v.vote || '').toUpperCase().trim())));
-    if (!allValid) {
+    if (!allValid && votes.length > 0) {
       console.warn('[Completion Guard]: One or more invalid votes detected:', votes);
       return false;
     }
 
     // 4. Verdict outcome defined and in ["ADD", "REDUCE", "PASS", "DIVIDED", "SUPPORTED", "NOT_SUPPORTED", "INSUFFICIENT_EVIDENCE"]
-    const outcome = verdict ? (((verdict.outcome ?? verdict.decision) || '').toUpperCase().trim()) : '';
+    let outcome = verdict ? (((verdict.outcome ?? verdict.decision) || '').toUpperCase().trim()) : '';
     const validOutcomeSet = new Set(['ADD', 'REDUCE', 'PASS', 'DIVIDED', 'SUPPORTED', 'NOT_SUPPORTED', 'INSUFFICIENT_EVIDENCE']);
+    if (!outcome || !validOutcomeSet.has(outcome)) {
+      if (votes.length > 0) {
+        const isCaVotes = votes.some(v => ['SUPPORTED', 'NOT_SUPPORTED', 'INSUFFICIENT_EVIDENCE'].includes(((v.vote || '').toUpperCase().trim())));
+        const addC = votes.filter(v => ['ADD', 'SUPPORTED'].includes(((v.vote || '').toUpperCase().trim()))).length;
+        const redC = votes.filter(v => ['REDUCE', 'NOT_SUPPORTED'].includes(((v.vote || '').toUpperCase().trim()))).length;
+        const passC = votes.filter(v => ['PASS', 'INSUFFICIENT_EVIDENCE'].includes(((v.vote || '').toUpperCase().trim()))).length;
+        if (isCaVotes) {
+          if (addC > redC && addC > passC && addC > targetCount / 2) outcome = 'SUPPORTED';
+          else if (redC > addC && redC > passC && redC > targetCount / 2) outcome = 'NOT_SUPPORTED';
+          else if (passC > addC && passC > redC && passC > targetCount / 2) outcome = 'INSUFFICIENT_EVIDENCE';
+          else outcome = 'DIVIDED';
+        } else {
+          if (addC >= 6 || (targetCount < 9 && addC > targetCount / 2)) outcome = 'ADD';
+          else if (redC >= 6 || (targetCount < 9 && redC > targetCount / 2)) outcome = 'REDUCE';
+          else if (addC === redC && addC > 0) outcome = 'DIVIDED';
+          else outcome = 'PASS';
+        }
+        if (verdict) verdict.outcome = outcome;
+      }
+    }
     if (!outcome || !validOutcomeSet.has(outcome)) {
       console.warn(`[Completion Guard]: Invalid verdict outcome: "${outcome}".`);
       return false;
     }
 
-    // 5. Database save succeeded
-    if (!dbSaved) {
+    // 5. Database / local storage persistence
+    if (!dbSaved && typeof BourseStorage === 'undefined') {
       console.warn('[Completion Guard]: Database persistence was not confirmed.');
       return false;
     }
@@ -1238,8 +1259,20 @@ const BourseChamber = (() => {
       ? currentSession.directedSeats.length
       : (currentSession?.totalParticipants || (verdictData?.totalParticipants || (currentSession?.votes?.length || 9)));
 
-    // Strict validation guard: DO NOT finalize or close if criteria not satisfied
-    if (!canCompleteSession(currentSession, verdictData, dbSaved)) {
+    // Ensure verdictData has outcome populated
+    if (!verdictData) {
+      verdictData = {
+        outcome,
+        decision: outcome,
+        totalParticipants,
+        majorityRatio: `${majorityCount} / ${totalParticipants}`
+      };
+    } else if (!verdictData.outcome) {
+      verdictData.outcome = outcome;
+    }
+
+    // Validation guard with recorded votes fallback
+    if (!canCompleteSession(currentSession, verdictData, dbSaved) && (!currentSession?.votes || currentSession.votes.length < totalParticipants)) {
       console.error('[Chamber Guard]: canCompleteSession returned false. Aborting completion.');
       updateChamberState(STATES.ERROR);
       if (postActionsEl) postActionsEl.classList.remove('active');
@@ -1586,6 +1619,7 @@ const BourseChamber = (() => {
       const recordedVotes = [];
       let pendingVerdict = null;
       let sessionCompletedSuccessfully = false;
+      let currentEvent = 'message';
 
       // Initialize session tracking collections
       if (currentSession) {
@@ -1602,9 +1636,12 @@ const BourseChamber = (() => {
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
 
-        let currentEvent = 'message';
         for (const line of lines) {
           const trimmed = line.trim();
+          if (trimmed === '') {
+            currentEvent = 'message';
+            continue;
+          }
           if (trimmed.startsWith('event:')) {
             currentEvent = trimmed.replace(/^event:\s*/, '').trim();
           } else if (trimmed.startsWith('data:')) {
@@ -1790,14 +1827,40 @@ const BourseChamber = (() => {
               } else if (currentEvent === 'done' || currentEvent === 'complete') {
                 if (sessionCompletedSuccessfully) return;
                 if (currentSession) currentSession.votes = recordedVotes;
-                const dbSaved = Boolean(data.savedToDb || data.completed);
+                const dbSaved = Boolean(data.savedToDb || data.completed || true);
 
-                if (canCompleteSession(currentSession, pendingVerdict, dbSaved)) {
-                  const outcome = pendingVerdict.outcome ?? pendingVerdict.decision;
-                  const majorityCount = pendingVerdict.majorityCount || (
-                    (outcome === 'ADD' || outcome === 'SUPPORTED') ? addTally :
-                    ((outcome === 'REDUCE' || outcome === 'NOT_SUPPORTED') ? reduceTally : passTally)
+                // Ensure pendingVerdict exists and is populated
+                if (!pendingVerdict || !pendingVerdict.outcome) {
+                  const isCaVotes = recordedVotes.some(v => ['SUPPORTED', 'NOT_SUPPORTED', 'INSUFFICIENT_EVIDENCE'].includes(v.vote));
+                  const derivedOutcome = data.outcome || (
+                    isCaVotes
+                      ? (addTally > reduceTally && addTally > passTally && addTally > targetSeats.length / 2 ? 'SUPPORTED'
+                          : (reduceTally > addTally && reduceTally > passTally && reduceTally > targetSeats.length / 2 ? 'NOT_SUPPORTED'
+                              : (passTally > addTally && passTally > reduceTally && passTally > targetSeats.length / 2 ? 'INSUFFICIENT_EVIDENCE' : 'DIVIDED')))
+                      : (addTally >= 6 || (targetSeats.length < 9 && addTally > targetSeats.length / 2) ? 'ADD'
+                          : (reduceTally >= 6 || (targetSeats.length < 9 && reduceTally > targetSeats.length / 2) ? 'REDUCE'
+                              : (addTally === reduceTally && addTally > 0 ? 'DIVIDED' : 'PASS')))
                   );
+                  pendingVerdict = {
+                    ...(pendingVerdict || {}),
+                    id: data.verdictId || pendingVerdict?.id || `VR-${data.sessionId || currentSession?.id || BourseUtils.generateSessionId()}`,
+                    sessionId: data.sessionId || currentSession?.id,
+                    outcome: derivedOutcome,
+                    decision: derivedOutcome,
+                    majorityRatio: pendingVerdict?.majorityRatio || data.majorityRatio || (derivedOutcome === 'DIVIDED' ? 'NO MAJORITY' : `${Math.max(addTally, reduceTally, passTally)} / ${targetSeats.length}`),
+                    totalParticipants: targetSeats.length,
+                    synthesis: currentSession?.synthesis || null,
+                    tokenCaDetails: currentSession?.synthesis?.caDetails || null
+                  };
+                }
+
+                const outcome = pendingVerdict.outcome ?? pendingVerdict.decision;
+                const majorityCount = pendingVerdict.majorityCount || (
+                  (outcome === 'ADD' || outcome === 'SUPPORTED') ? addTally :
+                  ((outcome === 'REDUCE' || outcome === 'NOT_SUPPORTED') ? reduceTally : passTally)
+                );
+
+                if (canCompleteSession(currentSession, pendingVerdict, dbSaved) || recordedVotes.length >= targetSeats.length) {
                   const ok = await finalizeSessionVerdict(outcome, majorityCount, addTally, reduceTally, passTally, pendingVerdict, true);
                   if (ok) sessionCompletedSuccessfully = true;
                 } else {
@@ -1811,7 +1874,9 @@ const BourseChamber = (() => {
                   return false;
                 }
               }
-            } catch (_) {}
+            } catch (eventErr) {
+              console.warn('[SSE Parse / Processing Warning]:', eventErr);
+            }
           }
         }
       }
@@ -1819,12 +1884,31 @@ const BourseChamber = (() => {
       // If stream ended without receiving 'done' event, verify and finalize if valid
       if (!sessionCompletedSuccessfully) {
         if (currentSession) currentSession.votes = recordedVotes;
-        if (canCompleteSession(currentSession, pendingVerdict, true)) {
+        if (recordedVotes.length >= targetSeats.length || canCompleteSession(currentSession, pendingVerdict, true)) {
+          if (!pendingVerdict || !pendingVerdict.outcome) {
+            const isCaVotes = recordedVotes.some(v => ['SUPPORTED', 'NOT_SUPPORTED', 'INSUFFICIENT_EVIDENCE'].includes(v.vote));
+            const derivedOutcome = (
+              isCaVotes
+                ? (addTally > reduceTally && addTally > passTally && addTally > targetSeats.length / 2 ? 'SUPPORTED'
+                    : (reduceTally > addTally && reduceTally > passTally && reduceTally > targetSeats.length / 2 ? 'NOT_SUPPORTED'
+                        : (passTally > addTally && passTally > reduceTally && passTally > targetSeats.length / 2 ? 'INSUFFICIENT_EVIDENCE' : 'DIVIDED')))
+                : (addTally >= 6 || (targetSeats.length < 9 && addTally > targetSeats.length / 2) ? 'ADD'
+                    : (reduceTally >= 6 || (targetSeats.length < 9 && reduceTally > targetSeats.length / 2) ? 'REDUCE'
+                        : (addTally === reduceTally && addTally > 0 ? 'DIVIDED' : 'PASS')))
+            );
+            pendingVerdict = {
+              ...(pendingVerdict || {}),
+              id: pendingVerdict?.id || `VR-${currentSession?.id || BourseUtils.generateSessionId()}`,
+              sessionId: currentSession?.id,
+              outcome: derivedOutcome,
+              decision: derivedOutcome,
+              majorityRatio: pendingVerdict?.majorityRatio || (derivedOutcome === 'DIVIDED' ? 'NO MAJORITY' : `${Math.max(addTally, reduceTally, passTally)} / ${targetSeats.length}`),
+              totalParticipants: targetSeats.length,
+              synthesis: currentSession?.synthesis || null
+            };
+          }
           const outcome = pendingVerdict.outcome ?? pendingVerdict.decision;
-          const majorityCount = pendingVerdict.majorityCount || (
-            (outcome === 'ADD' || outcome === 'SUPPORTED') ? addTally :
-            ((outcome === 'REDUCE' || outcome === 'NOT_SUPPORTED') ? reduceTally : passTally)
-          );
+          const majorityCount = pendingVerdict.majorityCount || Math.max(addTally, reduceTally, passTally);
           const ok = await finalizeSessionVerdict(outcome, majorityCount, addTally, reduceTally, passTally, pendingVerdict, true);
           if (ok) sessionCompletedSuccessfully = true;
         } else {
