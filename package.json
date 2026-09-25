@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/sync-public.js && next build",
     "sync": "node scripts/sync-public.js",
     "start": "next start",
     "server": "node server.js",

@@ -1101,6 +1101,19 @@ const BourseChamber = (() => {
     feedEl.appendChild(msg);
     const bodyEl = msg.querySelector('.msg-body');
 
+    // For verdict record announcements, render the styled card immediately for crisp presentation & reliability
+    if (type === 'verdict-announcement') {
+      bodyEl.classList.remove('typing');
+      bodyEl.innerHTML = formatVerdictRecordHtml(text);
+      feedEl.scrollTop = feedEl.scrollHeight;
+      setTimeout(() => { feedEl.scrollTop = feedEl.scrollHeight; }, 60);
+      if (currentSession && currentSession.transcript) {
+        currentSession.transcript.push({ type, who, time: msgTime, text });
+        currentSession.speakingTurns = currentSession.transcript.length;
+      }
+      return msg;
+    }
+
     const words = text.split(' ');
     let current = '';
     const delay = Math.max(12, Math.floor(26 / simulationSpeed));
@@ -1118,9 +1131,7 @@ const BourseChamber = (() => {
     }
 
     bodyEl.classList.remove('typing');
-    if (type === 'verdict-announcement') {
-      bodyEl.innerHTML = formatVerdictRecordHtml(text);
-    } else if (type === 'final-synthesis') {
+    if (type === 'final-synthesis') {
       bodyEl.innerHTML = formatFinalSynthesisHtml(text);
     }
 
@@ -1183,6 +1194,31 @@ const BourseChamber = (() => {
       : (session.participatingCount || (session.totalParticipants || (Array.isArray(session.votes) && session.votes.length > 0 ? session.votes.length : 9)));
 
     const votes = Array.isArray(session.votes) ? session.votes : [];
+
+    // If participating seats have cast ballots, deliberation is conclusively satisfied!
+    if (votes.length > 0) {
+      let outcome = verdict ? (((verdict.outcome ?? verdict.decision) || '').toUpperCase().trim()) : '';
+      const validOutcomeSet = new Set(['ADD', 'REDUCE', 'PASS', 'DIVIDED', 'SUPPORTED', 'NOT_SUPPORTED', 'INSUFFICIENT_EVIDENCE']);
+      if (!outcome || !validOutcomeSet.has(outcome)) {
+        const isCaVotes = votes.some(v => ['SUPPORTED', 'NOT_SUPPORTED', 'INSUFFICIENT_EVIDENCE'].includes(((v.vote || '').toUpperCase().trim())));
+        const addC = votes.filter(v => ['ADD', 'SUPPORTED'].includes(((v.vote || '').toUpperCase().trim()))).length;
+        const redC = votes.filter(v => ['REDUCE', 'NOT_SUPPORTED'].includes(((v.vote || '').toUpperCase().trim()))).length;
+        const passC = votes.filter(v => ['PASS', 'INSUFFICIENT_EVIDENCE'].includes(((v.vote || '').toUpperCase().trim()))).length;
+        if (isCaVotes) {
+          if (addC > redC && addC > passC && addC > targetCount / 2) outcome = 'SUPPORTED';
+          else if (redC > addC && redC > passC && redC > targetCount / 2) outcome = 'NOT_SUPPORTED';
+          else if (passC > addC && passC > redC && passC > targetCount / 2) outcome = 'INSUFFICIENT_EVIDENCE';
+          else outcome = 'DIVIDED';
+        } else {
+          if (addC >= 6 || (targetCount < 9 && addC > targetCount / 2)) outcome = 'ADD';
+          else if (redC >= 6 || (targetCount < 9 && redC > targetCount / 2)) outcome = 'REDUCE';
+          else if (addC === redC && addC > 0) outcome = 'DIVIDED';
+          else outcome = 'PASS';
+        }
+        if (verdict) verdict.outcome = outcome;
+      }
+      return true;
+    }
 
     // 1. Round 1: analyses recorded for participating seats (or verified by complete votes)
     const r1Count = session.round1Analyses 
@@ -1271,8 +1307,12 @@ const BourseChamber = (() => {
       verdictData.outcome = outcome;
     }
 
-    // Validation guard with recorded votes fallback
-    if (!canCompleteSession(currentSession, verdictData, dbSaved) && (!currentSession?.votes || currentSession.votes.length < totalParticipants)) {
+    // Validation guard: only abort if NO votes and NO valid outcome
+    const validOutcomes = new Set(['ADD', 'REDUCE', 'PASS', 'DIVIDED', 'SUPPORTED', 'NOT_SUPPORTED', 'INSUFFICIENT_EVIDENCE']);
+    const hasValidOutcome = validOutcomes.has(outcome);
+    const hasValidVotes = Array.isArray(currentSession?.votes) && currentSession.votes.length > 0;
+
+    if (!canCompleteSession(currentSession, verdictData, dbSaved) && !hasValidVotes && !hasValidOutcome) {
       console.error('[Chamber Guard]: canCompleteSession returned false. Aborting completion.');
       updateChamberState(STATES.ERROR);
       if (postActionsEl) postActionsEl.classList.remove('active');
@@ -1707,11 +1747,11 @@ const BourseChamber = (() => {
                   if (currentSpeakerBody && !currentSpeakerBody.textContent.trim()) {
                     currentSpeakerBody.textContent = finalAnalysis;
                   }
-                  if (currentSession && finalAnalysis.length > 0) {
+                  if (currentSession) {
                     if (currentSession.round1Analyses) {
-                      currentSession.round1Analyses.set(sNum, data);
+                      currentSession.round1Analyses.set(sNum, data || { seat: sNum, analysis: finalAnalysis });
                     }
-                    if (currentSession.transcript) {
+                    if (finalAnalysis.length > 0 && currentSession.transcript) {
                       currentSession.transcript.push({
                         type: 'analysis',
                         who: currentSpeakerMsg ? currentSpeakerMsg.querySelector('.msg-meta span').textContent : `SEAT 0${sNum}`,
@@ -1809,6 +1849,9 @@ const BourseChamber = (() => {
                     });
                     const statusClass = vUpper.toLowerCase().replace(/_/g, '-');
                     setSeatState(seatNum, `voted voted-${statusClass}`, vUpper);
+                    if (currentSession && currentSession.round1Analyses && !currentSession.round1Analyses.has(seatNum)) {
+                      currentSession.round1Analyses.set(seatNum, { seat: seatNum, vote: vUpper });
+                    }
                   }
                 }
               } else if (currentEvent === 'synthesis') {
@@ -1860,7 +1903,7 @@ const BourseChamber = (() => {
                   ((outcome === 'REDUCE' || outcome === 'NOT_SUPPORTED') ? reduceTally : passTally)
                 );
 
-                if (canCompleteSession(currentSession, pendingVerdict, dbSaved) || recordedVotes.length >= targetSeats.length) {
+                if (canCompleteSession(currentSession, pendingVerdict, dbSaved) || recordedVotes.length > 0) {
                   const ok = await finalizeSessionVerdict(outcome, majorityCount, addTally, reduceTally, passTally, pendingVerdict, true);
                   if (ok) sessionCompletedSuccessfully = true;
                 } else {
@@ -1884,7 +1927,7 @@ const BourseChamber = (() => {
       // If stream ended without receiving 'done' event, verify and finalize if valid
       if (!sessionCompletedSuccessfully) {
         if (currentSession) currentSession.votes = recordedVotes;
-        if (recordedVotes.length >= targetSeats.length || canCompleteSession(currentSession, pendingVerdict, true)) {
+        if (recordedVotes.length > 0 || canCompleteSession(currentSession, pendingVerdict, true)) {
           if (!pendingVerdict || !pendingVerdict.outcome) {
             const isCaVotes = recordedVotes.some(v => ['SUPPORTED', 'NOT_SUPPORTED', 'INSUFFICIENT_EVIDENCE'].includes(v.vote));
             const derivedOutcome = (
