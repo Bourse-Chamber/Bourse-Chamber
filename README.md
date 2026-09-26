@@ -16,7 +16,7 @@
 [![Runtime](https://img.shields.io/badge/Runtime-Next.js%20%C2%B7%20Node.js%20%C2%B7%20TypeScript-E9E4D6?style=flat-square&labelColor=0A0A0A)](#-tech-stack)
 [![Tests](https://img.shields.io/badge/Tests-58%2F58%20Passing%20(100%25)-38C172?style=flat-square&logo=node.js&logoColor=white&labelColor=0A0A0A)](#-testing--quality-assurance)
 [![Aesthetic](https://img.shields.io/badge/Aesthetic-Monochrome%20Brutalist-E0A82E?style=flat-square&labelColor=0A0A0A)](#-visual-language--design-system)
-[![X (Twitter)](https://img.shields.io/badge/X-@BourseChamber-000000?style=flat-square&logo=x&logoColor=white)](https://x.com)
+[![X (Twitter)](https://img.shields.io/badge/X-@BourseChamber-000000?style=flat-square&logo=x&logoColor=white)](https://x.com/boursechamber)
 [![GitHub](https://img.shields.io/badge/GitHub-davitzarly%2FBourse--Chamber-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/davitzarly/Bourse-Chamber)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square&labelColor=0A0A0A)](#-license--disclaimers)
 

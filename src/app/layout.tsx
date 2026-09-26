@@ -93,7 +93,7 @@ export default function RootLayout({
               Ledger
             </a>
             <a
-              href="https://x.com"
+              href="https://x.com/boursechamber"
               target="_blank"
               rel="noopener noreferrer"
               style={{
