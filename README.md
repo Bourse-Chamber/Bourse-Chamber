@@ -6,12 +6,12 @@
 
 **Sovereign Multi-Agent AI Investment Council & Deliberation Floor for Digital Assets**
 
-🌐 **Live Application:** [https://bourse-chamber.vercel.app](https://bourse-chamber.vercel.app)
+🌐 **Live Application:** [https://www.boursechamber.tech](https://www.boursechamber.tech)
 
 *Nine crypto architects. One market that refuses to behave. Permanent unalterable verdict ledger.*
 
-[![Live Site](https://img.shields.io/badge/Website-bourse--chamber.vercel.app-000000?style=flat-square&logo=vercel&logoColor=white)](https://bourse-chamber.vercel.app)
-[![Council](https://img.shields.io/badge/Council-9%20Crypto%20Architects-FFFFFF?style=flat-square&labelColor=000000)](https://bourse-chamber.vercel.app/crypto-bench)
+[![Live Site](https://img.shields.io/badge/Website-boursechamber.tech-000000?style=flat-square&logo=vercel&logoColor=white)](https://www.boursechamber.tech)
+[![Council](https://img.shields.io/badge/Council-9%20Crypto%20Architects-FFFFFF?style=flat-square&labelColor=000000)](https://www.boursechamber.tech/crypto-bench)
 [![Standard](https://img.shields.io/badge/Standard-TOKEN__CA%20%C2%B7%20Supermajority-38C172?style=flat-square&labelColor=0A0A0A)](#-the-deliberation-engine--token_ca-rubric)
 [![Runtime](https://img.shields.io/badge/Runtime-Next.js%20%C2%B7%20Node.js%20%C2%B7%20TypeScript-E9E4D6?style=flat-square&labelColor=0A0A0A)](#-tech-stack)
 [![Tests](https://img.shields.io/badge/Tests-58%2F58%20Passing%20(100%25)-38C172?style=flat-square&logo=node.js&logoColor=white&labelColor=0A0A0A)](#-testing--quality-assurance)
@@ -24,7 +24,7 @@
 
 ---
 
-**Bourse Chamber** ([bourse-chamber.vercel.app](https://bourse-chamber.vercel.app)) is an institutional-grade, multi-agent AI deliberation platform designed for digital asset governance and crypto investment intelligence.
+**Bourse Chamber** ([www.boursechamber.tech](https://www.boursechamber.tech)) is an institutional-grade, multi-agent AI deliberation platform designed for digital asset governance and crypto investment intelligence.
 
 Instead of relying on single-prompt black-box LLMs, Bourse Chamber convenes an unyielding floor of **nine canonical crypto architects, founders, and economic theorists**. The council puts any crypto asset, narrative thesis, or token contract address (`TOKEN_CA`) through structured, adversarial multi-round debate — concluding in immutable, on-the-record roll-call votes archived in a permanent **Verdict Ledger**.
 
